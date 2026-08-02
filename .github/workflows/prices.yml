@@ -12,17 +12,29 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 데이터 수집
         run: |
           python3 << 'EOF'
-          import urllib.request, csv, io, json, math, time, datetime
+          import urllib.request, csv, io, json, math, time, datetime, os
 
-          TICKERS = """SOLT ETHU DPST RAM LABU BITX GDXU LMBO YINN RETL NAIL URAA
+          BASE = """SOLT ETHU DPST RAM LABU BITX GDXU LMBO YINN RETL NAIL URAA
           JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
           GUSH UTSL TECL WANT DRN EDC QQQU AGQ DUSL AIBU EURL FAS TMF CURE UBOT
           CHAU ERX UDOW TYD UGL SOXL""".split()
+
+          # tickers.txt — 개별주식 등 직접 추가한 티커 (한 줄에 하나, # 뒤는 메모)
+          EXTRA = []
+          if os.path.exists('tickers.txt'):
+              for line in open('tickers.txt', encoding='utf-8'):
+                  t = line.split('#')[0].strip().upper()
+                  if t and t not in BASE and t not in EXTRA:
+                      EXTRA.append(t)
+          TICKERS = BASE + EXTRA
+          print(f'대상 {len(TICKERS)}종목 (기본 {len(BASE)} + 추가 {len(EXTRA)})')
+          if EXTRA:
+              print('추가 종목:', ' '.join(EXTRA))
 
           UA = {'User-Agent': 'Mozilla/5.0'}
 
@@ -56,6 +68,15 @@ jobs:
               except Exception as e:
                   print(f'  yahoo 실패 {tk}: {e}')
               return []
+
+          def maxdd(closes):
+              """보유 이력 전체에서 고점 대비 최대 하락폭 (%)"""
+              peak = closes[0]; worst = 0.0
+              for c in closes:
+                  if c > peak: peak = c
+                  d = c / peak - 1
+                  if d < worst: worst = d
+              return worst * 100
 
           def rsi(closes, period=14):
               """Wilder RSI"""
@@ -107,6 +128,7 @@ jobs:
                   'peak': round(peak, 2),
                   'dd1y': round((closes[-1]/peak1y - 1) * 100, 1),
                   'peak1y': round(peak1y, 2),
+                  'mddCalc': round(maxdd(closes), 1),
                   'bars': len(closes),
               }
               data[tk] = rec
@@ -120,7 +142,10 @@ jobs:
           }
           with open('data.json', 'w', encoding='utf-8') as f:
               json.dump(out, f, ensure_ascii=False, indent=1)
+          missing = [t for t in TICKERS if t not in data]
           print(f'\n완료 — {len(data)}/{len(TICKERS)}종목')
+          if missing:
+              print('실패:', ' '.join(missing))
           EOF
 
       - name: 커밋
