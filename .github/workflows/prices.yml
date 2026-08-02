@@ -72,14 +72,15 @@ jobs:
               return 100 - 100 / (1 + g / l)
 
           def sigma(closes, n=250):
-              """최근 n거래일 일간 변동성 (%). 250일=구조적, 60일=최근 국면"""
+              """최근 n거래일 일간 변동성 (%). 250일=구조적, 60일=최근 국면
+                 반환: (변동성, 사용한 수익률 개수)"""
               c = closes[-(n+1):]
               if len(c) < 21:
-                  return None
+                  return None, 0
               r = [math.log(c[i]/c[i-1]) for i in range(1, len(c)) if c[i-1] > 0]
               m = sum(r) / len(r)
               v = sum((x-m)**2 for x in r) / (len(r)-1)
-              return math.sqrt(v) * 100
+              return math.sqrt(v) * 100, len(r)
 
           data = {}
           for tk in TICKERS:
@@ -90,19 +91,26 @@ jobs:
               dates = [d for d, _ in h]
               closes = [c for _, c in h]
               peak = max(closes)
+              c1y = closes[-250:]
+              peak1y = max(c1y)
+              s1, sn1 = sigma(closes, 250)
+              s2, _   = sigma(closes, 60)
               rec = {
                   'price': round(closes[-1], 2),
                   'date': dates[-1],
                   'chg': round((closes[-1]/closes[-2] - 1) * 100, 2) if len(closes) > 1 else None,
                   'rsi': round(rsi(closes), 1) if rsi(closes) is not None else None,
-                  'sig': round(sigma(closes, 250), 2) if sigma(closes, 250) is not None else None,
-                  'sig60': round(sigma(closes, 60), 2) if sigma(closes, 60) is not None else None,
+                  'sig': round(s1, 2) if s1 is not None else None,
+                  'sigN': sn1,
+                  'sig60': round(s2, 2) if s2 is not None else None,
                   'dd': round((closes[-1]/peak - 1) * 100, 1),
                   'peak': round(peak, 2),
+                  'dd1y': round((closes[-1]/peak1y - 1) * 100, 1),
+                  'peak1y': round(peak1y, 2),
                   'bars': len(closes),
               }
               data[tk] = rec
-              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}% 전고점 {rec['dd']}%")
+              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}%")
               time.sleep(0.4)
 
           out = {
