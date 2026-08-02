@@ -2,9 +2,17 @@
 # 한 줄에 하나씩, # 뒤는 메모로 무시됩니다.
 # 저장하면 다음 워크플로 실행부터 종가·RSI·변동성이 함께 수집됩니다.
 
-TSLA      # 테슬라
-PLTR      # 팔란티어
-MSTR      # 마이크로스트래티지
+EOSE
+IREN
+PATH
 RKLB
-SPCX
+RIVN
 IONQ
+OPEN
+JOBY
+UUUU
+TTD
+DXYZ
+DKNG
+HIMS
+RBLX
