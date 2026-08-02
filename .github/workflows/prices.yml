@@ -1,0 +1,124 @@
+name: 종가 수집
+
+on:
+  schedule:
+    - cron: '0 2 * * 2-6'    # 화~토 02:00 UTC = 한국 11:00 (전날 미국 종가)
+  workflow_dispatch:           # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 데이터 수집
+        run: |
+          python3 << 'EOF'
+          import urllib.request, csv, io, json, math, time, datetime
+
+          TICKERS = """SOLT ETHU DPST RAM LABU BITX GDXU LMBO YINN RETL NAIL URAA
+          JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
+          GUSH UTSL TECL WANT DRN EDC QQQU AGQ DUSL AIBU EURL FAS TMF CURE UBOT
+          CHAU ERX UDOW TYD UGL SOXL""".split()
+
+          UA = {'User-Agent': 'Mozilla/5.0'}
+
+          def get_csv(url):
+              req = urllib.request.Request(url, headers=UA)
+              with urllib.request.urlopen(req, timeout=25) as r:
+                  return r.read().decode('utf-8', 'replace')
+
+          def history(tk):
+              """일봉 종가 리스트 반환 (오래된 순). Stooq → 실패 시 Yahoo"""
+              try:
+                  txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d')
+                  rows = list(csv.DictReader(io.StringIO(txt)))
+                  out = [(r['Date'], float(r['Close'])) for r in rows if r.get('Close') not in (None, '', 'N/A')]
+                  if len(out) >= 30:
+                      return out
+              except Exception as e:
+                  print(f'  stooq 실패 {tk}: {e}')
+              try:
+                  url = (f'https://query1.finance.yahoo.com/v8/finance/chart/{tk}'
+                         '?range=5y&interval=1d')
+                  req = urllib.request.Request(url, headers=UA)
+                  with urllib.request.urlopen(req, timeout=25) as r:
+                      j = json.load(r)
+                  res = j['chart']['result'][0]
+                  ts = res['timestamp']
+                  cl = res['indicators']['quote'][0]['close']
+                  out = [(datetime.date.fromtimestamp(t).isoformat(), c)
+                         for t, c in zip(ts, cl) if c is not None]
+                  return out
+              except Exception as e:
+                  print(f'  yahoo 실패 {tk}: {e}')
+              return []
+
+          def rsi(closes, period=14):
+              """Wilder RSI"""
+              if len(closes) < period + 1:
+                  return None
+              d = [closes[i] - closes[i-1] for i in range(1, len(closes))]
+              g = sum(x for x in d[:period] if x > 0) / period
+              l = sum(-x for x in d[:period] if x < 0) / period
+              for x in d[period:]:
+                  g = (g * (period-1) + max(x, 0)) / period
+                  l = (l * (period-1) + max(-x, 0)) / period
+              if l == 0:
+                  return 100.0
+              return 100 - 100 / (1 + g / l)
+
+          def sigma(closes, n=250):
+              """최근 n거래일 일간 변동성 (%). 250일=구조적, 60일=최근 국면"""
+              c = closes[-(n+1):]
+              if len(c) < 21:
+                  return None
+              r = [math.log(c[i]/c[i-1]) for i in range(1, len(c)) if c[i-1] > 0]
+              m = sum(r) / len(r)
+              v = sum((x-m)**2 for x in r) / (len(r)-1)
+              return math.sqrt(v) * 100
+
+          data = {}
+          for tk in TICKERS:
+              h = history(tk)
+              if not h:
+                  print(f'{tk}: 데이터 없음')
+                  continue
+              dates = [d for d, _ in h]
+              closes = [c for _, c in h]
+              peak = max(closes)
+              rec = {
+                  'price': round(closes[-1], 2),
+                  'date': dates[-1],
+                  'chg': round((closes[-1]/closes[-2] - 1) * 100, 2) if len(closes) > 1 else None,
+                  'rsi': round(rsi(closes), 1) if rsi(closes) is not None else None,
+                  'sig': round(sigma(closes, 250), 2) if sigma(closes, 250) is not None else None,
+                  'sig60': round(sigma(closes, 60), 2) if sigma(closes, 60) is not None else None,
+                  'dd': round((closes[-1]/peak - 1) * 100, 1),
+                  'peak': round(peak, 2),
+                  'bars': len(closes),
+              }
+              data[tk] = rec
+              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}% 전고점 {rec['dd']}%")
+              time.sleep(0.4)
+
+          out = {
+              'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
+              'count': len(data),
+              'data': data,
+          }
+          with open('data.json', 'w', encoding='utf-8') as f:
+              json.dump(out, f, ensure_ascii=False, indent=1)
+          print(f'\n완료 — {len(data)}/{len(TICKERS)}종목')
+          EOF
+
+      - name: 커밋
+        run: |
+          git config user.name  "github-actions"
+          git config user.email "actions@github.com"
+          git add data.json
+          git diff --staged --quiet || git commit -m "종가 갱신 $(date -u +%Y-%m-%d)"
+          git push
