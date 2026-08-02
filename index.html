@@ -142,7 +142,7 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 <body>
 
 <div class="top">
-  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.2</span></div>
+  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.4</span></div>
   <div class="hrow">
     <div>
       <div class="headline">최소 시드 · 최적 시드</div>
@@ -159,7 +159,7 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
   <div class="hcard">
     <h4>시드를 정하는 값</h4>
     <div class="hitem"><div class="hterm">변동성 σ</div>
-      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. <b>실제 종가로 계산한 1년치를 쓴다.</b> 마스터 자료의 σ는 절반이 추정치라 참고로만 표시한다.</div></div>
+      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. 매일 받아오는 종가로 다시 계산하며, <b>1칸 주수는 1년치에서 나온다.</b> 60일치는 지금 국면이 평소와 다른지 보는 참고값이다.</div></div>
     <div class="hitem"><div class="hterm">1칸 주수 · 칸 간격</div>
       <div class="hdef">1칸 주수는 1회 매수금으로 살 수 있는 주식 수이고, 칸 간격은 다음 칸까지 떨어져야 하는 폭이다. 간격 = 1 ÷ (1칸주수 + 1)이며 σ의 약 1.75배에 맞춘다. LOC는 하루 한 번만 체결되므로 하루 변동폭보다 좁으면 낭비, 두 배보다 넓으면 주문이 안 걸린다.<br><br>주가가 올라도 시드가 같은 비율로 커지므로 1칸 주수는 유지된다. 다만 <b>σ가 0.3%p쯤 움직이면 한 주씩 바뀐다.</b> 이미 돌리는 사다리는 바꾸지 않고, 새 숫자는 새 진입에만 쓴다.</div></div>
     <div class="hitem"><div class="hterm">소진 낙폭</div>
@@ -379,7 +379,10 @@ function cautions(r,L,live){
   if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
   if(lq<=2) c.push(['유동성 '+lqName(lq),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
   if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 1칸 주수를 그대로 믿기 어렵습니다.']);
-  if(!live) c.push(['종가 미수집','자동 수집에 실패해 마스터 σ '+sigMaster.toFixed(1)+'%로 1칸 '+nMaster+'주를 계산했습니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없어 임의 추정치입니다.':'')]);
+  if(!live){
+    const why = (L&&L.price) ? 'σ를 낼 만큼 종가 이력이 쌓이지 않았습니다(21일 미만).' : '종가 자동 수집에 실패했습니다.';
+    c.push(['실측 σ 없음', why+' 마스터 자료의 '+sigMaster.toFixed(1)+'%로 1칸 '+nMaster+'주를 계산했습니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없는 임의 추정치라 특히 신뢰하기 어렵습니다.':'')]);
+  }
   return c;
 }
 const lqName=x=>['','매우나쁨','나쁨','보통','좋음','매우좋음'][x];
@@ -479,9 +482,7 @@ function render(){
 
         <div class="dlbl">종목 성격</div>
         <div class="info">
-          <div><span>변동성</span><span class="num">${sig.toFixed(1)}% <span class="est">${live?'실측 1년':'마스터'} · SOXL의 ${(sig/SOXL_SIG).toFixed(1)}배</span></span></div>
-          ${live&&L.sig60!=null?`<div><span>최근 변동성</span><span class="num">${L.sig60}% <span class="est">60일</span></span></div>`:''}
-          ${live?`<div><span>마스터 σ</span><span class="num">${sigMaster.toFixed(1)}%${sigEst?' <span class="est">추정</span>':''} <span class="est">참고${nMaster!==n?` · 이 값이면 1칸 ${nMaster}주`:''}</span></span></div>`:''}
+          <div><span>변동성</span><span class="num">${live?`${L.sig60!=null?L.sig60+'%':'—'} <span class="est">60일</span> · ${L.sig}% <span class="est">1년</span>`:`${sig.toFixed(1)}% <span class="est">마스터</span>`}</span></div>
           <div><span>최대낙폭</span><span class="num">${mdd?('−'+mdd.toFixed(1)+'%'+(mddEst?' <span class="est">추정</span>':'')):'미검증'}</span></div>
           <div><span>회복 여부</span><span><span class="rec ${RECCLS[cd[0]]||'r-none'}">${cd[0]}</span></span></div>
           <div><span>유동성</span><span><span class="lq q${lq}">${lqName(lq)}</span></span></div>
