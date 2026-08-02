@@ -142,7 +142,7 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 <body>
 
 <div class="top">
-  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.1</span></div>
+  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.2</span></div>
   <div class="hrow">
     <div>
       <div class="headline">최소 시드 · 최적 시드</div>
@@ -411,14 +411,14 @@ function render(){
   const el=document.getElementById('list');
   if(!vis.length){el.innerHTML='<div class="empty">이 시나리오에 해당하는 종목이 없어요.</div>';return;}
 
+  try{
   el.innerHTML=vis.map(({r,p})=>{
     const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,sigEst,mdd,mddEst,corr,warns]=r;
-    const n=nOf(tk,nMaster), sig=sigOf(tk,sigMaster), live=!!(LIVE[tk]&&LIVE[tk].sig!=null);
+    const L=LIVE[tk];
+    const n=nOf(tk,nMaster), sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
     const caut=cautions(r,L||{},live);
     const op=st.open===tk, cd=C[tk]||['—','—','정보 없음',[]];
     const lo=p?seedFor(p,n,DIV_MIN):null, hi=p?seedFor(p,n,DIV_OPT):null;
-
-    const L=LIVE[tk];
     const rsiCls=L&&L.rsi!=null?(L.rsi>=70?'hot':L.rsi<=30?'cold':'rs'):'rs';
     const mline=L?`<div class="mline">
         <span>$${L.price}</span>
@@ -506,6 +506,11 @@ function render(){
         <div class="scen">${cd[3].map(x=>`<span class="stag">${x}</span>`).join('')}</div>`:''}
       </div>
     </div>`;}).join('');
+  }catch(err){
+    el.innerHTML='<div class="empty">화면을 그리는 중 문제가 생겼어요.<br><span style="color:var(--bad)">'
+      +err.message+'</span></div>';
+    return;
+  }
 
   el.querySelectorAll('.rmain').forEach(m=>m.onclick=()=>{
     const tk=m.parentElement.dataset.tk;
