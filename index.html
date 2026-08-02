@@ -5,150 +5,200 @@
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>진입 후보</title>
+<title>Screener</title>
 <style>
 :root{
-  --bg:#0D1017;--s1:#171C26;--s2:#212734;--bd:#2E3542;--bd2:#414A5C;
-  --ink:#EDF1F7;--ink2:#96A0B2;--ink3:#646E80;
-  --on:#7C8CF8;--onDim:#3D4680;
-  --warn:#E8B44A;--bad:#FF5165;
+  --bg:#0B0E14;--s1:#141922;--s2:#1B212C;--s3:#232A37;
+  --bd:#242B37;--bd2:#333B4A;
+  --ink:#F0F3F8;--ink2:#9AA4B6;--ink3:#616B7C;
+  --on:#7C8CF8;--onDim:#2E3663;
+  --up:#4FBF8C;--dn:#FF6B7D;--warn:#E8B44A;
   --fs:1;
-  --f1:calc(10px*var(--fs));   /* 라벨 · 배지 */
-  --f2:calc(11.5px*var(--fs)); /* 캡션 */
-  --f3:calc(12.5px*var(--fs)); /* 본문 · 값 */
-  --f4:calc(15px*var(--fs));   /* 티커 */
-  --f5:calc(19px*var(--fs));   /* 제목 */
+  --f1:calc(10px*var(--fs));
+  --f2:calc(11.5px*var(--fs));
+  --f3:calc(13px*var(--fs));
+  --f4:calc(15px*var(--fs));
+  --f5:calc(17px*var(--fs));
+  --f6:calc(23px*var(--fs));
   --mono:ui-monospace,'SF Mono',Menlo,Consolas,'Roboto Mono',monospace;
   --sans:system-ui,-apple-system,'Apple SD Gothic Neo',Roboto,'Noto Sans KR','Malgun Gothic',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);padding-bottom:52px;font-size:var(--f3)}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:var(--f3);
+     padding-bottom:56px;font-variant-numeric:tabular-nums}
 input,select,button{font-family:inherit}
+.mono{font-family:var(--mono)}
 
-.top{position:sticky;top:0;z-index:50;background:rgba(13,16,23,.96);backdrop-filter:blur(12px);
-     border-bottom:1px solid var(--bd);padding:14px 16px 12px}
-.eyebrow{font-size:var(--f1);letter-spacing:.18em;color:var(--ink3);font-weight:600;margin-bottom:9px;
-         display:flex;justify-content:space-between}
-.ver{color:var(--onDim)}
-.hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-.headline{font-size:var(--f5);font-weight:600;letter-spacing:-.01em;margin-bottom:4px}
-.subline{font-size:var(--f2);color:var(--ink3);font-family:var(--mono)}
-.helpbtn{background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:7px;
-         padding:6px 12px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
-.helpbtn.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
-
-.fsz{display:flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden}
-.fsz button{background:var(--s1);border:none;color:var(--ink3);padding:6px 10px;
+/* ── 헤더 ── */
+.top{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.97);backdrop-filter:blur(14px);
+     border-bottom:1px solid var(--bd);padding:15px 16px 13px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-size:var(--f5);font-weight:600;letter-spacing:.16em}
+.brand em{font-style:normal;color:var(--ink3)}
+.stamp{font-size:var(--f2);color:var(--ink3);font-family:var(--mono);margin-top:4px}
+.tools{display:flex;gap:7px;flex-shrink:0}
+.fsz{display:flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.fsz button{background:var(--s1);border:none;color:var(--ink3);padding:7px 11px;
             font-size:var(--f2);cursor:pointer;line-height:1}
 .fsz button+button{border-left:1px solid var(--bd)}
-.fsz button:active{background:var(--s2)}
-.help{display:none;padding:4px 16px 20px}
+.helpbtn{background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:8px;
+         padding:7px 13px;font-size:var(--f2);cursor:pointer}
+.helpbtn.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
+
+/* ── 용어 ── */
+.help{display:none;padding:6px 16px 18px}
 .help.show{display:block}
-.hcard{background:var(--s1);border:1px solid var(--bd);border-radius:11px;padding:16px 17px;margin-top:10px}
-.hcard h4{font-size:var(--f1);letter-spacing:.13em;color:var(--ink3);font-weight:600;margin-bottom:11px}
-.hitem{padding:9px 0;border-bottom:1px solid var(--s2)}
+.hcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+       padding:15px 16px;margin-top:9px}
+.hcard h4{font-size:var(--f1);letter-spacing:.16em;color:var(--on);font-weight:700;margin-bottom:12px}
+.hitem{padding:10px 0;border-bottom:1px solid var(--s2)}
 .hitem:last-child{border-bottom:none;padding-bottom:0}
-.hterm{font-size:var(--f3);font-weight:500;color:var(--ink);margin-bottom:3px}
-.hdef{font-size:var(--f3);color:var(--ink2);line-height:1.8}
-.hdef code{font-family:var(--mono);font-size:.92em;color:var(--ink);background:var(--s2);
-           padding:1px 5px;border-radius:4px}
+.hterm{font-size:var(--f3);color:var(--ink);margin-bottom:3px}
+.hdef{font-size:var(--f3);color:var(--ink2);line-height:1.85}
+.hdef code,.hdef b{font-family:var(--mono);color:var(--ink);font-weight:400}
+.hdef b{font-family:var(--sans);font-weight:600}
 
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:11px 16px;scrollbar-width:none;
-      border-bottom:1px solid var(--bd)}
+/* ── 필터 ── */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 16px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:7px;
-     padding:6px 12px;font-size:var(--f2);white-space:nowrap;cursor:pointer}
-.tab.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
+.tab{background:transparent;border:1px solid var(--bd);color:var(--ink3);border-radius:20px;
+     padding:6px 13px;font-size:var(--f2);white-space:nowrap;cursor:pointer}
+.tab.on{background:var(--on);border-color:var(--on);color:#0B0E14;font-weight:600}
+.bar{display:flex;justify-content:space-between;align-items:center;
+     padding:2px 16px 12px;font-size:var(--f2);color:var(--ink3)}
+.sortsel{background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:7px;
+         padding:6px 9px;font-size:var(--f2);outline:none}
 
-.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:var(--f2)}
-.sortsel{background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:6px;
-         padding:5px 8px;font-size:var(--f2);outline:none}
-
+/* ── 목록 ── */
 .list{padding:0 12px}
-.row{background:var(--s1);border:1px solid var(--bd);border-radius:11px;margin-bottom:8px;overflow:hidden}
-.row.open{border-color:var(--bd2)}
-.rmain{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
-.tk{font-family:var(--mono);font-size:var(--f4);font-weight:600}
-.lev{font-size:var(--f1);color:var(--ink3);margin-left:6px;font-weight:500}
-.sub{font-size:var(--f2);color:var(--ink3);margin-top:3px;white-space:nowrap;overflow:hidden;
-     text-overflow:ellipsis;max-width:150px}
-.right{text-align:right;flex-shrink:0}
-.two{display:flex;gap:14px;align-items:baseline;justify-content:flex-end}
-.sv{font-family:var(--mono);font-size:var(--f3);font-weight:600;color:var(--ink)}
-.sl{font-size:var(--f1);color:var(--ink3);letter-spacing:.05em;margin-top:2px}
+.row{background:var(--s1);border:1px solid var(--bd);border-radius:13px;
+     margin-bottom:9px;overflow:hidden}
+.row.open{border-color:var(--bd2);background:var(--s1)}
+.rmain{display:flex;justify-content:space-between;align-items:center;
+       gap:14px;padding:14px 15px;cursor:pointer}
+.rl{min-width:0;flex:1}
+.rtop{display:flex;align-items:baseline;gap:8px}
+.tk{font-family:var(--mono);font-size:var(--f4);font-weight:600;letter-spacing:.02em}
+.lev{font-size:var(--f1);color:var(--ink3)}
+.nm{font-size:var(--f2);color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.met{display:flex;gap:10px;margin-top:6px;font-family:var(--mono);
+     font-size:var(--f2);color:var(--ink3);flex-wrap:wrap}
+.met .g{color:var(--up)}.met .r{color:var(--dn)}.met .w{color:var(--warn)}
+.rr{text-align:right;flex-shrink:0}
+.rr .a{font-family:var(--mono);font-size:var(--f4);font-weight:600;color:var(--ink)}
+.rr .b{font-family:var(--mono);font-size:var(--f3);color:var(--ink2);margin-top:2px}
+.rr .k{font-size:var(--f1);color:var(--ink3);letter-spacing:.08em;margin-top:3px}
 .nopx{font-size:var(--f2);color:var(--ink3)}
 
-.det{display:none;padding:0 14px 16px;border-top:1px solid var(--bd)}
+/* ── 상세 ── */
+.det{display:none;padding:0 15px 18px;border-top:1px solid var(--bd)}
 .row.open .det{display:block}
-.dlbl{font-size:var(--f1);letter-spacing:.13em;color:var(--ink3);font-weight:600;margin:16px 0 8px}
-.pxedit{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--bd2);
-        border-radius:8px;padding:9px 12px}
-.pxedit input{background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--mono);
-              font-size:var(--f4);width:100%;font-weight:500}
+.sec{display:flex;align-items:center;gap:10px;margin:20px 0 10px}
+.sec span{font-size:var(--f1);letter-spacing:.18em;color:var(--ink3);
+          font-weight:700;flex-shrink:0}
+.sec i{flex:1;height:1px;background:var(--bd);display:block}
 
-.grid{background:var(--s2);border:1px solid var(--bd2);border-radius:9px;padding:12px 14px}
-.grow{display:flex;justify-content:space-between;font-size:var(--f3);padding:5px 0;color:var(--ink2)}
-.grow b{font-family:var(--mono);color:var(--ink);font-weight:500}
-.seedtbl{margin-top:9px;border-top:1px solid var(--bd2);padding-top:9px}
-.srow{display:flex;align-items:baseline;gap:10px;padding:8px 0;font-size:var(--f3)}
-.srow+.srow{border-top:1px solid #262D3A}
-.snm{width:34px;color:var(--ink3);font-size:var(--f2);flex-shrink:0}
-.sdiv{width:52px;color:var(--ink2);font-family:var(--mono);font-size:var(--f2);flex-shrink:0}
-.samt{flex:1;font-family:var(--mono);font-size:var(--f3);font-weight:600;color:var(--ink)}
-.sdep{font-family:var(--mono);font-size:var(--f3);color:var(--warn)}
-.gnote{font-size:var(--f2);color:var(--ink3);line-height:1.75;margin-top:10px}
+/* 시세 스탯바 */
+.px{display:flex;background:var(--s2);border-radius:11px;overflow:hidden}
+.px>div{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--bg)}
+.px>div:last-child{border-right:none}
+.pk{font-size:var(--f1);color:var(--ink3);margin-bottom:4px}
+.pv{font-family:var(--mono);font-size:var(--f3);color:var(--ink)}
+.ps{font-family:var(--mono);font-size:var(--f2);color:var(--ink3);margin-top:2px}
+.pv.g{color:var(--up)}.pv.r{color:var(--dn)}.pv.w{color:var(--warn)}
 
-/* 타입 스케일 — 라벨 10 · 캡션 11.5 · 본문 12.5 · 배지 10 */
-.info{font-size:var(--f3);line-height:1.8;color:var(--ink2)}
-.info>div{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #1D232E}
-.info>div:last-child{border-bottom:none}
-.info span:first-child{color:var(--ink3);flex-shrink:0;width:72px;font-size:var(--f2);padding-top:1px}
-.num{font-family:var(--mono)}
-.est{color:var(--ink3);font-size:var(--f2)}
-a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom:1px solid var(--onDim)}
-.lq,.rec,.stag{font-size:var(--f1);font-weight:600;white-space:nowrap}
-.lq{padding:2px 7px;border-radius:4px}
-.q5{background:#153A2A;color:#5BD9A0}.q4{background:#1A3326;color:#4FBF8C}
-.q3{background:#33301A;color:#D6B44E}.q2{background:#3A2A1A;color:#E0954A}
-.q1{background:#3A1E1E;color:#FF7A7A}
-.rec{padding:2px 7px;border-radius:4px}
-.r-ok{background:#153A2A;color:#5BD9A0}.r-part{background:#1E3340;color:#6FC0E0}
-.r-no{background:#3A1E1E;color:#FF7A7A}.r-new{background:#33301A;color:#D6B44E}
-.r-none{background:var(--s2);color:var(--ink3)}
+/* 시드 히어로 */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);
+      border-radius:11px;overflow:hidden}
+.hero>div{background:var(--s2);padding:14px 15px}
+.hk{font-size:var(--f1);color:var(--ink3);letter-spacing:.12em}
+.hv{font-family:var(--mono);font-size:var(--f6);font-weight:600;
+    letter-spacing:-.025em;margin:5px 0 3px;line-height:1.1}
+.hs{font-family:var(--mono);font-size:var(--f2);color:var(--warn)}
+.rung{background:var(--s2);border-radius:11px;margin-top:8px;padding:11px 15px;
+      display:flex;justify-content:space-between;font-family:var(--mono);
+      font-size:var(--f2);color:var(--ink3);flex-wrap:wrap;gap:8px}
+.rung b{color:var(--ink2);font-weight:400}
+.gnote{background:var(--s2);border-radius:11px;padding:14px 15px;
+       font-size:var(--f2);color:var(--ink3);line-height:1.7}
 
-.desc{font-size:var(--f3);line-height:1.85;color:var(--ink2);background:var(--s2);
-      border:1px solid var(--bd);border-radius:9px;padding:13px 15px}
-.mline{display:flex;gap:9px;align-items:center;padding:0 14px 11px;font-size:var(--f2);
-       color:var(--ink3);font-family:var(--mono);flex-wrap:wrap}
-.mline .rs{color:var(--ink2)}
-.mline .hot{color:var(--warn)}
-.mline .cold{color:var(--on)}
-.auto{font-size:var(--f2);color:var(--ink3);margin-left:auto;flex-shrink:0}
-.autobtn{background:transparent;border:1px solid var(--bd2);color:var(--ink3);border-radius:6px;
-         padding:4px 9px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
-.caut{display:flex;flex-direction:column;gap:0}
-.caut>div{padding:9px 0;border-bottom:1px solid #1D232E}
-.caut>div:last-child{border-bottom:none}
+/* 성격 스펙 그리드 */
+.spec{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);
+      border-radius:11px;overflow:hidden}
+.spec>div{background:var(--s2);padding:10px 13px;min-width:0}
+.spec>div.wide{grid-column:1/-1}
+.sk{font-size:var(--f1);color:var(--ink3);margin-bottom:4px}
+.sv{font-size:var(--f3);color:var(--ink);word-break:break-word}
+.sv .u{font-family:var(--mono)}
+.sv .q{font-size:var(--f2);color:var(--ink3)}
+.sv a{color:var(--on);text-decoration:none;font-family:var(--mono);
+      border-bottom:1px solid var(--onDim)}
+
+/* 오르내림 */
+.ud{display:flex;gap:10px;padding:9px 0;font-size:var(--f3);color:var(--ink2);line-height:1.7}
+.ud+.ud{border-top:1px solid var(--s2)}
+.ud i{font-style:normal;flex-shrink:0;font-size:var(--f2);width:14px}
+.ud i.u{color:var(--up)}.ud i.d{color:var(--dn)}
+
+.desc{font-size:var(--f3);line-height:1.9;color:var(--ink2)}
+.scen{display:flex;flex-wrap:wrap;gap:6px}
+.stag{font-size:var(--f2);padding:4px 10px;border-radius:20px;
+      background:var(--s2);color:var(--ink2)}
+
+/* 주의 */
+.caut>div{display:flex;gap:11px;padding:10px 0}
+.caut>div+div{border-top:1px solid var(--s2)}
+.caut i{font-style:normal;color:var(--warn);flex-shrink:0;font-size:var(--f2);line-height:1.85}
 .ct{font-size:var(--f3);color:var(--warn);margin-bottom:2px}
 .cd{font-size:var(--f3);color:var(--ink2);line-height:1.8}
-.scen{display:flex;flex-wrap:wrap;gap:5px}
-.stag{padding:3px 9px;border-radius:5px;background:var(--s2);
-      border:1px solid var(--bd2);color:var(--ink2)}
-.empty{text-align:center;color:var(--ink3);padding:44px 20px;font-size:var(--f3);line-height:1.8}
-.foot{padding:24px 18px;font-size:var(--f2);color:var(--ink3);line-height:1.9;text-align:center}
+
+/* 배지 */
+.bg{display:inline-block;font-size:var(--f2);padding:2px 9px;border-radius:6px;font-weight:600}
+.q5{background:#12331F;color:#5BD9A0}.q4{background:#16301E;color:#4FBF8C}
+.q3{background:#302C18;color:#D6B44E}.q2{background:#331F14;color:#E0954A}
+.q1{background:#331519;color:#FF7A7A}
+.r-ok{background:#12331F;color:#5BD9A0}.r-part{background:#182D38;color:#6FC0E0}
+.r-no{background:#331519;color:#FF7A7A}.r-new{background:#302C18;color:#D6B44E}
+.r-none{background:var(--s3);color:var(--ink3)}
+
+.pxedit{display:flex;align-items:center;gap:8px;background:var(--s2);
+        border-radius:11px;padding:11px 15px}
+.pxedit input{background:transparent;border:none;outline:none;color:var(--ink);
+              font-family:var(--mono);font-size:var(--f4);width:100%}
+.pxedit input::-webkit-outer-spin-button,.pxedit input::-webkit-inner-spin-button{
+  -webkit-appearance:none;margin:0}
+.autobtn{background:var(--s3);border:none;color:var(--ink3);border-radius:7px;
+         padding:5px 10px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
+.auto{font-size:var(--f2);color:var(--ink3);flex-shrink:0}
+
+.addbox{background:var(--s1);border:1px solid var(--bd);border-radius:13px;
+        padding:13px 14px;margin-bottom:10px}
+.addrow{display:flex;gap:7px}
+.addrow input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--bd2);
+              color:var(--ink);border-radius:8px;padding:9px 11px;font-size:var(--f3);outline:none}
+.addrow input:first-child{flex:0 0 33%;font-family:var(--mono);text-transform:uppercase}
+.addrow button{background:var(--on);border:none;color:#0B0E14;border-radius:8px;
+               padding:9px 15px;font-size:var(--f3);font-weight:600;cursor:pointer;flex-shrink:0}
+.addnote{font-size:var(--f2);color:var(--ink3);line-height:1.7;margin-top:9px}
+.addnote code{font-family:var(--mono);color:var(--ink2)}
+.del{background:transparent;border:1px solid var(--bd2);color:var(--ink3);
+     border-radius:8px;padding:8px 14px;font-size:var(--f2);cursor:pointer;width:100%}
+.empty{text-align:center;color:var(--ink3);padding:48px 20px;line-height:1.9}
+.foot{padding:26px 18px;font-size:var(--f2);color:var(--ink3);line-height:2;text-align:center}
 .foot code{font-family:var(--mono);color:var(--ink2)}
+.rst{margin-top:16px;background:transparent;border:1px solid var(--bd2);color:var(--ink3);
+     border-radius:8px;padding:8px 15px;font-size:var(--f2);cursor:pointer}
 </style>
 </head>
 <body>
 
 <div class="top">
-  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.4</span></div>
   <div class="hrow">
-    <div>
-      <div class="headline">최소 시드 · 최적 시드</div>
-      <div class="subline" id="stamp">12분할 = 최소 · 15분할 = 최적</div>
+    <div style="min-width:0">
+      <div class="brand">SCREENER</div>
+      <div class="stamp" id="stamp">수동 입력</div>
     </div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
+    <div class="tools">
       <div class="fsz" id="fsz"></div>
       <button class="helpbtn" id="helpbtn">용어</button>
     </div>
@@ -186,6 +236,8 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
       <div class="hdef">집중형은 상위 몇 종목이 지수를 좌우한다. 분산형은 종목 수가 많아 개별 기업 리스크가 작다. 동일가중은 모든 종목 비중이 비슷해 상위 종목을 봐도 의미가 적고, 업종 전체의 방향이 중요하다.</div></div>
     <div class="hitem"><div class="hterm">구성 조회</div>
       <div class="hdef">레버리지 ETF는 스왑으로 노출을 만들어 보유 내역에 개별 종목이 나오지 않는다. 같은 기초지수를 따르는 무레버리지 ETF의 티커를 누르면 최신 구성이 열린다.</div></div>
+    <div class="hitem"><div class="hterm">개별주식</div>
+      <div class="hdef">1배수 개별 종목도 같은 공식으로 시드를 낸다. 다만 지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있고, 실적 발표일에 갭이 크게 벌어진다. 시드를 지수보다 작게 잡는 편이 안전하다.<br><br>종가를 자동으로 받으려면 저장소의 <code>tickers.txt</code>에 티커를 한 줄씩 적는다. 앱에서만 추가하면 주가를 직접 넣어야 하고, 변동성은 임시 가정값이 쓰인다.</div></div>
     <div class="hitem"><div class="hterm">주의</div>
       <div class="hdef">종목마다 챙길 것을 맨 아래에 모아 둔다. 위 항목들의 뜻과 그 함의가 여기 적히므로, 표에는 값만 두고 설명은 이쪽에서 읽으면 된다.</div></div>
   </div>
@@ -201,9 +253,8 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 </div>
 
 <div class="tabs" id="tabs"></div>
-
 <div class="bar">
-  <span id="cnt" style="color:var(--ink3)"></span>
+  <span id="cnt"></span>
   <select class="sortsel" id="sort">
     <option value="need">최소 시드순</option>
     <option value="sig">변동성순</option>
@@ -218,21 +269,18 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 <div class="list" id="list"></div>
 
 <div class="foot">
-  최소 시드 = <code>주가 × 1칸주수 × 12</code> · 최적 시드 = <code>주가 × 1칸주수 × 15</code><br>
-  1칸주수 = <code>round(1 ÷ (1.75 × σ) − 1)</code> · 실측 σ 기준<br>
-  σ는 실제 종가로 매일 재계산 · 최대낙폭 · 구성 · 설명 출처: 레버리지 ETF 마스터
-  <br>
-  <button id="reset" style="margin-top:16px;background:transparent;border:1px solid var(--bd2);
-    color:var(--ink3);border-radius:7px;padding:7px 14px;font-size:var(--f2);cursor:pointer">
-    입력한 주가 · 설정 초기화</button>
+  최소 시드 = <code>주가 × 1칸주수 × 12</code><br>
+  최적 시드 = <code>주가 × 1칸주수 × 15</code><br>
+  1칸주수 = <code>round(1 ÷ (1.75 × σ) − 1)</code> · $100 단위 올림<br>
+  σ는 매일 받는 종가로 재계산 · 종목 정보 출처 레버리지 ETF 마스터
+  <br><button class="rst" id="reset">입력한 주가 · 설정 초기화</button>
 </div>
 
 <script>
-const KEY='scr_v8', DIV_MIN=12, DIV_OPT=15, SOXL_SIG=5.6;
+const KEY='scr_v10', DIV_MIN=12, DIV_OPT=15, SOXL_SIG=5.6;
 
-/* 종목 기본값
-   [0]티커 [1]이름 [2]배수 [3]유동성1-5 [4]참조ETF [5]상승 [6]하락 [7]기본주가
-   [8]1칸주수 [9]σ [10]σ추정 [11]최대낙폭(null=미검증) [12]낙폭추정 [13]SOXL상관 [14]경고 */
+/* 종목 기본값 [0]티커 [1]이름 [2]배수 [3]유동성 [4]참조ETF [5]상승 [6]하락
+   [7]기본주가 [8]마스터 1칸 [9]마스터 σ [10]σ추정 [11]최대낙폭 [12]낙폭추정 [13]SOXL상관 [14]경고 */
 const D=[
 ["TNA","러셀2000 소형주","3x",5,"IWM","금리 인하 · 경기 연착륙","금리 상승 · 신용 경색",null,13,4.1,0,86.5,0,"중간",[]],
 ["TMF","미국채 20년+","3x",4,"TLT","금리 하락 · 침체 우려","금리 상승 · 인플레 재점화",null,18,3,0,90,0,"낮음",["미회복"]],
@@ -282,8 +330,7 @@ const D=[
 ["LMBO","크립토 산업주","2x",2,"—","크립토 강세 · 거래량 증가","크립토 약세",null,9,6,1,null,0,"낮음",["이력 부족","유동성 낮음","변동성 미수록"]]
 ];
 
-/* 종목 카드 — 레버리지 ETF 마스터 04장
-   [0]회복 여부 [1]구성 [2]설명 [3]시나리오 */
+/* 종목 카드 [0]회복 [1]구성 [2]설명 [3]시나리오 */
 const C={
 TNA:['회복','2,000종목 분산 · 상위 편입 비중 각 1% 미만','미국 소형주 2,000개. 변동금리 부채 비중이 높아 금리 인하에 민감하게 반응하고, 리쇼어링·규제완화 같은 내수 정책의 수혜도 직접 받습니다. σ 4.1%에 유동성 최상위, 회복 이력까지 갖춘 드문 조합입니다. 개별 종목이 2,000개로 분산돼 있어 단일 기업 리스크가 거의 없다는 것도 장점입니다.',['금리 하락','경기 확장','골디락스','위험선호 확대','규제 완화 · 친기업','리쇼어링 · 제조업 회귀','달러 강세']],
 TMF:['미회복','실물·채권 · 미국 장기 국채','장기 국채 3배. 금리 하락에 가장 직접적으로 반응합니다. 2020년 8월 고점에서 2023년 10월까지 −90%를 맞고 아직 회복하지 못했습니다. 다만 채권은 만기가 있어서 주식과 회복 메커니즘이 다릅니다. 금리가 충분히 내려오면 가격은 수학적으로 복원되는 구조라, "미회복"을 주식과 같은 의미로 해석하면 안 됩니다. 대신 3배 일일 리밸런싱의 감마 손실은 그대로 남아서 장기 보유는 여전히 불리합니다.',['금리 하락','침체 · 방어','디스인플레이션','위험회피']],
@@ -333,42 +380,16 @@ SOLT:['이력부족','실물·채권 · 솔라나 선물','솔라나 2배. σ �
 LMBO:['—','—','마스터 자료에 카드가 없습니다. 변동성·최대낙폭 모두 미수록이므로 진입 전 직접 확인이 필요합니다.',[]],
 };
 
-const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력부족':'r-new'};
-const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
-
-let LIVE={}, STAMP=null;
-let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1};
-try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null};}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,
-  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs}));}catch(e){}};
-
-/* 주가 우선순위 — 수동 입력 > 자동 수집 > 내장 기본값 */
-const priceOf=t=>{const v=st.px[t];
-  if(v!==undefined&&v!==null&&v!=='')return parseFloat(v);
-  if(LIVE[t]&&LIVE[t].price)return LIVE[t].price;
-  const r=D.find(x=>x[0]===t);return r&&r[7]!==null?r[7]:null;};
-const isManual=t=>{const v=st.px[t];return v!==undefined&&v!==null&&v!=='';};
-const money=n=>'$'+Math.round(n).toLocaleString();
-const ceil100=x=>Math.ceil(x/100)*100;
-const seedFor=(p,n,div)=>ceil100(p*n*div);
-
-/* 실제 사다리 — 1회매수금에서 1칸주수를 역산해 검산 */
-function ladder(seed,div,P){
-  const unit=seed/div, p1=Math.round((P-0.01)*100)/100;
-  if(unit<p1)return null;
-  const n0=Math.max(1,Math.floor(unit/p1));
-  return {unit,n0,gap:100/(n0+1),depth:div/(div+n0+1)*100};
-}
-const nLive=sg=>Math.max(1,Math.round(1/(1.75*sg/100)-1));
-/* 1칸 주수 — 실측 σ 우선, 데이터 없으면 마스터 σ */
-const nOf=(tk,fallback)=>{const L=LIVE[tk];
-  return (L&&L.sig!=null)?nLive(L.sig):fallback;};
-const sigOf=(tk,fallback)=>{const L=LIVE[tk];
-  return (L&&L.sig!=null)?L.sig:fallback;};
-/* 주의 — 각 항목의 뜻과 함의를 한곳에 모은다 */
-function cautions(r,L,live){
+function cautions(r,L,live,cus){
   const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
   const c=[];
+  if(cus){
+    c.push(['개별 기업 위험','지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있습니다. 스위치법은 돌아오는 자산을 전제하므로, 지수보다 시드를 작게 잡는 편이 안전합니다.']);
+    c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
+    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정해 1칸 '+nMaster+'주로 계산한 값입니다. 시드 금액은 아직 참고용일 뿐입니다. 저장소의 tickers.txt에 '+tk+'을(를) 적고 워크플로를 돌리면 실제 값으로 바뀝니다.']);
+    if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 1칸 주수를 그대로 믿기 어렵습니다.']);
+    return c;
+  }
   if(!mdd) c.push(['최대낙폭 미검증','상장 이력이 짧아 실측 낙폭이 없습니다. 낙폭이 작다는 뜻이 아니라 모른다는 뜻입니다.']);
   else if(mddEst) c.push(['최대낙폭 추정','실측이 없어 배수별 대리값을 쓴 수치입니다.']);
   if(warns.includes('액면병합')) c.push(['액면병합 이력','병합 전후 주가가 이어지지 않아 장기 차트가 왜곡됩니다. 수정주가 기준인지 확인하세요.']);
@@ -387,20 +408,77 @@ function cautions(r,L,live){
 }
 const lqName=x=>['','매우나쁨','나쁨','보통','좋음','매우좋음'][x];
 
+const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력부족':'r-new'};
+const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
+
+let LIVE={}, STAMP=null;
+let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null};}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,
+  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs,cust:st.cust}));}catch(e){}};
+
+const priceOf=t=>{const v=st.px[t];
+  if(v!==undefined&&v!==null&&v!=='')return parseFloat(v);
+  if(LIVE[t]&&LIVE[t].price)return LIVE[t].price;
+  const r=D.find(x=>x[0]===t);return r&&r[7]!==null?r[7]:null;};
+const isManual=t=>{const v=st.px[t];return v!==undefined&&v!==null&&v!=='';};
+const money=n=>'$'+Math.round(n).toLocaleString();
+const ceil100=x=>Math.ceil(x/100)*100;
+const seedFor=(p,n,div)=>ceil100(p*n*div);
+const nLive=sg=>Math.max(1,Math.round(1/(1.75*sg/100)-1));
+const nOf=(tk,fb)=>{const L=LIVE[tk];return (L&&L.sig!=null)?nLive(L.sig):fb;};
+const sigOf=(tk,fb)=>{const L=LIVE[tk];return (L&&L.sig!=null)?L.sig:fb;};
+const sgn=v=>v>0?'g':v<0?'r':'';
+const KNOWN=new Set(D.map(r=>r[0]));
+/* 개별주식 — data.json에 있는 미등록 티커 + 앱에서 직접 추가한 티커 */
+function customRows(){
+  const set=new Set([...Object.keys(LIVE).filter(t=>!KNOWN.has(t)),
+                     ...Object.keys(st.cust||{})]);
+  return [...set].sort().map(tk=>[tk,(st.cust[tk]&&st.cust[tk].nm)||'개별주식','1x',0,
+    '—','—','—',null,13,4.0,1,null,0,'—',[]]);
+}
+const CUSTOM='개별주식';
+
+function ladder(seed,div,P){
+  const unit=seed/div, p1=Math.round((P-0.01)*100)/100;
+  if(unit<p1)return null;
+  const n0=Math.max(1,Math.floor(unit/p1));
+  return {unit,n0,gap:100/(n0+1),depth:div/(div+n0+1)*100};
+}
+
+function bindAdd(){
+  const b=document.getElementById('cadd');
+  if(!b)return;
+  const tk=document.getElementById('ctk'), nm=document.getElementById('cnm');
+  const go=()=>{
+    const t=(tk.value||'').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,'');
+    if(!t)return;
+    if(KNOWN.has(t)){alert(t+'은(는) 이미 목록에 있어요.');return;}
+    st.cust[t]={nm:(nm.value||'').trim()||'개별주식'};
+    tk.value='';nm.value='';save();render();
+  };
+  b.onclick=go;
+  tk.onkeydown=e=>{if(e.key==='Enter')go();};
+  nm.onkeydown=e=>{if(e.key==='Enter')go();};
+}
+
 function tabs(){
   const el=document.getElementById('tabs');
-  const ks=['all',...SCENS];
-  el.innerHTML=ks.map(k=>`<button class="tab${st.grp===k?' on':''}" data-g="${k}">${k==='all'?'전체':k}</button>`).join('');
-  el.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{st.grp=b.dataset.g;st.open=null;save();render();});
+  el.innerHTML=['all',CUSTOM,...SCENS].map(k=>
+    `<button class="tab${st.grp===k?' on':''}" data-g="${k}">${k==='all'?'전체':k}</button>`).join('');
+  el.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+    st.grp=b.dataset.g;st.open=null;save();render();});
 }
 
 function render(){
-  const rows=D.filter(r=>st.grp==='all'||(C[r[0]]&&C[r[0]][3].includes(st.grp)));
+  const cus=customRows();
+  const rows=st.grp===CUSTOM?cus
+    :st.grp==='all'?[...D,...cus]
+    :D.filter(r=>C[r[0]]&&C[r[0]][3].includes(st.grp));
   const withPx=rows.map(r=>{const p=priceOf(r[0]);
     return {r,p,need:p?seedFor(p,nOf(r[0],r[8]),DIV_MIN):Infinity};});
-
   const c=document.getElementById('cnt');
-  if(c)c.textContent=`${rows.length}종목 · 주가 입력 ${D.filter(r=>priceOf(r[0])).length}/${D.length}`;
+  if(c)c.textContent=`${rows.length}종목`;
 
   const vis=[...withPx].sort((a,b)=>
       st.sort==='tk'?a.r[0].localeCompare(b.r[0])
@@ -411,104 +489,138 @@ function render(){
      :st.sort==='price'?(a.p??1e9)-(b.p??1e9)
      :a.need-b.need);
 
+  const addForm=st.grp===CUSTOM?`<div class="addbox">
+      <div class="addrow">
+        <input id="ctk" placeholder="티커" maxlength="8" autocapitalize="characters">
+        <input id="cnm" placeholder="이름 (선택)" maxlength="20">
+        <button id="cadd">추가</button>
+      </div>
+      <div class="addnote">종가·RSI·변동성을 자동으로 받으려면 저장소의 <code>tickers.txt</code>에
+        티커를 한 줄씩 적고 워크플로를 돌리세요. 여기서만 추가하면 주가를 직접 넣어야 합니다.</div>
+    </div>`:'';
+
   const el=document.getElementById('list');
-  if(!vis.length){el.innerHTML='<div class="empty">이 시나리오에 해당하는 종목이 없어요.</div>';return;}
+  if(!vis.length){el.innerHTML=addForm+'<div class="empty">'+(st.grp===CUSTOM?
+    '아직 추가한 개별주식이 없어요.':'이 시나리오에 해당하는 종목이 없어요.')+'</div>';
+    bindAdd();return;}
 
   try{
-  el.innerHTML=vis.map(({r,p})=>{
-    const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,sigEst,mdd,mddEst,corr,warns]=r;
-    const L=LIVE[tk];
+  el.innerHTML=addForm+vis.map(({r,p})=>{
+    const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
+    const L=LIVE[tk]||null;
     const n=nOf(tk,nMaster), sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
-    const caut=cautions(r,L||{},live);
-    const op=st.open===tk, cd=C[tk]||['—','—','정보 없음',[]];
+    const cus=!KNOWN.has(tk), cd=C[tk]||['—','—','',[]];
+    const caut=cautions(r,L||{},live,cus);
+    const op=st.open===tk;
     const lo=p?seedFor(p,n,DIV_MIN):null, hi=p?seedFor(p,n,DIV_OPT):null;
-    const rsiCls=L&&L.rsi!=null?(L.rsi>=70?'hot':L.rsi<=30?'cold':'rs'):'rs';
-    const mline=L?`<div class="mline">
+    const rsiC=L&&L.rsi!=null?(L.rsi>=70?'w':L.rsi<=30?'g':''):'';
+
+    /* 목록 */
+    const met=L?`<div class="met">
         <span>$${L.price}</span>
-        ${L.chg!=null?`<span>${L.chg>0?'+':''}${L.chg}%</span>`:''}
-        ${L.rsi!=null?`<span class="${rsiCls}">RSI ${L.rsi}</span>`:''}
+        ${L.chg!=null?`<span class="${sgn(L.chg)}">${L.chg>0?'+':''}${L.chg}%</span>`:''}
+        ${L.rsi!=null?`<span class="${rsiC}">RSI ${L.rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
       </div>`:'';
+    const rr=p?`<div class="a">${money(lo)}</div><div class="b">${money(hi)}</div>
+        <div class="k">최소 · 최적</div>`:'<div class="nopx">주가 입력</div>';
 
-    const rgt=p?`<div class="two">
-        <div><div class="sv">${money(lo)}</div><div class="sl">최소</div></div>
-        <div><div class="sv">${money(hi)}</div><div class="sl">최적</div></div>
-      </div>`:`<div class="nopx">주가 입력</div>`;
+    /* 시세 */
+    const pxbar=L?`<div class="px">
+        <div><div class="pk">종가</div><div class="pv">$${L.price}</div>
+          ${L.chg!=null?`<div class="ps ${sgn(L.chg)==='g'?'':''}" style="color:${L.chg>0?'var(--up)':L.chg<0?'var(--dn)':'var(--ink3)'}">${L.chg>0?'+':''}${L.chg}%</div>`:''}</div>
+        ${L.rsi!=null?`<div><div class="pk">RSI</div><div class="pv ${rsiC}">${L.rsi}</div>
+          <div class="ps">${L.rsi>=70?'과열':L.rsi<=30?'침체':'중립'}</div></div>`:''}
+        <div><div class="pk">역대 고점</div><div class="pv">${L.dd}%</div>
+          <div class="ps">$${L.peak}</div></div>
+        ${L.dd1y!=null?`<div><div class="pk">1년 고점</div><div class="pv">${L.dd1y}%</div>
+          <div class="ps">$${L.peak1y}</div></div>`:''}
+      </div>`:'';
 
-
-    let seedBlock;
-    if(!p){ seedBlock='<div class="grid"><div class="gnote">주가를 입력하면 시드가 계산돼요.</div></div>'; }
+    /* 시드 */
+    let seed;
+    if(!p){ seed='<div class="gnote">주가를 입력하면 시드가 계산돼요.</div>'; }
     else{
       const A=ladder(lo,DIV_MIN,p), B=ladder(hi,DIV_OPT,p);
-      seedBlock=A&&B?`<div class="grid">
-        <div class="grow"><span>1회 매수금</span><b>${money(A.unit)}</b></div>
-        <div class="grow"><span>1칸 주수</span><b>${A.n0}주</b></div>
-        <div class="grow"><span>칸 간격</span><b>−${A.gap.toFixed(1)}%</b></div>
-        <div class="seedtbl">
-          <div class="srow"><span class="snm">최소</span><span class="sdiv">12분할</span>
-            <span class="samt">${money(lo)}</span><span class="sdep">소진 −${A.depth.toFixed(0)}%</span></div>
-          <div class="srow"><span class="snm">최적</span><span class="sdiv">15분할</span>
-            <span class="samt">${money(hi)}</span><span class="sdep">소진 −${B.depth.toFixed(0)}%</span></div>
-        </div>
-      </div>`:'<div class="grid"><div class="gnote">주가가 너무 높아 이 설정으로는 사다리가 만들어지지 않아요.</div></div>';
+      seed=A&&B?`<div class="hero">
+        <div><div class="hk">최소 · 12분할</div><div class="hv">${money(lo)}</div>
+          <div class="hs">소진 −${A.depth.toFixed(0)}%</div></div>
+        <div><div class="hk">최적 · 15분할</div><div class="hv">${money(hi)}</div>
+          <div class="hs">소진 −${B.depth.toFixed(0)}%</div></div>
+      </div>
+      <div class="rung"><span>1회 <b>${money(A.unit)}</b></span>
+        <span>1칸 <b>${A.n0}주</b></span>
+        <span>간격 <b>−${A.gap.toFixed(1)}%</b></span></div>`
+      :'<div class="gnote">주가가 너무 높아 이 설정으로는 사다리가 만들어지지 않아요.</div>';
     }
 
     return `<div class="row${op?' open':''}" data-tk="${tk}">
       <div class="rmain">
-        <div style="min-width:0">
-          <div class="tk">${tk}<span class="lev">${lev}</span></div>
-          <div class="sub">${nm}</div>
+        <div class="rl">
+          <div class="rtop"><span class="tk">${tk}</span><span class="lev">${lev}</span>
+            <span class="nm">${nm}</span></div>
+          ${met}
         </div>
-        <div class="right">${rgt}</div>
+        <div class="rr">${rr}</div>
       </div>
-      ${mline}
       <div class="det">
-        <div class="dlbl">주가</div>
-        <div class="pxedit"><span style="color:var(--ink3);font-family:var(--mono)">$</span>
-          <input type="number" step="0.01" inputmode="decimal" placeholder="현재가 입력" value="${p??''}" data-px="${tk}">
+
+        ${L?`<div class="sec"><span>시세</span><i></i></div>${pxbar}`:''}
+
+        <div class="sec"><span>시드</span><i></i></div>
+        ${seed}
+
+        <div class="sec"><span>주가</span><i></i></div>
+        <div class="pxedit"><span class="mono" style="color:var(--ink3)">$</span>
+          <input type="number" step="0.01" inputmode="decimal" placeholder="직접 입력"
+                 value="${p??''}" data-px="${tk}">
           ${isManual(tk)&&L?`<button class="autobtn" data-auto="${tk}">자동값</button>`
-            :L?'<span class="auto">자동 수집</span>':'<span class="auto">수동</span>'}</div>
+            :L?'<span class="auto">자동</span>':'<span class="auto">수동</span>'}</div>
 
-        ${L?`<div class="dlbl">시세</div>
-        <div class="info">
-          <div><span>종가</span><span class="num">$${L.price} <span class="est">${L.date}${L.chg!=null?` · 전일 ${L.chg>0?'+':''}${L.chg}%`:''}</span></span></div>
-          ${L.rsi!=null?`<div><span>RSI (14)</span><span class="num ${rsiCls}">${L.rsi}${L.rsi>=70||L.rsi<=30?`<span class="est"> ${L.rsi>=70?'과열권':'침체권'}</span>`:''}</span></div>`:''}
-          <div><span>역대 고점 대비</span><span class="num">${L.dd}% <span class="est">$${L.peak}</span></span></div>
-          ${L.dd1y!=null?`<div><span>1년 고점 대비</span><span class="num">${L.dd1y}% <span class="est">$${L.peak1y}</span></span></div>`:''}
-        </div>`:''}
-
-        <div class="dlbl">시드</div>
-        ${seedBlock}
-
-        <div class="dlbl">종목 성격</div>
-        <div class="info">
-          <div><span>변동성</span><span class="num">${live?`${L.sig60!=null?L.sig60+'%':'—'} <span class="est">60일</span> · ${L.sig}% <span class="est">1년</span>`:`${sig.toFixed(1)}% <span class="est">마스터</span>`}</span></div>
-          <div><span>최대낙폭</span><span class="num">${mdd?('−'+mdd.toFixed(1)+'%'+(mddEst?' <span class="est">추정</span>':'')):'미검증'}</span></div>
-          <div><span>회복 여부</span><span><span class="rec ${RECCLS[cd[0]]||'r-none'}">${cd[0]}</span></span></div>
-          <div><span>유동성</span><span><span class="lq q${lq}">${lqName(lq)}</span></span></div>
-          <div><span>SOXL 상관</span><span>${corr}</span></div>
-          <div><span>구성</span><span>${cd[1]}</span></div>
-          ${ref&&ref!=='—'?`<div><span>구성 조회</span><span><a class="ref" href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a></span></div>`:''}
+        <div class="sec"><span>성격</span><i></i></div>
+        <div class="spec">
+          <div><div class="sk">변동성</div><div class="sv"><span class="u">${
+            live?`${L.sig60!=null?L.sig60:'—'}%</span> <span class="q">60일</span><br><span class="u">${L.sig}%</span> <span class="q">1년`
+            :cus?`${sig.toFixed(1)}%</span> <span class="q">임시 가정값`
+                :`${sig.toFixed(1)}%</span> <span class="q">마스터`}</span></div></div>
+          <div><div class="sk">최대낙폭</div><div class="sv">${
+            mdd?`<span class="u">−${mdd.toFixed(1)}%</span>${mddEst?' <span class="q">추정</span>':''}`
+            :(L&&L.mddCalc!=null)?`<span class="u">${L.mddCalc}%</span> <span class="q">실측 ${L.bars}일</span>`
+            :'미검증'}</div></div>
+          <div><div class="sk">회복 여부</div><div class="sv">${(()=>{
+            let v=cd[0];
+            if(cus) v = (L&&L.dd!=null)?(L.dd>=-10?'회복':L.dd>=-40?'부분회복':'미회복'):'—';
+            return `<span class="bg ${RECCLS[v]||'r-none'}">${v}</span>`+(cus&&v!=='—'?' <span class="q">고점 대비 판정</span>':'');
+          })()}</div></div>
+          <div><div class="sk">유동성</div><div class="sv">${lq?
+            `<span class="bg q${lq}">${lqName(lq)}</span>`:'<span class="q">미확인</span>'}</div></div>
+          <div><div class="sk">SOXL 상관</div><div class="sv">${corr}</div></div>
+          <div><div class="sk">${cus?'종목 정보':'구성 조회'}</div><div class="sv">${
+            cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>`
+            :ref&&ref!=='—'?`<a href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a>`
+            :'<span class="q">없음</span>'}</div></div>
+          ${cus?'':`<div class="wide"><div class="sk">구성</div><div class="sv">${cd[1]}</div></div>`}
         </div>
 
-        <div class="dlbl">움직이는 조건</div>
-        <div class="info">
-          <div><span>오를 때</span><span>${up}</span></div>
-          <div><span>내릴 때</span><span>${dn}</span></div>
-        </div>
+        ${cus?'':`<div class="sec"><span>움직이는 조건</span><i></i></div>
+        <div class="ud"><i class="u">▲</i><span>${up}</span></div>
+        <div class="ud"><i class="d">▼</i><span>${dn}</span></div>
 
-        <div class="dlbl">마스터 자료 설명</div>
-        <div class="desc">${cd[2]}</div>
+        <div class="sec"><span>마스터 자료 설명</span><i></i></div>
+        <div class="desc">${cd[2]}</div>`}
 
-        ${caut.length?`<div class="dlbl">주의 ${caut.length}</div>
-        <div class="caut">${caut.map(([t,d])=>`<div><div class="ct">${t}</div><div class="cd">${d}</div></div>`).join('')}</div>`:''}
-
-        ${cd[3].length?`<div class="dlbl">해당 시나리오 ${cd[3].length}</div>
+        ${cd[3].length?`<div class="sec"><span>시나리오</span><i></i></div>
         <div class="scen">${cd[3].map(x=>`<span class="stag">${x}</span>`).join('')}</div>`:''}
+
+        ${caut.length?`<div class="sec"><span>주의 ${caut.length}</span><i></i></div>
+        <div class="caut">${caut.map(([t,d])=>
+          `<div><i>!</i><div><div class="ct">${t}</div><div class="cd">${d}</div></div></div>`).join('')}</div>`:''}
+        ${cus&&st.cust[tk]?`<div class="sec"><span>목록</span><i></i></div>
+        <button class="del" data-del="${tk}">${tk} 삭제</button>`:''}
       </div>
     </div>`;}).join('');
   }catch(err){
-    el.innerHTML='<div class="empty">화면을 그리는 중 문제가 생겼어요.<br><span style="color:var(--bad)">'
+    el.innerHTML='<div class="empty">화면을 그리는 중 문제가 생겼어요.<br><span style="color:var(--dn)">'
       +err.message+'</span></div>';
     return;
   }
@@ -519,6 +631,11 @@ function render(){
     if(st.open){const r=document.querySelector(`[data-tk="${tk}"]`);
       if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'});}
   });
+  bindAdd();
+  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();const t=b.dataset.del;
+    if(!confirm(t+'을(를) 목록에서 지울까요?'))return;
+    delete st.cust[t];delete st.px[t];st.open=null;save();render();});
   el.querySelectorAll('[data-auto]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();delete st.px[b.dataset.auto];save();render();});
   el.querySelectorAll('[data-px]').forEach(i=>{
@@ -531,15 +648,14 @@ const FSTEP=[1,1.15,1.3,1.45];
 function applyFs(){
   document.documentElement.style.setProperty('--fs',st.fs);
   const el=document.getElementById('fsz');
-  el.innerHTML=`<button data-f="-">가−</button><button data-f="+">가+</button>`;
+  el.innerHTML='<button data-f="-">가−</button><button data-f="+">가+</button>';
   el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const i=FSTEP.indexOf(st.fs), j=b.dataset.f==='+'?i+1:i-1;
     if(j<0||j>=FSTEP.length)return;
     st.fs=FSTEP[j];save();applyFs();});
-  el.querySelector('[data-f="-"]').style.color = st.fs===FSTEP[0]?'var(--bd2)':'var(--ink3)';
-  el.querySelector('[data-f="+"]').style.color = st.fs===FSTEP[FSTEP.length-1]?'var(--bd2)':'var(--ink3)';
 }
 applyFs();
+
 const hb=document.getElementById('helpbtn'), hp=document.getElementById('help');
 function syncHelp(){hp.classList.toggle('show',!!st.help);hb.classList.toggle('on',!!st.help);}
 hb.onclick=()=>{st.help=st.help?0:1;save();syncHelp();};
@@ -548,29 +664,21 @@ document.getElementById('sort').value=st.sort;
 document.getElementById('sort').onchange=e=>{st.sort=e.target.value;save();render();};
 document.getElementById('reset').onclick=()=>{
   try{localStorage.removeItem(KEY);}catch(e){}
-  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1};applyFs();
-  document.getElementById('sort').value='need';syncHelp();tabs();render();
+  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
+  document.getElementById('sort').value='need';applyFs();syncHelp();tabs();render();
 };
 tabs();render();
 
-/* 자동 수집 데이터 — GitHub Actions가 하루 한 번 갱신 */
 fetch('./data.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
   .then(j=>{
     LIVE=j.data||{};STAMP=j.updated;
     const el=document.getElementById('stamp');
-    if(el&&STAMP){
-      const d=new Date(STAMP);
-      const ago=Math.floor((Date.now()-d)/36e5);
-      el.textContent=`종가 ${d.getMonth()+1}/${d.getDate()} 갱신 · ${j.count}종목`
-        +(ago>48?' · 오래됨':'');
-    }
+    if(el&&STAMP){const d=new Date(STAMP);
+      el.textContent=`${d.getMonth()+1}/${d.getDate()} 종가 · ${j.count}종목`;}
     render();
   })
-  .catch(()=>{
-    const el=document.getElementById('stamp');
-    if(el)el.textContent='12분할 = 최소 · 15분할 = 최적 · 수동 입력';
-  });
+  .catch(()=>{});
 </script>
 </body>
 </html>
