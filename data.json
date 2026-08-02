@@ -1,132 +1,664 @@
-name: 종가 수집
-
-on:
-  schedule:
-    - cron: '0 2 * * 2-6'    # 화~토 02:00 UTC = 한국 11:00 (전날 미국 종가)
-  workflow_dispatch:           # 수동 실행 버튼
-
-permissions:
-  contents: write
-
-jobs:
-  fetch:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 데이터 수집
-        run: |
-          python3 << 'EOF'
-          import urllib.request, csv, io, json, math, time, datetime
-
-          TICKERS = """SOLT ETHU DPST RAM LABU BITX GDXU LMBO YINN RETL NAIL URAA
-          JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
-          GUSH UTSL TECL WANT DRN EDC QQQU AGQ DUSL AIBU EURL FAS TMF CURE UBOT
-          CHAU ERX UDOW TYD UGL SOXL""".split()
-
-          UA = {'User-Agent': 'Mozilla/5.0'}
-
-          def get_csv(url):
-              req = urllib.request.Request(url, headers=UA)
-              with urllib.request.urlopen(req, timeout=25) as r:
-                  return r.read().decode('utf-8', 'replace')
-
-          def history(tk):
-              """일봉 종가 리스트 반환 (오래된 순). Stooq → 실패 시 Yahoo"""
-              try:
-                  txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d')
-                  rows = list(csv.DictReader(io.StringIO(txt)))
-                  out = [(r['Date'], float(r['Close'])) for r in rows if r.get('Close') not in (None, '', 'N/A')]
-                  if len(out) >= 30:
-                      return out
-              except Exception as e:
-                  print(f'  stooq 실패 {tk}: {e}')
-              try:
-                  url = (f'https://query1.finance.yahoo.com/v8/finance/chart/{tk}'
-                         '?range=5y&interval=1d')
-                  req = urllib.request.Request(url, headers=UA)
-                  with urllib.request.urlopen(req, timeout=25) as r:
-                      j = json.load(r)
-                  res = j['chart']['result'][0]
-                  ts = res['timestamp']
-                  cl = res['indicators']['quote'][0]['close']
-                  out = [(datetime.date.fromtimestamp(t).isoformat(), c)
-                         for t, c in zip(ts, cl) if c is not None]
-                  return out
-              except Exception as e:
-                  print(f'  yahoo 실패 {tk}: {e}')
-              return []
-
-          def rsi(closes, period=14):
-              """Wilder RSI"""
-              if len(closes) < period + 1:
-                  return None
-              d = [closes[i] - closes[i-1] for i in range(1, len(closes))]
-              g = sum(x for x in d[:period] if x > 0) / period
-              l = sum(-x for x in d[:period] if x < 0) / period
-              for x in d[period:]:
-                  g = (g * (period-1) + max(x, 0)) / period
-                  l = (l * (period-1) + max(-x, 0)) / period
-              if l == 0:
-                  return 100.0
-              return 100 - 100 / (1 + g / l)
-
-          def sigma(closes, n=250):
-              """최근 n거래일 일간 변동성 (%). 250일=구조적, 60일=최근 국면
-                 반환: (변동성, 사용한 수익률 개수)"""
-              c = closes[-(n+1):]
-              if len(c) < 21:
-                  return None, 0
-              r = [math.log(c[i]/c[i-1]) for i in range(1, len(c)) if c[i-1] > 0]
-              m = sum(r) / len(r)
-              v = sum((x-m)**2 for x in r) / (len(r)-1)
-              return math.sqrt(v) * 100, len(r)
-
-          data = {}
-          for tk in TICKERS:
-              h = history(tk)
-              if not h:
-                  print(f'{tk}: 데이터 없음')
-                  continue
-              dates = [d for d, _ in h]
-              closes = [c for _, c in h]
-              peak = max(closes)
-              c1y = closes[-250:]
-              peak1y = max(c1y)
-              s1, sn1 = sigma(closes, 250)
-              s2, _   = sigma(closes, 60)
-              rec = {
-                  'price': round(closes[-1], 2),
-                  'date': dates[-1],
-                  'chg': round((closes[-1]/closes[-2] - 1) * 100, 2) if len(closes) > 1 else None,
-                  'rsi': round(rsi(closes), 1) if rsi(closes) is not None else None,
-                  'sig': round(s1, 2) if s1 is not None else None,
-                  'sigN': sn1,
-                  'sig60': round(s2, 2) if s2 is not None else None,
-                  'dd': round((closes[-1]/peak - 1) * 100, 1),
-                  'peak': round(peak, 2),
-                  'dd1y': round((closes[-1]/peak1y - 1) * 100, 1),
-                  'peak1y': round(peak1y, 2),
-                  'bars': len(closes),
-              }
-              data[tk] = rec
-              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}%")
-              time.sleep(0.4)
-
-          out = {
-              'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
-              'count': len(data),
-              'data': data,
-          }
-          with open('data.json', 'w', encoding='utf-8') as f:
-              json.dump(out, f, ensure_ascii=False, indent=1)
-          print(f'\n완료 — {len(data)}/{len(TICKERS)}종목')
-          EOF
-
-      - name: 커밋
-        run: |
-          git config user.name  "github-actions"
-          git config user.email "actions@github.com"
-          git add data.json
-          git diff --staged --quiet || git commit -m "종가 갱신 $(date -u +%Y-%m-%d)"
-          git push
+{
+ "updated": "2026-08-02T01:02+00:00",
+ "count": 47,
+ "data": {
+  "SOLT": {
+   "price": 30.92,
+   "date": "2026-07-31",
+   "chg": -4.89,
+   "rsi": 43.4,
+   "sig": 9.27,
+   "sigN": 250,
+   "sig60": 7.92,
+   "dd": -95.4,
+   "peak": 677.6,
+   "dd1y": -95.4,
+   "peak1y": 677.6,
+   "bars": 343
+  },
+  "ETHU": {
+   "price": 15.58,
+   "date": "2026-07-31",
+   "chg": -5.8,
+   "rsi": 49.6,
+   "sig": 8.61,
+   "sigN": 250,
+   "sig60": 6.76,
+   "dd": -95.2,
+   "peak": 322.4,
+   "dd1y": -91.7,
+   "peak1y": 187.06,
+   "bars": 541
+  },
+  "DPST": {
+   "price": 146.04,
+   "date": "2026-07-31",
+   "chg": 0.85,
+   "rsi": 54.9,
+   "sig": 4.32,
+   "sigN": 250,
+   "sig60": 3.72,
+   "dd": -78.4,
+   "peak": 676.7,
+   "dd1y": -7.4,
+   "peak1y": 157.71,
+   "bars": 1255
+  },
+  "RAM": {
+   "price": 10.44,
+   "date": "2026-07-31",
+   "chg": -6.2,
+   "rsi": 37.3,
+   "sig": 14.15,
+   "sigN": 26,
+   "sig60": 14.15,
+   "dd": -63.6,
+   "peak": 28.71,
+   "dd1y": -63.6,
+   "peak1y": 28.71,
+   "bars": 27
+  },
+  "LABU": {
+   "price": 227.4,
+   "date": "2026-07-31",
+   "chg": -8.6,
+   "rsi": 42.0,
+   "sig": 5.03,
+   "sigN": 250,
+   "sig60": 5.89,
+   "dd": -84.2,
+   "peak": 1437.4,
+   "dd1y": -29.9,
+   "peak1y": 324.26,
+   "bars": 1255
+  },
+  "BITX": {
+   "price": 11.66,
+   "date": "2026-07-31",
+   "chg": -5.89,
+   "rsi": 43.5,
+   "sig": 5.67,
+   "sigN": 250,
+   "sig60": 4.67,
+   "dd": -83.5,
+   "peak": 70.55,
+   "dd1y": -82.8,
+   "peak1y": 67.81,
+   "bars": 777
+  },
+  "GDXU": {
+   "price": 75.01,
+   "date": "2026-07-31",
+   "chg": -10.43,
+   "rsi": 42.8,
+   "sig": 9.73,
+   "sigN": 250,
+   "sig60": 10.14,
+   "dd": -85.7,
+   "peak": 525.0,
+   "dd1y": -85.7,
+   "peak1y": 525.0,
+   "bars": 1255
+  },
+  "LMBO": {
+   "price": 18.29,
+   "date": "2026-04-10",
+   "chg": null,
+   "rsi": null,
+   "sig": null,
+   "sigN": 0,
+   "sig60": null,
+   "dd": 0.0,
+   "peak": 18.29,
+   "dd1y": 0.0,
+   "peak1y": 18.29,
+   "bars": 1
+  },
+  "YINN": {
+   "price": 32.47,
+   "date": "2026-07-31",
+   "chg": 0.0,
+   "rsi": 71.3,
+   "sig": 3.81,
+   "sigN": 250,
+   "sig60": 4.1,
+   "dd": -87.9,
+   "peak": 269.0,
+   "dd1y": -42.7,
+   "peak1y": 56.62,
+   "bars": 1255
+  },
+  "RETL": {
+   "price": 9.56,
+   "date": "2026-07-31",
+   "chg": -2.65,
+   "rsi": 54.5,
+   "sig": 3.87,
+   "sigN": 250,
+   "sig60": 4.08,
+   "dd": -83.0,
+   "peak": 56.2,
+   "dd1y": -13.6,
+   "peak1y": 11.06,
+   "bars": 1255
+  },
+  "NAIL": {
+   "price": 37.01,
+   "date": "2026-07-31",
+   "chg": -3.77,
+   "rsi": 41.6,
+   "sig": 5.45,
+   "sigN": 250,
+   "sig60": 6.04,
+   "dd": -79.0,
+   "peak": 176.01,
+   "dd1y": -61.8,
+   "peak1y": 96.92,
+   "bars": 1255
+  },
+  "URAA": {
+   "price": 20.56,
+   "date": "2026-07-31",
+   "chg": -2.37,
+   "rsi": 40.4,
+   "sig": 6.19,
+   "sigN": 250,
+   "sig60": 6.02,
+   "dd": -66.9,
+   "peak": 62.06,
+   "dd1y": -66.9,
+   "peak1y": 62.06,
+   "bars": 526
+  },
+  "JNUG": {
+   "price": 111.08,
+   "date": "2026-07-31",
+   "chg": -7.15,
+   "rsi": 43.6,
+   "sig": 6.96,
+   "sigN": 250,
+   "sig60": 7.38,
+   "dd": -68.9,
+   "peak": 356.97,
+   "dd1y": -68.9,
+   "peak1y": 356.97,
+   "bars": 1255
+  },
+  "CWEB": {
+   "price": 25.32,
+   "date": "2026-07-31",
+   "chg": 3.09,
+   "rsi": 65.9,
+   "sig": 3.52,
+   "sigN": 250,
+   "sig60": 4.03,
+   "dd": -90.4,
+   "peak": 263.5,
+   "dd1y": -57.9,
+   "peak1y": 60.13,
+   "bars": 1255
+  },
+  "KORU": {
+   "price": 14.99,
+   "date": "2026-07-31",
+   "chg": -7.92,
+   "rsi": 38.1,
+   "sig": 10.4,
+   "sigN": 250,
+   "sig60": 16.21,
+   "dd": -76.3,
+   "peak": 63.24,
+   "dd1y": -76.3,
+   "peak1y": 63.24,
+   "bars": 1255
+  },
+  "WEBL": {
+   "price": 25.22,
+   "date": "2026-07-31",
+   "chg": 7.55,
+   "rsi": 56.7,
+   "sig": 3.82,
+   "sigN": 250,
+   "sig60": 4.09,
+   "dd": -74.1,
+   "peak": 97.27,
+   "dd1y": -28.1,
+   "peak1y": 35.06,
+   "bars": 1255
+  },
+  "HIBL": {
+   "price": 92.52,
+   "date": "2026-07-31",
+   "chg": 0.35,
+   "rsi": 42.4,
+   "sig": 4.99,
+   "sigN": 250,
+   "sig60": 6.73,
+   "dd": -32.5,
+   "peak": 137.06,
+   "dd1y": -32.5,
+   "peak1y": 137.06,
+   "bars": 1255
+  },
+  "MEXX": {
+   "price": 29.63,
+   "date": "2026-07-31",
+   "chg": -1.23,
+   "rsi": 53.1,
+   "sig": 4.12,
+   "sigN": 250,
+   "sig60": 3.72,
+   "dd": -23.5,
+   "peak": 38.74,
+   "dd1y": -23.5,
+   "peak1y": 38.74,
+   "bars": 1255
+  },
+  "DFEN": {
+   "price": 75.39,
+   "date": "2026-07-31",
+   "chg": 2.21,
+   "rsi": 51.8,
+   "sig": 4.29,
+   "sigN": 250,
+   "sig60": 4.89,
+   "dd": -22.7,
+   "peak": 97.48,
+   "dd1y": -22.7,
+   "peak1y": 97.48,
+   "bars": 1255
+  },
+  "INDL": {
+   "price": 45.74,
+   "date": "2026-07-31",
+   "chg": 0.82,
+   "rsi": 58.3,
+   "sig": 1.93,
+   "sigN": 250,
+   "sig60": 2.02,
+   "dd": -40.9,
+   "peak": 77.44,
+   "dd1y": -24.3,
+   "peak1y": 60.42,
+   "bars": 1255
+  },
+  "NUGT": {
+   "price": 110.82,
+   "date": "2026-07-31",
+   "chg": -6.72,
+   "rsi": 44.6,
+   "sig": 6.22,
+   "sigN": 250,
+   "sig60": 6.52,
+   "dd": -64.7,
+   "peak": 313.53,
+   "dd1y": -64.7,
+   "peak1y": 313.53,
+   "bars": 1255
+  },
+  "TPOR": {
+   "price": 39.12,
+   "date": "2026-07-31",
+   "chg": -0.03,
+   "rsi": 38.6,
+   "sig": 3.74,
+   "sigN": 250,
+   "sig60": 3.75,
+   "dd": -33.5,
+   "peak": 58.82,
+   "dd1y": -16.4,
+   "peak1y": 46.82,
+   "bars": 1255
+  },
+  "PILL": {
+   "price": 18.85,
+   "date": "2026-07-31",
+   "chg": -7.82,
+   "rsi": 53.1,
+   "sig": 4.1,
+   "sigN": 250,
+   "sig60": 4.67,
+   "dd": -19.8,
+   "peak": 23.5,
+   "dd1y": -10.0,
+   "peak1y": 20.95,
+   "bars": 1255
+  },
+  "TNA": {
+   "price": 67.6,
+   "date": "2026-07-31",
+   "chg": -1.37,
+   "rsi": 45.6,
+   "sig": 3.62,
+   "sigN": 250,
+   "sig60": 3.47,
+   "dd": -39.6,
+   "peak": 111.84,
+   "dd1y": -10.0,
+   "peak1y": 75.11,
+   "bars": 1255
+  },
+  "MIDU": {
+   "price": 68.71,
+   "date": "2026-07-31",
+   "chg": -0.43,
+   "rsi": 46.9,
+   "sig": 2.94,
+   "sigN": 250,
+   "sig60": 2.7,
+   "dd": -9.5,
+   "peak": 75.9,
+   "dd1y": -8.2,
+   "peak1y": 74.85,
+   "bars": 1255
+  },
+  "BRZU": {
+   "price": 99.5,
+   "date": "2026-07-31",
+   "chg": 0.98,
+   "rsi": 58.7,
+   "sig": 3.17,
+   "sigN": 250,
+   "sig60": 3.02,
+   "dd": -24.3,
+   "peak": 131.49,
+   "dd1y": -24.3,
+   "peak1y": 131.49,
+   "bars": 1255
+  },
+  "GUSH": {
+   "price": 40.12,
+   "date": "2026-07-31",
+   "chg": 2.66,
+   "rsi": 63.6,
+   "sig": 3.58,
+   "sigN": 250,
+   "sig60": 3.97,
+   "dd": -36.7,
+   "peak": 63.4,
+   "dd1y": -15.3,
+   "peak1y": 47.37,
+   "bars": 1255
+  },
+  "UTSL": {
+   "price": 42.12,
+   "date": "2026-07-31",
+   "chg": -2.23,
+   "rsi": 39.4,
+   "sig": 2.84,
+   "sigN": 250,
+   "sig60": 3.19,
+   "dd": -23.5,
+   "peak": 55.06,
+   "dd1y": -23.5,
+   "peak1y": 55.06,
+   "bars": 1255
+  },
+  "TECL": {
+   "price": 173.55,
+   "date": "2026-07-31",
+   "chg": -0.52,
+   "rsi": 44.3,
+   "sig": 4.84,
+   "sigN": 250,
+   "sig60": 6.76,
+   "dd": -36.5,
+   "peak": 273.28,
+   "dd1y": -36.5,
+   "peak1y": 273.28,
+   "bars": 1255
+  },
+  "WANT": {
+   "price": 40.55,
+   "date": "2026-07-31",
+   "chg": 9.01,
+   "rsi": 52.2,
+   "sig": 3.63,
+   "sigN": 250,
+   "sig60": 4.15,
+   "dd": -61.9,
+   "peak": 106.53,
+   "dd1y": -28.3,
+   "peak1y": 56.53,
+   "bars": 1255
+  },
+  "DRN": {
+   "price": 11.15,
+   "date": "2026-07-31",
+   "chg": -1.59,
+   "rsi": 49.2,
+   "sig": 2.65,
+   "sigN": 250,
+   "sig60": 3.03,
+   "dd": -63.4,
+   "peak": 30.43,
+   "dd1y": -5.9,
+   "peak1y": 11.85,
+   "bars": 1255
+  },
+  "EDC": {
+   "price": 70.47,
+   "date": "2026-07-31",
+   "chg": 2.31,
+   "rsi": 45.1,
+   "sig": 4.68,
+   "sigN": 250,
+   "sig60": 6.78,
+   "dd": -31.4,
+   "peak": 102.69,
+   "dd1y": -31.4,
+   "peak1y": 102.69,
+   "bars": 1255
+  },
+  "QQQU": {
+   "price": 53.32,
+   "date": "2026-07-31",
+   "chg": 6.85,
+   "rsi": 51.8,
+   "sig": 2.85,
+   "sigN": 250,
+   "sig60": 3.29,
+   "dd": -20.1,
+   "peak": 66.75,
+   "dd1y": -20.1,
+   "peak1y": 66.75,
+   "bars": 602
+  },
+  "AGQ": {
+   "price": 63.93,
+   "date": "2026-07-31",
+   "chg": -4.43,
+   "rsi": 42.6,
+   "sig": 9.18,
+   "sigN": 250,
+   "sig60": 6.64,
+   "dd": -84.0,
+   "peak": 400.47,
+   "dd1y": -84.0,
+   "peak1y": 400.47,
+   "bars": 1255
+  },
+  "DUSL": {
+   "price": 94.31,
+   "date": "2026-07-31",
+   "chg": 2.43,
+   "rsi": 48.2,
+   "sig": 3.23,
+   "sigN": 250,
+   "sig60": 3.73,
+   "dd": -10.2,
+   "peak": 105.04,
+   "dd1y": -10.2,
+   "peak1y": 105.04,
+   "bars": 1255
+  },
+  "AIBU": {
+   "price": 57.34,
+   "date": "2026-07-31",
+   "chg": 2.61,
+   "rsi": 48.0,
+   "sig": 3.31,
+   "sigN": 250,
+   "sig60": 3.86,
+   "dd": -25.0,
+   "peak": 76.42,
+   "dd1y": -25.0,
+   "peak1y": 76.42,
+   "bars": 554
+  },
+  "EURL": {
+   "price": 48.85,
+   "date": "2026-07-31",
+   "chg": -1.39,
+   "rsi": 58.6,
+   "sig": 3.01,
+   "sigN": 250,
+   "sig60": 3.34,
+   "dd": -4.9,
+   "peak": 51.38,
+   "dd1y": -4.9,
+   "peak1y": 51.38,
+   "bars": 1255
+  },
+  "FAS": {
+   "price": 174.02,
+   "date": "2026-07-31",
+   "chg": -0.26,
+   "rsi": 61.1,
+   "sig": 2.76,
+   "sigN": 250,
+   "sig60": 2.57,
+   "dd": -6.2,
+   "peak": 185.61,
+   "dd1y": -5.1,
+   "peak1y": 183.46,
+   "bars": 1255
+  },
+  "TMF": {
+   "price": 30.59,
+   "date": "2026-07-31",
+   "chg": -2.08,
+   "rsi": 29.2,
+   "sig": 1.71,
+   "sigN": 250,
+   "sig60": 1.74,
+   "dd": -90.4,
+   "peak": 319.9,
+   "dd1y": -30.7,
+   "peak1y": 44.14,
+   "bars": 1255
+  },
+  "CURE": {
+   "price": 118.52,
+   "date": "2026-07-31",
+   "chg": -1.72,
+   "rsi": 53.7,
+   "sig": 2.88,
+   "sigN": 250,
+   "sig60": 3.44,
+   "dd": -19.7,
+   "peak": 147.52,
+   "dd1y": -8.4,
+   "peak1y": 129.38,
+   "bars": 1255
+  },
+  "UBOT": {
+   "price": 22.12,
+   "date": "2026-07-31",
+   "chg": 1.94,
+   "rsi": 45.9,
+   "sig": 3.32,
+   "sigN": 250,
+   "sig60": 4.05,
+   "dd": -60.2,
+   "peak": 55.56,
+   "dd1y": -31.0,
+   "peak1y": 32.04,
+   "bars": 1255
+  },
+  "CHAU": {
+   "price": 21.53,
+   "date": "2026-07-31",
+   "chg": -0.55,
+   "rsi": 43.8,
+   "sig": 2.49,
+   "sigN": 250,
+   "sig60": 3.3,
+   "dd": -48.8,
+   "peak": 42.07,
+   "dd1y": -17.2,
+   "peak1y": 26.0,
+   "bars": 1255
+  },
+  "ERX": {
+   "price": 94.71,
+   "date": "2026-07-31",
+   "chg": 1.98,
+   "rsi": 62.5,
+   "sig": 2.66,
+   "sigN": 250,
+   "sig60": 3.13,
+   "dd": -12.2,
+   "peak": 107.82,
+   "dd1y": -12.2,
+   "peak1y": 107.82,
+   "bars": 1255
+  },
+  "UDOW": {
+   "price": 70.1,
+   "date": "2026-07-31",
+   "chg": 1.49,
+   "rsi": 53.1,
+   "sig": 2.34,
+   "sigN": 250,
+   "sig60": 2.35,
+   "dd": -4.2,
+   "peak": 73.17,
+   "dd1y": -4.2,
+   "peak1y": 73.17,
+   "bars": 1255
+  },
+  "TYD": {
+   "price": 22.56,
+   "date": "2026-07-31",
+   "chg": -1.01,
+   "rsi": 36.6,
+   "sig": 0.84,
+   "sigN": 250,
+   "sig60": 0.9,
+   "dd": -60.4,
+   "peak": 56.9,
+   "dd1y": -15.9,
+   "peak1y": 26.82,
+   "bars": 1255
+  },
+  "UGL": {
+   "price": 44.19,
+   "date": "2026-07-31",
+   "chg": -2.99,
+   "rsi": 44.8,
+   "sig": 3.6,
+   "sigN": 250,
+   "sig60": 3.07,
+   "dd": -48.4,
+   "peak": 85.62,
+   "dd1y": -48.4,
+   "peak1y": 85.62,
+   "bars": 1255
+  },
+  "SOXL": {
+   "price": 114.72,
+   "date": "2026-07-31",
+   "chg": 0.0,
+   "rsi": 39.6,
+   "sig": 8.38,
+   "sigN": 250,
+   "sig60": 12.62,
+   "dd": -61.9,
+   "peak": 300.77,
+   "dd1y": -61.9,
+   "peak1y": 300.77,
+   "bars": 1255
+  }
+ }
+}
