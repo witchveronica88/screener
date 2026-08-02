@@ -5,3 +5,6 @@
 TSLA      # 테슬라
 PLTR      # 팔란티어
 MSTR      # 마이크로스트래티지
+RKLB
+SPCX
+IONQ
