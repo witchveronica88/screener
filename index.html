@@ -12,33 +12,44 @@
   --ink:#EDF1F7;--ink2:#96A0B2;--ink3:#646E80;
   --on:#7C8CF8;--onDim:#3D4680;
   --warn:#E8B44A;--bad:#FF5165;
+  --fs:1;
+  --f1:calc(10px*var(--fs));   /* 라벨 · 배지 */
+  --f2:calc(11.5px*var(--fs)); /* 캡션 */
+  --f3:calc(12.5px*var(--fs)); /* 본문 · 값 */
+  --f4:calc(15px*var(--fs));   /* 티커 */
+  --f5:calc(19px*var(--fs));   /* 제목 */
   --mono:ui-monospace,'SF Mono',Menlo,Consolas,'Roboto Mono',monospace;
   --sans:system-ui,-apple-system,'Apple SD Gothic Neo',Roboto,'Noto Sans KR','Malgun Gothic',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);padding-bottom:52px;font-size:14px}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);padding-bottom:52px;font-size:var(--f3)}
 input,select,button{font-family:inherit}
 
 .top{position:sticky;top:0;z-index:50;background:rgba(13,16,23,.96);backdrop-filter:blur(12px);
      border-bottom:1px solid var(--bd);padding:14px 16px 12px}
-.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--ink3);font-weight:600;margin-bottom:9px;
+.eyebrow{font-size:var(--f1);letter-spacing:.18em;color:var(--ink3);font-weight:600;margin-bottom:9px;
          display:flex;justify-content:space-between}
 .ver{color:var(--onDim)}
 .hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-.headline{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-bottom:4px}
-.subline{font-size:11.5px;color:var(--ink3);font-family:var(--mono)}
+.headline{font-size:var(--f5);font-weight:600;letter-spacing:-.01em;margin-bottom:4px}
+.subline{font-size:var(--f2);color:var(--ink3);font-family:var(--mono)}
 .helpbtn{background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:7px;
-         padding:6px 12px;font-size:11.5px;cursor:pointer;flex-shrink:0}
+         padding:6px 12px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
 .helpbtn.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
 
+.fsz{display:flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden}
+.fsz button{background:var(--s1);border:none;color:var(--ink3);padding:6px 10px;
+            font-size:var(--f2);cursor:pointer;line-height:1}
+.fsz button+button{border-left:1px solid var(--bd)}
+.fsz button:active{background:var(--s2)}
 .help{display:none;padding:4px 16px 20px}
 .help.show{display:block}
 .hcard{background:var(--s1);border:1px solid var(--bd);border-radius:11px;padding:16px 17px;margin-top:10px}
-.hcard h4{font-size:10px;letter-spacing:.13em;color:var(--ink3);font-weight:600;margin-bottom:11px}
+.hcard h4{font-size:var(--f1);letter-spacing:.13em;color:var(--ink3);font-weight:600;margin-bottom:11px}
 .hitem{padding:9px 0;border-bottom:1px solid var(--s2)}
 .hitem:last-child{border-bottom:none;padding-bottom:0}
-.hterm{font-size:12.5px;font-weight:500;color:var(--ink);margin-bottom:3px}
-.hdef{font-size:12.5px;color:var(--ink2);line-height:1.8}
+.hterm{font-size:var(--f3);font-weight:500;color:var(--ink);margin-bottom:3px}
+.hdef{font-size:var(--f3);color:var(--ink2);line-height:1.8}
 .hdef code{font-family:var(--mono);font-size:.92em;color:var(--ink);background:var(--s2);
            padding:1px 5px;border-radius:4px}
 
@@ -46,56 +57,56 @@ input,select,button{font-family:inherit}
       border-bottom:1px solid var(--bd)}
 .tabs::-webkit-scrollbar{display:none}
 .tab{background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:7px;
-     padding:6px 12px;font-size:11.5px;white-space:nowrap;cursor:pointer}
+     padding:6px 12px;font-size:var(--f2);white-space:nowrap;cursor:pointer}
 .tab.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
 
-.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:11.5px}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:var(--f2)}
 .sortsel{background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:6px;
-         padding:5px 8px;font-size:11.5px;outline:none}
+         padding:5px 8px;font-size:var(--f2);outline:none}
 
 .list{padding:0 12px}
 .row{background:var(--s1);border:1px solid var(--bd);border-radius:11px;margin-bottom:8px;overflow:hidden}
 .row.open{border-color:var(--bd2)}
 .rmain{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
-.tk{font-family:var(--mono);font-size:15px;font-weight:600}
-.lev{font-size:10px;color:var(--ink3);margin-left:6px;font-weight:500}
-.sub{font-size:11.5px;color:var(--ink3);margin-top:3px;white-space:nowrap;overflow:hidden;
+.tk{font-family:var(--mono);font-size:var(--f4);font-weight:600}
+.lev{font-size:var(--f1);color:var(--ink3);margin-left:6px;font-weight:500}
+.sub{font-size:var(--f2);color:var(--ink3);margin-top:3px;white-space:nowrap;overflow:hidden;
      text-overflow:ellipsis;max-width:150px}
 .right{text-align:right;flex-shrink:0}
 .two{display:flex;gap:14px;align-items:baseline;justify-content:flex-end}
-.sv{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink)}
-.sl{font-size:10px;color:var(--ink3);letter-spacing:.05em;margin-top:2px}
-.nopx{font-size:11.5px;color:var(--ink3)}
+.sv{font-family:var(--mono);font-size:var(--f3);font-weight:600;color:var(--ink)}
+.sl{font-size:var(--f1);color:var(--ink3);letter-spacing:.05em;margin-top:2px}
+.nopx{font-size:var(--f2);color:var(--ink3)}
 
 .det{display:none;padding:0 14px 16px;border-top:1px solid var(--bd)}
 .row.open .det{display:block}
-.dlbl{font-size:10px;letter-spacing:.13em;color:var(--ink3);font-weight:600;margin:16px 0 8px}
+.dlbl{font-size:var(--f1);letter-spacing:.13em;color:var(--ink3);font-weight:600;margin:16px 0 8px}
 .pxedit{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--bd2);
         border-radius:8px;padding:9px 12px}
 .pxedit input{background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--mono);
-              font-size:15px;width:100%;font-weight:500}
+              font-size:var(--f4);width:100%;font-weight:500}
 
 .grid{background:var(--s2);border:1px solid var(--bd2);border-radius:9px;padding:12px 14px}
-.grow{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;color:var(--ink2)}
+.grow{display:flex;justify-content:space-between;font-size:var(--f3);padding:5px 0;color:var(--ink2)}
 .grow b{font-family:var(--mono);color:var(--ink);font-weight:500}
 .seedtbl{margin-top:9px;border-top:1px solid var(--bd2);padding-top:9px}
-.srow{display:flex;align-items:baseline;gap:10px;padding:8px 0;font-size:12.5px}
+.srow{display:flex;align-items:baseline;gap:10px;padding:8px 0;font-size:var(--f3)}
 .srow+.srow{border-top:1px solid #262D3A}
-.snm{width:34px;color:var(--ink3);font-size:11.5px;flex-shrink:0}
-.sdiv{width:52px;color:var(--ink2);font-family:var(--mono);font-size:11.5px;flex-shrink:0}
-.samt{flex:1;font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink)}
-.sdep{font-family:var(--mono);font-size:12.5px;color:var(--warn)}
-.gnote{font-size:11.5px;color:var(--ink3);line-height:1.75;margin-top:10px}
+.snm{width:34px;color:var(--ink3);font-size:var(--f2);flex-shrink:0}
+.sdiv{width:52px;color:var(--ink2);font-family:var(--mono);font-size:var(--f2);flex-shrink:0}
+.samt{flex:1;font-family:var(--mono);font-size:var(--f3);font-weight:600;color:var(--ink)}
+.sdep{font-family:var(--mono);font-size:var(--f3);color:var(--warn)}
+.gnote{font-size:var(--f2);color:var(--ink3);line-height:1.75;margin-top:10px}
 
 /* 타입 스케일 — 라벨 10 · 캡션 11.5 · 본문 12.5 · 배지 10 */
-.info{font-size:12.5px;line-height:1.8;color:var(--ink2)}
+.info{font-size:var(--f3);line-height:1.8;color:var(--ink2)}
 .info>div{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #1D232E}
 .info>div:last-child{border-bottom:none}
-.info span:first-child{color:var(--ink3);flex-shrink:0;width:72px;font-size:11.5px;padding-top:1px}
+.info span:first-child{color:var(--ink3);flex-shrink:0;width:72px;font-size:var(--f2);padding-top:1px}
 .num{font-family:var(--mono)}
-.est{color:var(--ink3);font-size:11.5px}
+.est{color:var(--ink3);font-size:var(--f2)}
 a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom:1px solid var(--onDim)}
-.lq,.rec,.stag{font-size:10px;font-weight:600;white-space:nowrap}
+.lq,.rec,.stag{font-size:var(--f1);font-weight:600;white-space:nowrap}
 .lq{padding:2px 7px;border-radius:4px}
 .q5{background:#153A2A;color:#5BD9A0}.q4{background:#1A3326;color:#4FBF8C}
 .q3{background:#33301A;color:#D6B44E}.q2{background:#3A2A1A;color:#E0954A}
@@ -105,63 +116,80 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 .r-no{background:#3A1E1E;color:#FF7A7A}.r-new{background:#33301A;color:#D6B44E}
 .r-none{background:var(--s2);color:var(--ink3)}
 
-.desc{font-size:12.5px;line-height:1.85;color:var(--ink2);background:var(--s2);
+.desc{font-size:var(--f3);line-height:1.85;color:var(--ink2);background:var(--s2);
       border:1px solid var(--bd);border-radius:9px;padding:13px 15px}
-.mline{display:flex;gap:9px;align-items:center;padding:0 14px 11px;font-size:11.5px;
+.mline{display:flex;gap:9px;align-items:center;padding:0 14px 11px;font-size:var(--f2);
        color:var(--ink3);font-family:var(--mono);flex-wrap:wrap}
 .mline .rs{color:var(--ink2)}
 .mline .hot{color:var(--warn)}
 .mline .cold{color:var(--on)}
-.auto{font-size:11.5px;color:var(--ink3);margin-left:auto;flex-shrink:0}
+.auto{font-size:var(--f2);color:var(--ink3);margin-left:auto;flex-shrink:0}
 .autobtn{background:transparent;border:1px solid var(--bd2);color:var(--ink3);border-radius:6px;
-         padding:4px 9px;font-size:11.5px;cursor:pointer;flex-shrink:0}
+         padding:4px 9px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
+.caut{display:flex;flex-direction:column;gap:0}
+.caut>div{padding:9px 0;border-bottom:1px solid #1D232E}
+.caut>div:last-child{border-bottom:none}
+.ct{font-size:var(--f3);color:var(--warn);margin-bottom:2px}
+.cd{font-size:var(--f3);color:var(--ink2);line-height:1.8}
 .scen{display:flex;flex-wrap:wrap;gap:5px}
 .stag{padding:3px 9px;border-radius:5px;background:var(--s2);
       border:1px solid var(--bd2);color:var(--ink2)}
-.empty{text-align:center;color:var(--ink3);padding:44px 20px;font-size:12.5px;line-height:1.8}
-.foot{padding:24px 18px;font-size:11.5px;color:var(--ink3);line-height:1.9;text-align:center}
+.empty{text-align:center;color:var(--ink3);padding:44px 20px;font-size:var(--f3);line-height:1.8}
+.foot{padding:24px 18px;font-size:var(--f2);color:var(--ink3);line-height:1.9;text-align:center}
 .foot code{font-family:var(--mono);color:var(--ink2)}
 </style>
 </head>
 <body>
 
 <div class="top">
-  <div class="eyebrow"><span>진입 후보</span><span class="ver">v8.0</span></div>
+  <div class="eyebrow"><span>진입 후보</span><span class="ver">v9.1</span></div>
   <div class="hrow">
     <div>
       <div class="headline">최소 시드 · 최적 시드</div>
       <div class="subline" id="stamp">12분할 = 최소 · 15분할 = 최적</div>
     </div>
-    <button class="helpbtn" id="helpbtn">용어</button>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <div class="fsz" id="fsz"></div>
+      <button class="helpbtn" id="helpbtn">용어</button>
+    </div>
   </div>
 </div>
 
 <div class="help" id="help">
   <div class="hcard">
-    <h4>이 화면의 용어</h4>
-    <div class="hitem"><div class="hterm">변동성 (σ)</div>
-      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. SOXL이 5.6%이므로 그 대비 배수로 함께 표시한다.</div></div>
-    <div class="hitem"><div class="hterm">1칸 주수</div>
-      <div class="hdef">1회 매수금으로 살 수 있는 주식 수. 이 수가 칸 간격을 정한다. <b>주가가 올라도 시드가 같은 비율로 커지므로 이 값은 유지된다</b> — 시드 자체를 <code>주가 × 1칸주수 × 분할</code>로 잡기 때문이다.</div></div>
-    <div class="hitem"><div class="hterm">칸 간격</div>
-      <div class="hdef">다음 칸을 사기까지 떨어져야 하는 폭. <code>1 ÷ (1칸주수 + 1)</code>이며, 변동성의 약 1.75배에 맞춰져 있다. LOC는 하루 한 번만 체결되므로 하루 변동폭보다 좁으면 낭비, 두 배보다 넓으면 주문이 걸리지 않는다.</div></div>
+    <h4>시드를 정하는 값</h4>
+    <div class="hitem"><div class="hterm">변동성 σ</div>
+      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. <b>실제 종가로 계산한 1년치를 쓴다.</b> 마스터 자료의 σ는 절반이 추정치라 참고로만 표시한다.</div></div>
+    <div class="hitem"><div class="hterm">1칸 주수 · 칸 간격</div>
+      <div class="hdef">1칸 주수는 1회 매수금으로 살 수 있는 주식 수이고, 칸 간격은 다음 칸까지 떨어져야 하는 폭이다. 간격 = 1 ÷ (1칸주수 + 1)이며 σ의 약 1.75배에 맞춘다. LOC는 하루 한 번만 체결되므로 하루 변동폭보다 좁으면 낭비, 두 배보다 넓으면 주문이 안 걸린다.<br><br>주가가 올라도 시드가 같은 비율로 커지므로 1칸 주수는 유지된다. 다만 <b>σ가 0.3%p쯤 움직이면 한 주씩 바뀐다.</b> 이미 돌리는 사다리는 바꾸지 않고, 새 숫자는 새 진입에만 쓴다.</div></div>
     <div class="hitem"><div class="hterm">소진 낙폭</div>
       <div class="hdef">시드가 전부 들어가는 하락폭. 이 아래로는 새 돈 없이 회전만 남는다. 진입 전에 반드시 확인할 숫자다.</div></div>
+  </div>
+
+  <div class="hcard">
+    <h4>타이밍을 보는 값</h4>
     <div class="hitem"><div class="hterm">RSI (14)</div>
-      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상이면 과열권, 30 이하면 침체권으로 본다. 진입 타이밍의 참고 지표일 뿐이며, 스위치법은 어차피 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없다.</div></div>
-    <div class="hitem"><div class="hterm">전고점 대비</div>
-      <div class="hdef">역사적 최고 종가에서 얼마나 내려와 있는지. 깊은 자리에서 진입하면 남은 하락 여력 자체가 줄어 최악 손실이 작아진다. 시드 문서에서 손실을 줄이는 두 번째 수단으로 꼽은 항목이다.</div></div>
-    <div class="hitem"><div class="hterm">실측 σ</div>
-      <div class="hdef">실제 종가로 계산한 변동성. 1년치가 구조적 성격이고 60일치가 최근 국면이다. 마스터 값과 2주 이상 차이가 나면 1칸주수 재검토 안내가 뜬다. 다만 σ는 국면에 따라 흔들리므로, 한 번 튀었다고 바꾸지 말고 여러 달 유지될 때 반영한다.</div></div>
+      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 참고 지표일 뿐이며, 스위치법은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없다.</div></div>
+    <div class="hitem"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
+      <div class="hdef">두 개를 함께 두는 이유가 있다. <b>역대</b>는 남은 하락 여력을 재는 값이다 — 잔여 낙폭 계산이 역사적 최대낙폭과 짝을 이루므로 기준이 같아야 한다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값이다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보인다.</div></div>
+  </div>
+
+  <div class="hcard">
+    <h4>종목 성격</h4>
+    <div class="hitem"><div class="hterm">최대낙폭 — 미검증 · 추정</div>
+      <div class="hdef">과거 고점에서 저점까지의 최대 하락폭. <b>미검증</b>은 상장 이력이 짧아 실측이 없다는 뜻이고, <b>추정</b>은 실측 대신 배수별 대리값(3배 −92% · 2배 −85% · 선물 −95%)을 쓴 경우다.</div></div>
     <div class="hitem"><div class="hterm">회복 여부</div>
       <div class="hdef">큰 하락 뒤 이전 수준을 되찾았는지의 기록. 스위치법은 돌아오는 자산을 전제하므로 변동성보다 먼저 볼 항목이다. 과거의 사실일 뿐 미래 예측은 아니다.</div></div>
     <div class="hitem"><div class="hterm">SOXL 상관</div>
       <div class="hdef">높으면 분산이 아니라 같은 베팅의 증량이다. 반도체가 꺾이는 날 함께 꺾인다.</div></div>
-    <div class="hitem"><div class="hterm">구성 조회</div>
-      <div class="hdef">레버리지 ETF는 스왑으로 노출을 만들어 보유 내역에 개별 종목이 나오지 않는다. 같은 기초지수를 따르는 무레버리지 ETF의 티커를 누르면 최신 구성이 열린다.</div></div>
     <div class="hitem"><div class="hterm">구성 — 집중형 · 분산형 · 동일가중</div>
       <div class="hdef">집중형은 상위 몇 종목이 지수를 좌우한다. 분산형은 종목 수가 많아 개별 기업 리스크가 작다. 동일가중은 모든 종목 비중이 비슷해 상위 종목을 봐도 의미가 적고, 업종 전체의 방향이 중요하다.</div></div>
+    <div class="hitem"><div class="hterm">구성 조회</div>
+      <div class="hdef">레버리지 ETF는 스왑으로 노출을 만들어 보유 내역에 개별 종목이 나오지 않는다. 같은 기초지수를 따르는 무레버리지 ETF의 티커를 누르면 최신 구성이 열린다.</div></div>
+    <div class="hitem"><div class="hterm">주의</div>
+      <div class="hdef">종목마다 챙길 것을 맨 아래에 모아 둔다. 위 항목들의 뜻과 그 함의가 여기 적히므로, 표에는 값만 두고 설명은 이쪽에서 읽으면 된다.</div></div>
   </div>
+
   <div class="hcard">
     <h4>시드 공식</h4>
     <div class="hitem"><div class="hdef">
@@ -180,7 +208,8 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
     <option value="need">최소 시드순</option>
     <option value="sig">변동성순</option>
     <option value="rsi">RSI 낮은순</option>
-    <option value="dd">전고점 낙폭순</option>
+    <option value="dd">역대 낙폭순</option>
+    <option value="dd1y">1년 낙폭순</option>
     <option value="price">주가순</option>
     <option value="tk">티커순</option>
   </select>
@@ -190,11 +219,11 @@ a.ref{font-family:var(--mono);color:var(--on);text-decoration:none;border-bottom
 
 <div class="foot">
   최소 시드 = <code>주가 × 1칸주수 × 12</code> · 최적 시드 = <code>주가 × 1칸주수 × 15</code><br>
-  1칸주수 = <code>round(1 ÷ (1.75 × σ) − 1)</code> · 종목 고정<br>
-  σ · 최대낙폭 · 구성 · 설명 출처: 레버리지 ETF 마스터
+  1칸주수 = <code>round(1 ÷ (1.75 × σ) − 1)</code> · 실측 σ 기준<br>
+  σ는 실제 종가로 매일 재계산 · 최대낙폭 · 구성 · 설명 출처: 레버리지 ETF 마스터
   <br>
   <button id="reset" style="margin-top:16px;background:transparent;border:1px solid var(--bd2);
-    color:var(--ink3);border-radius:7px;padding:7px 14px;font-size:11.5px;cursor:pointer">
+    color:var(--ink3);border-radius:7px;padding:7px 14px;font-size:var(--f2);cursor:pointer">
     입력한 주가 · 설정 초기화</button>
 </div>
 
@@ -262,43 +291,43 @@ TYD:['부분회복','실물·채권 · 미국 중기 국채','중기 국채 3배
 NAIL:['회복','집중형','주택건설 3배. 모기지 금리에 가장 직접적으로 반응하는 섹터라 금리 하락 시나리오에서 탄력이 가장 큽니다. σ 5.2% 에 회복 이력까지 갖춘 조합이라 금리 하락 그룹에서 그리드 적합도가 가장 높습니다. 상위 편입에 홈디포·로우스 같은 자재 유통이 섞여 있어 순수 건설사 노출보다는 완충이 있습니다.',['금리 하락','경기 확장','골디락스','디스인플레이션']],
 DRN:['부분회복','집중형','리츠 3배. 금리 하락에 반응하지만 NAIL과 성격이 다릅니다. 주택건설은 신규 수요에 걸고 리츠는 기존 자산의 할인율에 겁니다. 상위 편입이 물류·통신탑·데이터센터 리츠라 전통적인 오피스·상업 부동산 노출은 생각보다 적습니다. 특히 에퀴닉스 같은 데이터센터 리츠 때문에 AI 인프라 테마와도 간접적으로 연결됩니다.',['금리 하락','경기 확장','디스인플레이션']],
 UTSL:['회복','집중형','유틸리티 3배. 전통적으로는 배당 중심의 채권 대용이라 금리가 오르면 밀리는 섹터였는데, 데이터센터 전력 수요가 붙으면서 성격이 바뀌고 있습니다. 콘스텔레이션·비스트라 같은 원전 사업자가 AI 전력 계약으로 재평가받은 게 대표 적입니다. 이제는 방어 섹터이면서 동시에 AI 테마라는 이례적인 자리에 있습니다. MDD −68.4%로 3배 중 얕은 편이 라는 것도 장점입니다.',['금리 하락','전력 · 에너지 전환','AI 인프라','침체 · 방어','달러 강세']],
-NUGT:['부분회복','집중형','금광 기업 2배. 금광주는 금값에 레버리지가 한 번 더 걸리는 구조라 2배로도 금 4배 수준의 반응을 보입니다. σ 4.2% 로 금(1.8%)의 두 배를 넘어섭니다. 채굴 원가가 고정비라 금값이 오를 때 이익이 비선형으로 늘어나는 게 이유입니 다. 반대로 금값이 빠지면 손실도 비선형이고, 개별 광산의 사고·파업 같은 기업 리스크도 더해집니다. 기초지수 GDX 는 최근 사상 최고가를 갱신했지만, NUGT 자체는 2011~15 약세장의 −99%대 감가와 병합 이력 때문에 옛 수준을 회 복하지 못했습니다. 2020년 5월 3배에서 2배로 전환됐고, 이전 σ·낙폭 기록은 3배 시절 값이라는 점도 감안해야 합니 다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','달러 약세','원자재 슈퍼사이클']],
-GDXU:['이력부족','집중형','NUGT의 3배 버전. σ 추정 6.2%로 최상위권이고, 금 계열이면서 주식형 최고 수준의 변동성을 갖는 독특한 자리에 있 습니다. 금과 주식 사이의 상관이 낮다는 점 때문에 SOXL·TQQQ와 조합했을 때 분산 효과가 실제로 나오는 몇 안 되는 종목입니다. 유동성이 낮은 게 가장 큰 실전 제약입니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','달러 약세','원자재 슈퍼사이클']],
-JNUG:['부분회복','분산형 · 중소형 금광 분산 · 상위 편입 비중 각 5% 내외','중소형 금광 2배. 대형 금광보다 매장량 대비 시가총액이 작아 금값 상승 국면의 탄력이 더 큽니다. 반대로 자금조달 능력이 약해 금값 조정 시 낙폭도 훨씬 깊습니다. 액면병합 이력이 여러 번 있어 장기 차트를 그대로 해석하면 안 됩니 다. 2020년 5월 3배에서 2배로 전환되었습니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','원자재 슈퍼사이클']],
+NUGT:['부분회복','집중형','금광 기업 2배. 금광주는 금값에 레버리지가 한 번 더 걸리는 구조라 2배로도 금 4배 수준의 반응을 보입니다. σ 4.2% 로 금(1.8%)의 두 배를 넘어섭니다. 채굴 원가가 고정비라 금값이 오를 때 이익이 비선형으로 늘어나는 게 이유입니다. 반대로 금값이 빠지면 손실도 비선형이고, 개별 광산의 사고·파업 같은 기업 리스크도 더해집니다. 기초지수 GDX 는 최근 사상 최고가를 갱신했지만, NUGT 자체는 2011~15 약세장의 −99%대 감가와 병합 이력 때문에 옛 수준을 회 복하지 못했습니다. 2020년 5월 3배에서 2배로 전환됐고, 이전 σ·낙폭 기록은 3배 시절 값이라는 점도 감안해야합니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','달러 약세','원자재 슈퍼사이클']],
+GDXU:['이력부족','집중형','NUGT의 3배 버전. σ 추정 6.2%로 최상위권이고, 금 계열이면서 주식형 최고 수준의 변동성을 갖는 독특한 자리에 있습니다. 금과 주식 사이의 상관이 낮다는 점 때문에 SOXL·TQQQ와 조합했을 때 분산 효과가 실제로 나오는 몇 안 되는 종목입니다. 유동성이 낮은 게 가장 큰 실전 제약입니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','달러 약세','원자재 슈퍼사이클']],
+JNUG:['부분회복','분산형 · 중소형 금광 분산 · 상위 편입 비중 각 5% 내외','중소형 금광 2배. 대형 금광보다 매장량 대비 시가총액이 작아 금값 상승 국면의 탄력이 더 큽니다. 반대로 자금조달 능력이 약해 금값 조정 시 낙폭도 훨씬 깊습니다. 액면병합 이력이 여러 번 있어 장기 차트를 그대로 해석하면 안 됩니다. 2020년 5월 3배에서 2배로 전환되었습니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','원자재 슈퍼사이클']],
 UGL:['회복','실물·채권 · 금 현물','금 현물 2배. σ 1.8%로 회전 동력은 가장 약합니다. 2013년 단일 폭락은 −42%였지만 2011년 고점에서 2015년 저점까지의 온전한 약세장 MDD는 −70%입니다. 금도 절반 이상 깎일 수 있습니다. 안정성과 수익률의 정확한 반대편에 있는 종목입니다. 재정 팽창이나 통화 신뢰 훼손 시나리오에서 주식과 상관이 끊기는 몇 안 되는 자산이라 분산 목적이 크다면 σ가 낮은 게 오히려 맞습니다.',['인플레 재점화','스태그플레이션','재정 팽창 · 통화 신뢰 훼손','달러 약세','위험회피']],
-AGQ:['부분회복','실물·채권 · 은 현물','은 현물 2배. 금과 같이 움직이면서 산업 수요가 얹혀 있어 σ가 금의 두 배 가까이 됩니다. 2011년은 고점에서 2016년 저점까지 −95%를 기록했고, 은이 최근 전고점을 회복했는데도 AGQ는 감가 때문에 2011년 수준 근처에도 못 갔습 니다. 레버리지 상각의 교과서 사례입니다. 태양광 패널 수요가 은 소비의 큰 축이라 에너지 전환 테마와도 연결됩니 다. 다만 산업 수요 비중 때문에 경기가 꺾이면 금보다 먼저 빠집니다. 스태그플레이션 국면에서 금 대신 은을 들면 방 어가 안 되는 이유입니다.',['인플레 재점화','원자재 슈퍼사이클','전력 · 에너지 전환','경기 확장']],
-ERX:['회복','집중형','미국 대형 에너지 2배. 이 문서에서 가장 많은 시나리오에 걸쳐 있는 종목입니다. 유가 급등에는 직접 수혜, 인플레 재 점화에는 원인이자 수혜, 지정학 긴장에는 공급 차질 수혜, 스태그플레이션에서는 주식 중 거의 유일한 피난처로 작동 합니다. 금리 상승 국면과도 맞는데, 인플레발 인상이면 원인 쪽에서 있기 때문입니다. 2020년 유가 마이너스 사태로 −95%를 겪었지만 2021~22년에 강하게 회복한 이력이 있습니다. −95~98% 낙폭 기록은 3배 시절(2020년 5월 2배 전환 이전) 값입니다. 상위 편입이 엑슨·셰브론에 크게 쏠려 있습니다.',['인플레 재점화','유가 급등','원자재 슈퍼사이클','스태그플레이션','지정학 긴장','금리 상승']],
-GUSH:['회복','동일가중 E&P · 상위 편입 비중 각 2~3%','탐사·생산(E&P) 기업 2배. 동일가중이라 ERX보다 중소형 비중이 높고, 정유·수송 부문이 빠져 있어 유가에 훨씬 더 순 수하게 노출됩니다. σ가 ERX의 1.4배라 회전 수익이 그만큼 큽니다. 2020년에 −99%를 기록하고 여러 번 액면병합을 거쳤기 때문에 장기 차트가 심하게 왜곡돼 있습니다. 유가 방향이 확실할 때만 쓰는 고배율 도구로 보아야 합니다. 2020년 5월 3배에서 2배로 전환되었습니다.',['인플레 재점화','유가 급등','원자재 슈퍼사이클','스태그플레이션','지정학 긴장']],
+AGQ:['부분회복','실물·채권 · 은 현물','은 현물 2배. 금과 같이 움직이면서 산업 수요가 얹혀 있어 σ가 금의 두 배 가까이됩니다. 2011년은 고점에서 2016년 저점까지 −95%를 기록했고, 은이 최근 전고점을 회복했는데도 AGQ는 감가 때문에 2011년 수준 근처에도 못 갔습니다. 레버리지 상각의 교과서 사례입니다. 태양광 패널 수요가 은 소비의 큰 축이라 에너지 전환 테마와도 연결됩니다. 다만 산업 수요 비중 때문에 경기가 꺾이면 금보다 먼저 빠집니다. 스태그플레이션 국면에서 금 대신 은을 들면 방어가 안 되는 이유입니다.',['인플레 재점화','원자재 슈퍼사이클','전력 · 에너지 전환','경기 확장']],
+ERX:['회복','집중형','미국 대형 에너지 2배. 이 문서에서 가장 많은 시나리오에 걸쳐 있는 종목입니다. 유가 급등에는 직접 수혜, 인플레 재 점화에는 원인이자 수혜, 지정학 긴장에는 공급 차질 수혜, 스태그플레이션에서는 주식 중 거의 유일한 피난처로 작동합니다. 금리 상승 국면과도 맞는데, 인플레발 인상이면 원인 쪽에서 있기 때문입니다. 2020년 유가 마이너스 사태로 −95%를 겪었지만 2021~22년에 강하게 회복한 이력이 있습니다. −95~98% 낙폭 기록은 3배 시절(2020년 5월 2배 전환 이전) 값입니다. 상위 편입이 엑슨·셰브론에 크게 쏠려 있습니다.',['인플레 재점화','유가 급등','원자재 슈퍼사이클','스태그플레이션','지정학 긴장','금리 상승']],
+GUSH:['회복','동일가중 E&P · 상위 편입 비중 각 2~3%','탐사·생산(E&P) 기업 2배. 동일가중이라 ERX보다 중소형 비중이 높고, 정유·수송 부문이 빠져 있어 유가에 훨씬 더 순 수하게 노출됩니다. σ가 ERX의 1.4배라 회전 수익이 그만큼 큽니다. 2020년에 −99%를 기록하고 여러 번 액면병합을 거쳤기 때문에 장기 차트가 심하게 왜곡돼 있습니다. 유가 방향이 확실할 때만 쓰는 고배율 도구로 보아야합니다. 2020년 5월 3배에서 2배로 전환되었습니다.',['인플레 재점화','유가 급등','원자재 슈퍼사이클','스태그플레이션','지정학 긴장']],
 UDOW:['회복','분산형','주가가중 방식이라 시가총액 큰 기업이 아니라 주가 높은 기업이 크게 들어가는 독특한 구조입니다. 듀레이션이 짧은 대형 가치주 중심이라 금리 상승 국면에서 나스닥 계열보다 덜 맞습니다. 기술주 노출을 줄이면서 미국 대형주를 담고 싶을 때의 대안입니다.',['경기 확장','골디락스','금리 상승','위험선호 확대']],
 HIBL:['부분회복','동일가중 100종목 · 분기 재선정으로 구성 변동','S&P 500 중에서 베타가 높은 100종목만 뽑아 동일가중으로 담습니다. 분기마다 재선정하기 때문에 편입 종목이 계속 바뀌고, 그래서 특정 섹터 베팅이 아니라 "변동성 그 자체"에 거는 상품입니다. σ 4.5%로 미국 대형주 계열 최고인데 유동성이 낮은 게 유일한 약점입니다.',['경기 확장','위험선호 확대','골디락스']],
 MIDU:['회복','400종목 분산','소형주와 대형주 사이. 경기 회복 초중반에 가장 잘 듣는 구간입니다. σ 3.8%로 나쁘지 않은데 유동성이 낮아서 시드가 커지면 LOC 체결에서 불리해질 수 있습니다.',['경기 확장','골디락스','리쇼어링 · 제조업 회귀','위험선호 확대']],
 FAS:['회복','집중형','대형 은행·보험·카드사 묶음. 금리가 오르면 예대마진이 벌어지고, 규제 완화 국면에서는 자사주 매입과 배당이 늘어나 이중으로 수혜입니다. 금리 상승 그룹에서 논리와 실적이 모두 검증된 유일한 종목이고 유동성도 최상위입니다. 2008년 11월 출범 직후 금융위기 저점까지 −85%를 겪고 회복한 이력이 있습니다. 다만 상위 편입에 버크셔가 크게 들어가 있어 순수 은행 노출은 생각보다 낮습니다.',['금리 상승','경기 확장','규제 완화 · 친기업','위험선호 확대']],
-DPST:['미회복','동일가중 · 상위 편입 비중 각 2% 내외','미국 지역은행 동일가중. σ 7.5%로 이 문서 전체 3위이고, 그래서 계산상 가장 매력적으로 보입니다. 문제는 MDD −98%의 발생 시기가 2023년 은행 위기라는 점입니다. 금리 상승이 보유 채권 평가손과 예금 이탈을 동시에 일으켜 지역은행을 직격했습니다. 논리상 수혜인데 실제로는 정반대로 간 사례고, 이후에도 상업용 부동산 부실이 남아 회복 하지 못했습니다. 쓰려면 σ가 아니라이 이력을 보고 시드를 정해야 합니다.',['금리 상승','규제 완화 · 친기업','경기 확장','달러 강세']],
-DUSL:['회복','집중형','미국 산업재 3배. 설비투자·인프라·방산이 섞여 있어 금리 사이클과 별개로 굴러가는 부분이 큽니다. 리쇼어링과 데이 터센터 건설이 동시에 밀어주는 자리이기도 합니다. 유동성이 낮은 게 실전 제약입니다.',['경기 확장','리쇼어링 · 제조업 회귀','전력 · 에너지 전환','지정학 긴장','로봇 · 자동화']],
-TPOR:['부분회복','동일가중 운송 · 상위 편입 비중 각 3~4%','항공·철도·트럭·택배 동일가중 3배. 물동량이 경기 선행지표라 회복 초입에 먼저 움직입니다. 주의할 점은 유가와 역방 향이라는 거입니다. 연료비가 원가의 큰 축이라 유가 급등 국면에서는 에너지와 정반대로 간다는 뜻이고, 이 조합을 같이 들면 헤지가 아니라 상충이 됩니다.',['경기 확장','골디락스','위험선호 확대']],
-WANT:['회복','집중형','경기소비재 3배인데 상위 편입이 아마존과 테슬라에 극단적으로 쏠려 있습니다. 이름은 소비재지만 실질적으로는 빅 테크 두 종목 노출이 절반 가까이 된다고 보아야 합니다. TQQQ와 상관이 생각보다 높다는 뜻이라 분산 목적으로 쓰기 엔 부적합합니다.',['경기 확장','골디락스','위험선호 확대','디스인플레이션']],
+DPST:['미회복','동일가중 · 상위 편입 비중 각 2% 내외','미국 지역은행 동일가중. σ 7.5%로 이 문서 전체 3위이고, 그래서 계산상 가장 매력적으로 보입니다. 문제는 MDD −98%의 발생 시기가 2023년 은행 위기라는 점입니다. 금리 상승이 보유 채권 평가손과 예금 이탈을 동시에 일으켜 지역은행을 직격했습니다. 논리상 수혜인데 실제로는 정반대로 간 사례고, 이후에도 상업용 부동산 부실이 남아 회복 하지 못했습니다. 쓰려면 σ가 아니라이 이력을 보고 시드를 정해야합니다.',['금리 상승','규제 완화 · 친기업','경기 확장','달러 강세']],
+DUSL:['회복','집중형','미국 산업재 3배. 설비투자·인프라·방산이 섞여 있어 금리 사이클과 별개로 굴러가는 부분이 큽니다. 리쇼어링과 데이 터센터 건설이 동시에 밀어주는 자리이기도합니다. 유동성이 낮은 게 실전 제약입니다.',['경기 확장','리쇼어링 · 제조업 회귀','전력 · 에너지 전환','지정학 긴장','로봇 · 자동화']],
+TPOR:['부분회복','동일가중 운송 · 상위 편입 비중 각 3~4%','항공·철도·트럭·택배 동일가중 3배. 물동량이 경기 선행지표라 회복 초입에 먼저 움직입니다. 주의할 점은 유가와 역방 향이라는 거입니다. 연료비가 원가의 큰 축이라 유가 급등 국면에서는 에너지와 정반대로 간다는 뜻이고, 이 조합을 같이 들면 헤지가 아니라 상충이됩니다.',['경기 확장','골디락스','위험선호 확대']],
+WANT:['회복','집중형','경기소비재 3배인데 상위 편입이 아마존과 테슬라에 극단적으로 쏠려 있습니다. 이름은 소비재지만 실질적으로는 빅 테크 두 종목 노출이 절반 가까이 된다고 보아야합니다. TQQQ와 상관이 생각보다 높다는 뜻이라 분산 목적으로 쓰기 엔 부적합합니다.',['경기 확장','골디락스','위험선호 확대','디스인플레이션']],
 RETL:['부분회복','동일가중 소매 · 상위 편입 비중 각 1~2%','소매업 동일가중 3배. 동일가중이라 아마존 같은 거대 기업이 아니라 중소 소매 체인의 움직임을 반영합니다. σ 5.5% 로 상위권이지만 회복이 부분적이고 유동성이 낮습니다. 실질임금과 금리에 동시에 눌리면 회복이 늦어지는 구조적 약 점이 있습니다.',['경기 확장','골디락스','디스인플레이션','달러 강세']],
 LABU:['미회복','동일가중 바이오텍 · 상위 편입 비중 각 1~2%','바이오텍 동일가중 3배. σ 6.4%에 유동성 최상위라 계산상 가장 유혹적인 조합입니다. 동일가중이라 대형 제약이 아 니라 임상 단계 중소형 바이오가 중심이고, 그래서 σ가 극단적으로 높습니다. 문제는이 기업들이 대부분 현금흐름이 없어서 금리에 밸류가 통째로 좌우된다는 거입니다. 2021년 2월 고점에서 2023년 10월까지 −98%를 기록하고 아직 회복하지 못했습니다. 방어 섹터로 분류되지만 실제로는이 문서에서 금리에 가장 민감한 자산입니다. 금리 하락 시나 리오가 명확할 때만 의미가 있습니다.',['금리 하락','바이오 혁신','위험선호 확대','디스인플레이션']],
 CURE:['회복','집중형','대형 헬스케어 3배. LABU와 정반대 성격입니다. 현금흐름이 확실한 대형 제약·의료기기 중심이라 금리 민감도가 낮고 MDD도 −65.2%로 3배 중 가장 얕은 축입니다. σ 3.0%로 회전 동력은 약하지만 침체 시나리오에서 주식 노출을 유지 하면서 낙폭을 줄이고 싶을 때의 선택지입니다.',['침체 · 방어','바이오 혁신','위험회피']],
 PILL:['부분회복','동일가중 제약 · 상위 편입 비중 각 4~5%','제약 동일가중 3배. CURE와 LABU 사이의 성격입니다. 동일가중이라 중형 제약 비중이 높아 σ가 CURE보다 높지만 LABU만큼 임상 리스크에 노출되진 않습니다. 유동성이 매우 낮아 소액 운용에만 적합합니다.',['침체 · 방어','바이오 혁신']],
-DFEN:['회복','집중형','방산 3배. σ 4.3%에 회복 이력이 확인된 조합이고, 무엇보다 국방예산이라는 동력이 금리·경기 사이클과 독립적이라 다른 종목들과 상관이 낮습니다. 지금 포트폴리오가 SOXL·TQQQ로 AI 사이클에 몰려 있는 상황에서 실질적인 분산 효과를 줄 수 있는 몇 안 되는 종목입니다. 상업 항공(보잉·GE) 비중이 커서 순수 방산보다는 항공우주 전반에 걸쳐 있다는 점은 감안해야 합니다.',['지정학 긴장','재정 팽창 · 통화 신뢰 훼손','리쇼어링 · 제조업 회귀','경기 확장']],
-URAA:['이력부족','집중형','우라늄·원자력 2배. 2024년 6월 상장이고 기초는 URA와 URNM(스프랏 우라늄 채굴)을 섞은 지수입니다. AI 전력 수 요와 원전 회귀 정책이 겹치는 자리인데, 상장 후 1년 만에 52주 저점 대비 고점이 7배가 넘는 진폭을 보였습니다. σ가 표기값보다 실제로 더 높을 가능성이 큽니다. 운용자산과 거래량이 아직 작아 LOC 체결에 불리하고, 2011년 후쿠시 마처럼 단일 사건으로 섹터 전체가 장기간 무너진 전례가 있다는 점도 기억해야 합니다.',['전력 · 에너지 전환','AI 인프라','지정학 긴장','원자재 슈퍼사이클']],
+DFEN:['회복','집중형','방산 3배. σ 4.3%에 회복 이력이 확인된 조합이고, 무엇보다 국방예산이라는 동력이 금리·경기 사이클과 독립적이라 다른 종목들과 상관이 낮습니다. 지금 포트폴리오가 SOXL·TQQQ로 AI 사이클에 몰려 있는 상황에서 실질적인 분산 효과를 줄 수 있는 몇 안 되는 종목입니다. 상업 항공(보잉·GE) 비중이 커서 순수 방산보다는 항공우주 전반에 걸쳐 있다는 점은 감안해야합니다.',['지정학 긴장','재정 팽창 · 통화 신뢰 훼손','리쇼어링 · 제조업 회귀','경기 확장']],
+URAA:['이력부족','집중형','우라늄·원자력 2배. 2024년 6월 상장이고 기초는 URA와 URNM(스프랏 우라늄 채굴)을 섞은 지수입니다. AI 전력 수 요와 원전 회귀 정책이 겹치는 자리인데, 상장 후 1년 만에 52주 저점 대비 고점이 7배가 넘는 진폭을 보였습니다. σ가 표기값보다 실제로 더 높을 가능성이 큽니다. 운용자산과 거래량이 아직 작아 LOC 체결에 불리하고, 2011년 후쿠시 마처럼 단일 사건으로 섹터 전체가 장기간 무너진 전례가 있다는 점도 기억해야합니다.',['전력 · 에너지 전환','AI 인프라','지정학 긴장','원자재 슈퍼사이클']],
 TECL:['회복','집중형','기술 섹터 3배. SOXL보다 완만하고 소프트웨어까지 포함해 분산돼 있습니다. 반도체 재고 사이클 리스크를 피하면서 AI 테마를 담고 싶을 때의 대안입니다. σ 3.7%로 SOXL의 3분의 2 수준이라 회전 수익도 그만큼 줄어듭니다.',['AI 인프라','경기 확장','위험선호 확대','골디락스','디스인플레이션']],
 WEBL:['미회복','집중형','인터넷 기업 3배. 2021년 고점에서 −92%를 기록하고 회복하지 못했습니다. 기초 지수가 광고·이커머스 중심인데, 이 영역이 빅테크로 집중되면서 중형 인터넷 기업들이 구조적으로 밀린 게 원인입니다. σ 4.6%로 매력적으로 보이지만 유동성도 낮아 실전 제약이 큽니다.',['경기 확장','위험선호 확대','규제 완화 · 친기업']],
 AIBU:['이력부족','집중형 · AI 테마 · 운용사 재량 편입 · 구성 확인 필요','AI 테마 2배. 테마 ETF 특성상 편입 기준이 운용사 재량이라 실제 구성이 이름과 다를 수 있습니다. 상장 이력이 짧아 완전한 약세장을 한 번도 겪지 않았고, MDD가 미지수라는 게 핵심 리스크입니다. SOXL·TECL과 겹치는 부분이 많아 독립적인 노출을 준다고 보기 어려워.',['AI 인프라','반도체 사이클','위험선호 확대']],
 UBOT:['이력부족','집중형','로봇·자동화 2배. 인건비 상승과 리쇼어링이 동시에 밀어주는 축이라 AI보다 사이클이 길고 느립니다. 일본·유럽 기업 비중이 높아 미국 테크와 상관이 상대적으로 낮은 게 장점입니다. σ 3.0%로 2배치고도 낮은 편이라 그리드 동력은 부 족합니다.',['로봇 · 자동화','AI 인프라','리쇼어링 · 제조업 회귀']],
 QQQU:['이력부족','동일가중 7종목 · 애플 MS 알파벳 아마존 엔비디아 테슬라 메타','빅테크 7종목을 동일가중으로 담은 2배. 시총가중이 아니라 7종목이 각 14% 안팎으로 들어가서, 엔비디아 쏠림이 심 한 TQQQ와 성격이 미묘하게 다릅니다. 그래도 상관은 매우 높아서 같이 들면 분산이 아니라 증량입니다. 2024년 3월 상장이라 이력이 짧고, 일평균 거래대금이 수백만 달러 수준이라 LOC 체결에도 불리합니다.',['AI 인프라','경기 확장','위험선호 확대']],
 RAM:['이력부족','집중형','메모리 반도체 2배. 2026년 6월 상장으로 이 문서에서 가장 새 종목입니다. 기초인 DRAM(라운드힐 메모리)은 2026년 4월 상장 후 두 달 만에 +180%를 기록했고, RAM은 첫 달 안에 고점 대비 −55%를 오갔습니다. 하루 ±13% 움직임이 관측될 만큼 σ가 극단적이라 회전 수익 잠재력은 SOXL을 넘어섭니다. 다만 상승도 하락도 아직 한 사이클을 못 겪었고, HBM 슈퍼사이클이라는 단일 서사에 통째로 얹혀 있습니다. SOXL과 상관이 매우 높아 서브가 아니라 증량이 라는 점이 핵심입니다.',['반도체 사이클','AI 인프라']],
-YINN:['미회복','집중형','중국 대형주 3배. σ 5.6%로 SOXL과 동급인데 −96.3%를 기록하고 회복하지 못했습니다. 원인이 경기 사이클이 아니 라 규제라는 게 핵심입니다. 2021년 플랫폼 규제로 밸류가 통째로 재설정됐고, 그 리스크 프리미엄이 상시로 가격에 얹혀 있습니다. 정상적인 사이클로 움직이지 않는다는 뜻입니다. 다만 밸류가 눌려 있는 만큼 부양책이 나오면 반등 폭이 가장 큰 자산이기도 합니다. 중국 부양 시나리오에 걸겠다면 시드를 작게 잡고 기간을 짧게 가져가는 방식이 맞습니 다.',['중국 부양','달러 약세','위험선호 확대']],
+YINN:['미회복','집중형','중국 대형주 3배. σ 5.6%로 SOXL과 동급인데 −96.3%를 기록하고 회복하지 못했습니다. 원인이 경기 사이클이 아니 라 규제라는 게 핵심입니다. 2021년 플랫폼 규제로 밸류가 통째로 재설정됐고, 그 리스크 프리미엄이 상시로 가격에 얹혀 있습니다. 정상적인 사이클로 움직이지 않는다는 뜻입니다. 다만 밸류가 눌려 있는 만큼 부양책이 나오면 반등 폭이 가장 큰 자산이기도합니다. 중국 부양 시나리오에 걸겠다면 시드를 작게 잡고 기간을 짧게 가져가는 방식이 맞습니다.',['중국 부양','달러 약세','위험선호 확대']],
 CWEB:['미회복','집중형','중국 인터넷 2배. YINN과 같은 규제 리스크에 미국 상장폐지 가능성이 추가됩니다. 금융주가 빠져 있어 YINN보다 플 랫폼 노출이 순수하고, 그래서 규제 뉴스에 더 크게 반응합니다.',['중국 부양','규제 완화 · 친기업','위험선호 확대']],
 CHAU:['부분회복','분산형','중국 본토 A주 2배. 홍콩 상장물과 달리 외국인 참여가 제한된 시장이라 규제 노출 성격이 다릅니다. 국내 유동성과 부 양책에 더 직접적으로 반응하고, 미국 상장폐지 이슈에서도 자유로워. 대신 σ가 낮고 유동성도 낮습니다.',['중국 부양','달러 약세']],
-INDL:['부분회복','집중형','인도 2배. 제조업 이전(차이나 플러스 원)의 최대 수혜국이라 리쇼어링 시나리오와 연결됩니다. 내수 성장이 동력이라 글로벌 경기와 상관이 상대적으로 낮은 게 장점입니다. 과거 3배였다가 2배로 변경된 이력이 있어 실측 σ가 과거 배수 기준일 가능성이 있습니다. 재확인이 필요합니다. 원유 순수입국이라 유가 급등이 명확한 역풍이라는 점도 기억해야 합니다.',['리쇼어링 · 제조업 회귀','달러 약세','경기 확장']],
-EDC:['부분회복','집중형','신흥국 전체 3배. 달러 방향이 가장 큰 변수입니다. 다만 구성이 TSMC·텐센트·삼성전자에 쏠려 있어 실질적으로는 아 시아 테크 노출이 절반 가까이 됩니다. 이름만큼 분산돼 있지 않다는 뜻이고, SOXL·KORU와 상관이 생각보다 높습니 다.',['달러 약세','원자재 슈퍼사이클','경기 확장','위험선호 확대']],
-KORU:['회복','집중형','한국 3배. 삼성전자·SK하이닉스가 지수의 큰 축이라 사실상 메모리 반도체 베팅입니다. SOXL과 같은 사이클을 타기 때문에 분산 효과가 거의 없다는 점이 가장 중요합니다. 차이가 있다면 원달러 환율이 얹힌다는 건데, 달러 강세 국면 에서는 이게 이중 역풍이 됩니다.',['반도체 사이클','달러 약세','경기 확장']],
+INDL:['부분회복','집중형','인도 2배. 제조업 이전(차이나 플러스 원)의 최대 수혜국이라 리쇼어링 시나리오와 연결됩니다. 내수 성장이 동력이라 글로벌 경기와 상관이 상대적으로 낮은 게 장점입니다. 과거 3배였다가 2배로 변경된 이력이 있어 실측 σ가 과거 배수 기준일 가능성이 있습니다. 재확인이 필요합니다. 원유 순수입국이라 유가 급등이 명확한 역풍이라는 점도 기억해야합니다.',['리쇼어링 · 제조업 회귀','달러 약세','경기 확장']],
+EDC:['부분회복','집중형','신흥국 전체 3배. 달러 방향이 가장 큰 변수입니다. 다만 구성이 TSMC·텐센트·삼성전자에 쏠려 있어 실질적으로는 아 시아 테크 노출이 절반 가까이됩니다. 이름만큼 분산돼 있지 않다는 뜻이고, SOXL·KORU와 상관이 생각보다 높습니다.',['달러 약세','원자재 슈퍼사이클','경기 확장','위험선호 확대']],
+KORU:['회복','집중형','한국 3배. 삼성전자·SK하이닉스가 지수의 큰 축이라 사실상 메모리 반도체 베팅입니다. SOXL과 같은 사이클을 타기 때문에 분산 효과가 거의 없다는 점이 가장 중요합니다. 차이가 있다면 원달러 환율이 얹힌다는 건데, 달러 강세 국면 에서는 이게 이중 역풍이됩니다.',['반도체 사이클','달러 약세','경기 확장']],
 EURL:['부분회복','집중형','유럽 3배. 유동성이 이 문서 전체 최하위입니다. LOC는 종가 일괄 체결이라 호가가 얇으면 슬리피지가 수익률을 통째로 수확합니다. 이론 수익률과 무관하게 실전 적합성이 가장 떨어지는 종목입니다.',['경기 확장','달러 약세']],
 BRZU:['부분회복','집중형','브라질 2배. 발레(철광석)와 페트로브라스(석유)가 지수의 큰 축이라 사실상 원자재 베팅입니다. 원자재 슈퍼사이클 시나리오에서 미국 종목과 다른 경로로 노출을 얻을 수 있습니다. 헤알 환율 변동이 σ에 얹히고, 정치 리스크가 정량화 되지 않는다는 게 약점입니다. 2020년 5월 3배에서 2배로 전환되었습니다.',['원자재 슈퍼사이클','달러 약세','인플레 재점화']],
 MEXX:['부분회복','집중형','멕시코 3배. 니어쇼어링의 직접 수혜국이라 리쇼어링 시나리오에서 인도와 함께 거론됩니다. 다만 미국 관세 정책에 직접 노출돼 있어 같은 정책이 수혜와 타격을 동시에 줄 수 있습니다. 유동성이 최하위라 실전 적합성이 낮습니다.',['리쇼어링 · 제조업 회귀','달러 약세']],
-BITX:['이력부족','실물·채권 · 비트코인 선물','비트코인 선물 2배. σ 6.3%로 최상위권이면서 유동성도 괜찮은 드문 조합입니다. 주식과 상관이 국면에 따라 크게 달 라집니다. 유동성 확대 국면에서는 위험자산과 같이 움직이는데, 재정 팽창이나 통화 신뢰 훼손 시나리오에서는 금과 비슷한 성격을 보이기도 합니다. 상장 이후 완전한 약세장을 겪지 않아 MDD가 미지수라는 게 가장 큰 리스크입니다. 기초자산인 비트코인 자체는 과거 −80% 이상의 하락을 여러 번 겪었다는 점을 기준으로 삼아야 합니다.',['크립토 강세','위험선호 확대','재정 팽창 · 통화 신뢰 훼손','달러 약세']],
+BITX:['이력부족','실물·채권 · 비트코인 선물','비트코인 선물 2배. σ 6.3%로 최상위권이면서 유동성도 괜찮은 드문 조합입니다. 주식과 상관이 국면에 따라 크게 달 라집니다. 유동성 확대 국면에서는 위험자산과 같이 움직이는데, 재정 팽창이나 통화 신뢰 훼손 시나리오에서는 금과 비슷한 성격을 보이기도합니다. 상장 이후 완전한 약세장을 겪지 않아 MDD가 미지수라는 게 가장 큰 리스크입니다. 기초자산인 비트코인 자체는 과거 −80% 이상의 하락을 여러 번 겪었다는 점을 기준으로 삼아야합니다.',['크립토 강세','위험선호 확대','재정 팽창 · 통화 신뢰 훼손','달러 약세']],
 ETHU:['이력부족','실물·채권 · 이더리움 선물','이더리움 2배. σ 추정 8.2%로 이 문서 전체 3위권입니다. 회전 수익 잠재력이 가장 큰 축에 속합니다. 비트코인보다 변동성이 크고 하락 국면에서 더 깊이 빠지는 경향이 있습니다. 이력이 짧아 시드를 가장 보수적으로 잡아야 하는 종목 중 하나입니다.',['크립토 강세','위험선호 확대']],
 SOLT:['이력부족','실물·채권 · 솔라나 선물','솔라나 2배. σ 추정 10.1%로 이 문서 전체 1위입니다. 공식대로면 기대 수익률도 1위인데, 동시에 이력이 가장 짧고 유동성도 낮습니다. 이론값과 실제 위험의 괴리가 가장 큰 종목입니다. 알트코인은 강세장에서 비트코인을 앞서고 약세장에서는 훨씬 깊이 빠지는 비대칭이 있습니다. σ가 높다는 이유만으로 접근하면 안 되는 대표적인 경우입니다.',['크립토 강세','위험선호 확대']],
 LMBO:['—','—','마스터 자료에 카드가 없습니다. 변동성·최대낙폭 모두 미수록이므로 진입 전 직접 확인이 필요합니다.',[]],
@@ -308,10 +337,10 @@ const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력
 const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
 
 let LIVE={}, STAMP=null;
-let st={grp:'all',sort:'need',px:{},open:null,help:0};
+let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null};}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,
-  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help}));}catch(e){}};
+  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs}));}catch(e){}};
 
 /* 주가 우선순위 — 수동 입력 > 자동 수집 > 내장 기본값 */
 const priceOf=t=>{const v=st.px[t];
@@ -331,6 +360,28 @@ function ladder(seed,div,P){
   return {unit,n0,gap:100/(n0+1),depth:div/(div+n0+1)*100};
 }
 const nLive=sg=>Math.max(1,Math.round(1/(1.75*sg/100)-1));
+/* 1칸 주수 — 실측 σ 우선, 데이터 없으면 마스터 σ */
+const nOf=(tk,fallback)=>{const L=LIVE[tk];
+  return (L&&L.sig!=null)?nLive(L.sig):fallback;};
+const sigOf=(tk,fallback)=>{const L=LIVE[tk];
+  return (L&&L.sig!=null)?L.sig:fallback;};
+/* 주의 — 각 항목의 뜻과 함의를 한곳에 모은다 */
+function cautions(r,L,live){
+  const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
+  const c=[];
+  if(!mdd) c.push(['최대낙폭 미검증','상장 이력이 짧아 실측 낙폭이 없습니다. 낙폭이 작다는 뜻이 아니라 모른다는 뜻입니다.']);
+  else if(mddEst) c.push(['최대낙폭 추정','실측이 없어 배수별 대리값을 쓴 수치입니다.']);
+  if(warns.includes('액면병합')) c.push(['액면병합 이력','병합 전후 주가가 이어지지 않아 장기 차트가 왜곡됩니다. 수정주가 기준인지 확인하세요.']);
+  if(warns.includes('미회복')) c.push(['미회복','큰 하락 뒤 아직 이전 수준을 되찾지 못했습니다. 스위치법은 돌아오는 자산을 전제합니다.']);
+  if(corr==='높음') c.push(['SOXL 상관 높음','반도체가 꺾이는 날 함께 꺾입니다. 분산이 아니라 같은 베팅의 증량입니다.']);
+  if(warns.includes('종목 집중')) c.push(['소수 종목 쏠림','상위 몇 종목이 지수 전체를 좌우합니다.']);
+  if(warns.includes('ETN 구조')) c.push(['ETN 구조','펀드가 아니라 발행사 채권입니다. 발행사 신용위험과 조기상환 가능성이 있습니다.']);
+  if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
+  if(lq<=2) c.push(['유동성 '+lqName(lq),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
+  if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 1칸 주수를 그대로 믿기 어렵습니다.']);
+  if(!live) c.push(['종가 미수집','자동 수집에 실패해 마스터 σ '+sigMaster.toFixed(1)+'%로 1칸 '+nMaster+'주를 계산했습니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없어 임의 추정치입니다.':'')]);
+  return c;
+}
 const lqName=x=>['','매우나쁨','나쁨','보통','좋음','매우좋음'][x];
 
 function tabs(){
@@ -343,16 +394,17 @@ function tabs(){
 function render(){
   const rows=D.filter(r=>st.grp==='all'||(C[r[0]]&&C[r[0]][3].includes(st.grp)));
   const withPx=rows.map(r=>{const p=priceOf(r[0]);
-    return {r,p,need:p?seedFor(p,r[8],DIV_MIN):Infinity};});
+    return {r,p,need:p?seedFor(p,nOf(r[0],r[8]),DIV_MIN):Infinity};});
 
   const c=document.getElementById('cnt');
   if(c)c.textContent=`${rows.length}종목 · 주가 입력 ${D.filter(r=>priceOf(r[0])).length}/${D.length}`;
 
   const vis=[...withPx].sort((a,b)=>
       st.sort==='tk'?a.r[0].localeCompare(b.r[0])
-     :st.sort==='sig'?b.r[9]-a.r[9]
+     :st.sort==='sig'?sigOf(b.r[0],b.r[9])-sigOf(a.r[0],a.r[9])
      :st.sort==='rsi'?((LIVE[a.r[0]]||{}).rsi??999)-((LIVE[b.r[0]]||{}).rsi??999)
      :st.sort==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
+     :st.sort==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
      :st.sort==='price'?(a.p??1e9)-(b.p??1e9)
      :a.need-b.need);
 
@@ -360,7 +412,9 @@ function render(){
   if(!vis.length){el.innerHTML='<div class="empty">이 시나리오에 해당하는 종목이 없어요.</div>';return;}
 
   el.innerHTML=vis.map(({r,p})=>{
-    const [tk,nm,lev,lq,ref,up,dn,,n,sig,sigEst,mdd,mddEst,corr,warns]=r;
+    const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,sigEst,mdd,mddEst,corr,warns]=r;
+    const n=nOf(tk,nMaster), sig=sigOf(tk,sigMaster), live=!!(LIVE[tk]&&LIVE[tk].sig!=null);
+    const caut=cautions(r,L||{},live);
     const op=st.open===tk, cd=C[tk]||['—','—','정보 없음',[]];
     const lo=p?seedFor(p,n,DIV_MIN):null, hi=p?seedFor(p,n,DIV_OPT):null;
 
@@ -370,7 +424,7 @@ function render(){
         <span>$${L.price}</span>
         ${L.chg!=null?`<span>${L.chg>0?'+':''}${L.chg}%</span>`:''}
         ${L.rsi!=null?`<span class="${rsiCls}">RSI ${L.rsi}</span>`:''}
-        <span>전고점 ${L.dd}%</span>
+        ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
       </div>`:'';
 
     const rgt=p?`<div class="two">
@@ -414,11 +468,10 @@ function render(){
 
         ${L?`<div class="dlbl">시세</div>
         <div class="info">
-          <div><span>종가</span><span class="num">$${L.price} <span class="est">· ${L.date}${L.chg!=null?` · 전일 ${L.chg>0?'+':''}${L.chg}%`:''}</span></span></div>
-          ${L.rsi!=null?`<div><span>RSI (14)</span><span class="num ${rsiCls}">${L.rsi}<span class="est"> · ${L.rsi>=70?'과열권':L.rsi<=30?'침체권':'중립'}</span></span></div>`:''}
-          <div><span>전고점 대비</span><span class="num">${L.dd}% <span class="est">· 고점 $${L.peak}</span></span></div>
-          ${L.sig!=null?`<div><span>실측 σ</span><span class="num">${L.sig}% <span class="est">· 1년${L.sig60!=null?` · 최근 60일 ${L.sig60}%`:''} · 마스터 ${sig.toFixed(1)}%</span></span></div>`:''}
-          ${L.sig!=null&&Math.abs(nLive(L.sig)-n)>=2?`<div><span>1칸 재검토</span><span class="est">실측 1년 σ 기준으로는 ${nLive(L.sig)}주 — 마스터값 ${n}주와 ${Math.abs(nLive(L.sig)-n)}주 차이납니다</span></div>`:''}
+          <div><span>종가</span><span class="num">$${L.price} <span class="est">${L.date}${L.chg!=null?` · 전일 ${L.chg>0?'+':''}${L.chg}%`:''}</span></span></div>
+          ${L.rsi!=null?`<div><span>RSI (14)</span><span class="num ${rsiCls}">${L.rsi}${L.rsi>=70||L.rsi<=30?`<span class="est"> ${L.rsi>=70?'과열권':'침체권'}</span>`:''}</span></div>`:''}
+          <div><span>역대 고점 대비</span><span class="num">${L.dd}% <span class="est">$${L.peak}</span></span></div>
+          ${L.dd1y!=null?`<div><span>1년 고점 대비</span><span class="num">${L.dd1y}% <span class="est">$${L.peak1y}</span></span></div>`:''}
         </div>`:''}
 
         <div class="dlbl">시드</div>
@@ -426,12 +479,14 @@ function render(){
 
         <div class="dlbl">종목 성격</div>
         <div class="info">
-          <div><span>변동성</span><span class="num">${sig.toFixed(1)}%${sigEst?' <span class="est">추정</span>':''} <span class="est">· SOXL의 ${(sig/SOXL_SIG).toFixed(1)}배</span>${warns.includes('변동성 미수록')?' <span class="est">· 마스터 미수록, 임의 추정</span>':''}</span></div>
-          <div><span>최대낙폭</span><span class="num">${mdd?('−'+mdd.toFixed(1)+'%'+(mddEst?' <span class="est">추정</span>':'')):'<span class="est">미검증 — 낙폭이 작다가 아니라 모른다는 뜻</span>'}${warns.includes('액면병합')?' <span class="est">· 액면병합 이력, 수정주가 확인</span>':''}</span></div>
+          <div><span>변동성</span><span class="num">${sig.toFixed(1)}% <span class="est">${live?'실측 1년':'마스터'} · SOXL의 ${(sig/SOXL_SIG).toFixed(1)}배</span></span></div>
+          ${live&&L.sig60!=null?`<div><span>최근 변동성</span><span class="num">${L.sig60}% <span class="est">60일</span></span></div>`:''}
+          ${live?`<div><span>마스터 σ</span><span class="num">${sigMaster.toFixed(1)}%${sigEst?' <span class="est">추정</span>':''} <span class="est">참고${nMaster!==n?` · 이 값이면 1칸 ${nMaster}주`:''}</span></span></div>`:''}
+          <div><span>최대낙폭</span><span class="num">${mdd?('−'+mdd.toFixed(1)+'%'+(mddEst?' <span class="est">추정</span>':'')):'미검증'}</span></div>
           <div><span>회복 여부</span><span><span class="rec ${RECCLS[cd[0]]||'r-none'}">${cd[0]}</span></span></div>
           <div><span>유동성</span><span><span class="lq q${lq}">${lqName(lq)}</span></span></div>
-          <div><span>SOXL 상관</span><span>${corr}${corr==='높음'?' <span class="est">· 분산이 아니라 증량</span>':''}</span></div>
-          <div><span>구성</span><span>${cd[1]}${warns.includes('종목 집중')?' <span class="est">· 소수 종목 쏠림</span>':''}${warns.includes('ETN 구조')?' <span class="est">· ETN — 발행사 신용위험 · 조기상환 가능</span>':''}</span></div>
+          <div><span>SOXL 상관</span><span>${corr}</span></div>
+          <div><span>구성</span><span>${cd[1]}</span></div>
           ${ref&&ref!=='—'?`<div><span>구성 조회</span><span><a class="ref" href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a></span></div>`:''}
         </div>
 
@@ -439,11 +494,13 @@ function render(){
         <div class="info">
           <div><span>오를 때</span><span>${up}</span></div>
           <div><span>내릴 때</span><span>${dn}</span></div>
-          ${warns.includes('논리 반례')?`<div><span>주의</span><span class="est">논리 반례 — 이론상 수혜인데 실제로는 반대로 간 이력이 있습니다</span></div>`:''}
         </div>
 
         <div class="dlbl">마스터 자료 설명</div>
         <div class="desc">${cd[2]}</div>
+
+        ${caut.length?`<div class="dlbl">주의 ${caut.length}</div>
+        <div class="caut">${caut.map(([t,d])=>`<div><div class="ct">${t}</div><div class="cd">${d}</div></div>`).join('')}</div>`:''}
 
         ${cd[3].length?`<div class="dlbl">해당 시나리오 ${cd[3].length}</div>
         <div class="scen">${cd[3].map(x=>`<span class="stag">${x}</span>`).join('')}</div>`:''}
@@ -464,6 +521,19 @@ function render(){
   });
 }
 
+const FSTEP=[1,1.15,1.3,1.45];
+function applyFs(){
+  document.documentElement.style.setProperty('--fs',st.fs);
+  const el=document.getElementById('fsz');
+  el.innerHTML=`<button data-f="-">가−</button><button data-f="+">가+</button>`;
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const i=FSTEP.indexOf(st.fs), j=b.dataset.f==='+'?i+1:i-1;
+    if(j<0||j>=FSTEP.length)return;
+    st.fs=FSTEP[j];save();applyFs();});
+  el.querySelector('[data-f="-"]').style.color = st.fs===FSTEP[0]?'var(--bd2)':'var(--ink3)';
+  el.querySelector('[data-f="+"]').style.color = st.fs===FSTEP[FSTEP.length-1]?'var(--bd2)':'var(--ink3)';
+}
+applyFs();
 const hb=document.getElementById('helpbtn'), hp=document.getElementById('help');
 function syncHelp(){hp.classList.toggle('show',!!st.help);hb.classList.toggle('on',!!st.help);}
 hb.onclick=()=>{st.help=st.help?0:1;save();syncHelp();};
@@ -472,7 +542,7 @@ document.getElementById('sort').value=st.sort;
 document.getElementById('sort').onchange=e=>{st.sort=e.target.value;save();render();};
 document.getElementById('reset').onclick=()=>{
   try{localStorage.removeItem(KEY);}catch(e){}
-  st={grp:'all',sort:'need',px:{},open:null,help:0};
+  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1};applyFs();
   document.getElementById('sort').value='need';syncHelp();tabs();render();
 };
 tabs();render();
