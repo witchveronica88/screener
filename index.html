@@ -124,6 +124,15 @@ input,select,button{font-family:inherit}
 .hv{font-family:var(--mono);font-size:var(--f6);font-weight:600;
     letter-spacing:-.025em;margin:5px 0 3px;line-height:1.1}
 .hs{font-family:var(--mono);font-size:var(--f2);color:var(--warn)}
+.hero.one{grid-template-columns:1fr}
+.hn{font-family:var(--mono);font-size:var(--f2);color:var(--ink3)}
+.crit{background:var(--s2);border-radius:11px;padding:2px 15px}
+.crit>div{display:flex;align-items:baseline;gap:10px;padding:9px 0}
+.crit>div+div{border-top:1px solid var(--bg)}
+.crit i{font-style:normal;width:14px;flex-shrink:0;font-size:var(--f2);color:var(--ink3)}
+.crit i.y{color:var(--up)}.crit i.n{color:var(--dn)}
+.crit .ck{flex:1;font-size:var(--f3);color:var(--ink2)}
+.crit .cv{font-family:var(--mono);font-size:var(--f2);color:var(--ink3);text-align:right}
 .rung{background:var(--s2);border-radius:11px;margin-top:8px;padding:11px 15px;
       display:flex;justify-content:space-between;font-family:var(--mono);
       font-size:var(--f2);color:var(--ink3);flex-wrap:wrap;gap:8px}
@@ -226,13 +235,13 @@ input,select,button{font-family:inherit}
 
 <div class="help" id="help">
   <div class="hcard">
-    <h4>시드를 정하는 값</h4>
+    <h4>시드</h4>
+    <div class="hitem"><div class="hterm">최소 시드</div>
+      <div class="hdef">1회 매수금(시드 ÷ 15)으로 5주를 살 수 있는 금액. 주식은 1주 단위로 사기 때문에 이보다 작으면 못 쓰고 남는 돈이 커진다. 더 넣어도 수익률은 같고 금액만 커진다.<br><br>시드는 고정이라 주가가 오르면 1칸에 사는 주식 수가 줄어든다. 들어갈 때 1칸 주수를 한 번 더 확인한다.</div></div>
     <div class="hitem"><div class="hterm">변동성 σ</div>
-      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. 매일 받아오는 종가로 다시 계산하며, <b>1칸 주수는 1년치에서 나온다.</b> 60일치는 지금 국면이 평소와 다른지 보는 참고값이다.</div></div>
-    <div class="hitem"><div class="hterm">1칸 주수 · 칸 간격</div>
-      <div class="hdef">1칸 주수는 1회 매수금으로 살 수 있는 주식 수이고, 칸 간격은 다음 칸까지 떨어져야 하는 폭이다. 간격 = 1 ÷ (1칸주수 + 1)이며 σ의 약 1.75배에 맞춘다. LOC는 하루 한 번만 체결되므로 하루 변동폭보다 좁으면 낭비, 두 배보다 넓으면 주문이 안 걸린다.<br><br>주가가 올라도 시드가 같은 비율로 커지므로 1칸 주수는 유지된다. 다만 <b>σ가 0.3%p쯤 움직이면 한 주씩 바뀐다.</b> 이미 돌리는 사다리는 바꾸지 않고, 새 숫자는 새 진입에만 쓴다.</div></div>
-    <div class="hitem"><div class="hterm">소진 낙폭</div>
-      <div class="hdef">시드가 전부 들어가는 하락폭. 이 아래로는 새 돈 없이 회전만 남는다. 진입 전에 반드시 확인할 숫자다.</div></div>
+      <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. 매일 받아오는 종가로 다시 계산하며 1년치가 기준이다. 60일치는 지금 국면이 평소와 다른지 보는 참고값이다.</div></div>
+    <div class="hitem"><div class="hterm">들어가기 전 확인 4가지</div>
+      <div class="hdef">변동성 5% 이상 · 회복 이력 · 유동성 보통 이상 · SOXL 상관 높음 아님. <b>통과 여부만 보여 주고 목록에서 빼지 않는다.</b> 판단은 직접 한다.</div></div>
   </div>
 
   <div class="hcard">
@@ -264,9 +273,8 @@ input,select,button{font-family:inherit}
   <div class="hcard">
     <h4>시드 공식</h4>
     <div class="hitem"><div class="hdef">
-      최소 시드 = <code>주가 × 1칸주수 × 12</code><br>
-      최적 시드 = <code>주가 × 1칸주수 × 15</code><br>
-      둘 다 $100 단위 올림. 12는 사다리가 성립하는 하한, 15는 SOXL 본 계좌와 같은 기준이다.
+      최소 시드 = <code>주가 × 5주 × 15분할</code> · $100 단위 올림<br>
+      분할 수는 SOXL 본 계좌와 같은 15분할로 고정한다. 돈이 모자라도 분할을 줄이지 않는다.
     </div></div>
   </div>
 </div>
@@ -292,15 +300,13 @@ input,select,button{font-family:inherit}
 <div class="list" id="list"></div>
 
 <div class="foot">
-  최소 시드 = <code>주가 × 1칸주수 × 12</code><br>
-  최적 시드 = <code>주가 × 1칸주수 × 15</code><br>
-  1칸주수 = <code>round(1 ÷ (1.75 × σ) − 1)</code> · $100 단위 올림<br>
+  최소 시드 = <code>주가 × 5주 × 15분할</code> · $100 단위 올림<br>
   σ는 매일 받는 종가로 재계산 · 종목 정보 출처 레버리지 ETF 마스터
   <br><button class="rst" id="reset">입력한 주가 · 설정 초기화</button>
 </div>
 
 <script>
-const KEY='scr_v10', DIV_MIN=12, DIV_OPT=15, SOXL_SIG=5.6;
+const KEY='scr_v10', DIV=15, MIN_SH=5, SIG_MIN=5;
 
 /* 종목 기본값 [0]티커 [1]이름 [2]배수 [3]유동성 [4]참조ETF [5]상승 [6]하락
    [7]기본주가 [8]마스터 1칸 [9]마스터 σ [10]σ추정 [11]최대낙폭 [12]낙폭추정 [13]SOXL상관 [14]경고 */
@@ -409,8 +415,8 @@ function cautions(r,L,live,cus){
   if(cus){
     c.push(['개별 기업 위험','지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있습니다. 스위치법은 돌아오는 자산을 전제하므로, 지수보다 시드를 작게 잡는 편이 안전합니다.']);
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
-    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정해 1칸 '+nMaster+'주로 계산한 값입니다. 시드 금액은 아직 참고용일 뿐입니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
-    if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 1칸 주수를 그대로 믿기 어렵습니다.']);
+    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
+    if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 변동성 값을 그대로 믿기 어렵습니다.']);
     return c;
   }
   if(!mdd) c.push(['최대낙폭 미검증','상장 이력이 짧아 실측 낙폭이 없습니다. 낙폭이 작다는 뜻이 아니라 모른다는 뜻입니다.']);
@@ -422,10 +428,10 @@ function cautions(r,L,live,cus){
   if(warns.includes('ETN 구조')) c.push(['ETN 구조','펀드가 아니라 발행사 채권입니다. 발행사 신용위험과 조기상환 가능성이 있습니다.']);
   if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
   if(lq<=2) c.push(['유동성 '+lqName(lq),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
-  if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 1칸 주수를 그대로 믿기 어렵습니다.']);
+  if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 변동성 값을 그대로 믿기 어렵습니다.']);
   if(!live){
     const why = (L&&L.price) ? 'σ를 낼 만큼 종가 이력이 쌓이지 않았습니다(21일 미만).' : '종가 자동 수집에 실패했습니다.';
-    c.push(['실측 σ 없음', why+' 마스터 자료의 '+sigMaster.toFixed(1)+'%로 1칸 '+nMaster+'주를 계산했습니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없는 임의 추정치라 특히 신뢰하기 어렵습니다.':'')]);
+    c.push(['실측 σ 없음', why+' 마스터 자료의 '+sigMaster.toFixed(1)+'%를 대신 씁니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없는 임의 추정치라 특히 신뢰하기 어렵습니다.':'')]);
   }
   return c;
 }
@@ -447,9 +453,7 @@ const priceOf=t=>{const v=st.px[t];
 const isManual=t=>{const v=st.px[t];return v!==undefined&&v!==null&&v!=='';};
 const money=n=>'$'+Math.round(n).toLocaleString();
 const ceil100=x=>Math.ceil(x/100)*100;
-const seedFor=(p,n,div)=>ceil100(p*n*div);
-const nLive=sg=>Math.max(1,Math.round(1/(1.75*sg/100)-1));
-const nOf=(tk,fb)=>{const L=LIVE[tk];return (L&&L.sig!=null)?nLive(L.sig):fb;};
+const seedMin=p=>ceil100(p*MIN_SH*DIV);
 const sigOf=(tk,fb)=>{const L=LIVE[tk];return (L&&L.sig!=null)?L.sig:fb;};
 const sgn=v=>v>0?'g':v<0?'r':'';
 const KNOWN=new Set(D.map(r=>r[0]));
@@ -462,11 +466,26 @@ function customRows(){
 }
 const CUSTOM='개별주식';
 
-function ladder(seed,div,P){
-  const unit=seed/div, p1=Math.round((P-0.01)*100)/100;
-  if(unit<p1)return null;
-  const n0=Math.max(1,Math.floor(unit/p1));
-  return {unit,n0,gap:100/(n0+1),depth:div/(div+n0+1)*100};
+/* 이 시드로 들어갔을 때 1회 매수금과 1칸 주수 */
+function rungOf(seed,P){
+  const unit=seed/DIV, p1=Math.round((P-0.01)*100)/100;
+  return {unit,n0:Math.max(1,Math.floor(unit/p1))};
+}
+
+/* 들어가기 전 확인 4가지 — 표시만 하고 목록에서 빼지 않는다.
+   [통과 여부(true·false·null=모름), 항목, 값] */
+function criteria(r,L,live,cus,sig){
+  const [tk,,,lq,,,,,,,,,,corr]=r;
+  const c=[];
+  const sigKnown=live||!cus, sig1=Math.round(sig*10)/10;   /* 화면에 보이는 값으로 판정 */
+  c.push([sigKnown?sig1>=SIG_MIN:null,'변동성 '+SIG_MIN+'% 이상',
+    sig1.toFixed(1)+'%'+(live?'':cus?' 가정':' 마스터')]);
+  let rec=cus?((L&&L.dd!=null)?(L.dd>=-10?'회복':L.dd>=-40?'부분회복':'미회복'):'—'):(C[tk]||['—'])[0];
+  c.push([rec==='—'||rec==='이력부족'?null:rec!=='미회복','회복 이력',
+    rec+(cus&&rec!=='—'?' · 고점 대비':'')]);
+  c.push([lq?lq>=3:null,'유동성 보통 이상',lq?lqName(lq):'미확인']);
+  c.push([corr&&corr!=='—'?corr!=='높음':null,'SOXL 상관 높음 아님',corr&&corr!=='—'?corr:'미확인']);
+  return c;
 }
 
 /* ── GitHub 연동: tickers.txt를 앱에서 바로 수정 ──
@@ -590,7 +609,7 @@ function render(){
     :st.grp==='all'?[...D,...cus]
     :D.filter(r=>C[r[0]]&&C[r[0]][3].includes(st.grp));
   const withPx=rows.map(r=>{const p=priceOf(r[0]);
-    return {r,p,need:p?seedFor(p,nOf(r[0],r[8]),DIV_MIN):Infinity};});
+    return {r,p,need:p?seedMin(p):Infinity};});
   const c=document.getElementById('cnt');
   if(c)c.textContent=`${rows.length}종목`;
 
@@ -637,11 +656,13 @@ function render(){
   el.innerHTML=addForm+vis.map(({r,p})=>{
     const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
     const L=LIVE[tk]||null;
-    const n=nOf(tk,nMaster), sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
+    const sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
     const cus=!KNOWN.has(tk), cd=C[tk]||['—','—','',[]];
     const caut=cautions(r,L||{},live,cus);
+    const crit=criteria(r,L,live,cus,sig), pass=crit.filter(x=>x[0]===true).length,
+          unk=crit.filter(x=>x[0]===null).length;
     const op=st.open===tk;
-    const lo=p?seedFor(p,n,DIV_MIN):null, hi=p?seedFor(p,n,DIV_OPT):null;
+    const need=p?seedMin(p):null;
     const rsiC=L&&L.rsi!=null?(L.rsi>=70?'w':L.rsi<=30?'g':''):'';
 
     /* 목록 */
@@ -651,8 +672,9 @@ function render(){
         ${L.rsi!=null?`<span class="${rsiC}">RSI ${L.rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
       </div>`:'';
-    const rr=p?`<div class="a">${money(lo)}</div><div class="b">${money(hi)}</div>
-        <div class="k">최소 · 최적</div>`:'<div class="nopx">주가 입력</div>';
+    const rr=(p?`<div class="a">${money(need)}</div>
+        <div class="k">최소 시드</div>`:'<div class="nopx">주가 입력</div>')
+        +`<div class="k">기준 ${pass}/4${unk?` · 모름 ${unk}`:''}</div>`;
 
     /* 시세 */
     const pxbar=L?`<div class="px">
@@ -670,18 +692,15 @@ function render(){
     let seed;
     if(!p){ seed='<div class="gnote">주가를 입력하면 시드가 계산돼요.</div>'; }
     else{
-      const A=ladder(lo,DIV_MIN,p), B=ladder(hi,DIV_OPT,p);
-      seed=A&&B?`<div class="hero">
-        <div><div class="hk">최소 · 12분할</div><div class="hv">${money(lo)}</div>
-          <div class="hs">소진 −${A.depth.toFixed(0)}%</div></div>
-        <div><div class="hk">최적 · 15분할</div><div class="hv">${money(hi)}</div>
-          <div class="hs">소진 −${B.depth.toFixed(0)}%</div></div>
-      </div>
-      <div class="rung"><span>1회 <b>${money(A.unit)}</b></span>
-        <span>1칸 <b>${A.n0}주</b></span>
-        <span>간격 <b>−${A.gap.toFixed(1)}%</b></span></div>`
-      :'<div class="gnote">주가가 너무 높아 이 설정으로는 사다리가 만들어지지 않아요.</div>';
+      const R=rungOf(need,p);
+      seed=`<div class="hero one">
+        <div><div class="hk">최소 시드 · 15분할</div><div class="hv">${money(need)}</div>
+          <div class="hn">1회 매수금 ${money(R.unit)} · 1칸 ${R.n0}주</div></div>
+      </div>`;
     }
+    const critHtml=`<div class="crit">${crit.map(([ok,t,v])=>
+      `<div><i class="${ok===true?'y':ok===false?'n':''}">${ok===true?'✓':ok===false?'✗':'?'}</i>
+        <span class="ck">${t}</span><span class="cv">${v}</span></div>`).join('')}</div>`;
 
     return `<div class="row${op?' open':''}" data-tk="${tk}">
       <div class="rmain">
@@ -698,6 +717,9 @@ function render(){
 
         <div class="sec"><span>시드</span><i></i></div>
         ${seed}
+
+        <div class="sec"><span>들어가기 전 확인 ${pass}/4</span><i></i></div>
+        ${critHtml}
 
         <div class="sec"><span>주가</span><i></i></div>
         <div class="pxedit"><span class="mono" style="color:var(--ink3)">$</span>
