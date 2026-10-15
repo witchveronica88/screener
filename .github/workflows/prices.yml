@@ -50,12 +50,21 @@ jobs:
               with urllib.request.urlopen(req, timeout=25) as r:
                   return r.read().decode('utf-8', 'replace')
 
+          def num(x):
+              """숫자로 바꾸고, 비었거나 숫자가 아니면 None"""
+              try:
+                  v = float(x)
+                  return v if v == v else None
+              except (TypeError, ValueError):
+                  return None
+
           def history(tk):
-              """일봉 종가 리스트 반환 (오래된 순). Stooq → 실패 시 Yahoo"""
+              """일봉 (날짜, 종가, 거래량) 리스트 반환 (오래된 순). Stooq → 실패 시 Yahoo"""
               try:
                   txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d')
                   rows = list(csv.DictReader(io.StringIO(txt)))
-                  out = [(r['Date'], float(r['Close'])) for r in rows if r.get('Close') not in (None, '', 'N/A')]
+                  out = [(r['Date'], float(r['Close']), num(r.get('Volume')))
+                         for r in rows if r.get('Close') not in (None, '', 'N/A')]
                   if len(out) >= 30:
                       return out
               except Exception as e:
@@ -68,9 +77,11 @@ jobs:
                       j = json.load(r)
                   res = j['chart']['result'][0]
                   ts = res['timestamp']
-                  cl = res['indicators']['quote'][0]['close']
-                  out = [(datetime.date.fromtimestamp(t).isoformat(), c)
-                         for t, c in zip(ts, cl) if c is not None]
+                  q = res['indicators']['quote'][0]
+                  cl = q['close']
+                  vo = q.get('volume') or [None] * len(cl)
+                  out = [(datetime.date.fromtimestamp(t).isoformat(), c, num(v))
+                         for t, c, v in zip(ts, cl, vo) if c is not None]
                   return out
               except Exception as e:
                   print(f'  yahoo 실패 {tk}: {e}')
@@ -110,14 +121,33 @@ jobs:
               v = sum((x-m)**2 for x in r) / (len(r)-1)
               return math.sqrt(v) * 100, len(r)
 
+          def corr(a, b, days):
+              """기준 거래일 구간에서 두 종목 모두 종가가 있는 날의 일간 로그수익률 상관"""
+              xs, ys = [], []
+              for d0, d1 in zip(days, days[1:]):
+                  if d0 in a and d1 in a and d0 in b and d1 in b and a[d0] > 0 and b[d0] > 0:
+                      xs.append(math.log(a[d1] / a[d0]))
+                      ys.append(math.log(b[d1] / b[d0]))
+              n = len(xs)
+              if n < 60:
+                  return None
+              mx, my = sum(xs) / n, sum(ys) / n
+              sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+              sxx = sum((x - mx) ** 2 for x in xs)
+              syy = sum((y - my) ** 2 for y in ys)
+              return sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None
+
           data = {}
+          series = {}   # 상관 계산용 {티커: {날짜: 종가}}
           for tk in TICKERS:
               h = history(tk)
               if not h:
                   print(f'{tk}: 데이터 없음')
                   continue
-              dates = [d for d, _ in h]
-              closes = [c for _, c in h]
+              dates = [d for d, _, _ in h]
+              closes = [c for _, c, _ in h]
+              vols = [v for _, _, v in h]
+              tv = [c * v for c, v in zip(closes[-20:], vols[-20:]) if v]   # 최근 20일 거래대금
               peak = max(closes)
               c1y = closes[-250:]
               peak1y = max(c1y)
@@ -137,10 +167,30 @@ jobs:
                   'peak1y': round(peak1y, 2),
                   'mddCalc': round(maxdd(closes), 1),
                   'bars': len(closes),
+                  'dv': round(sum(tv) / len(tv) / 1e6, 1) if tv else None,   # 하루 평균 거래대금 ($M)
               }
               data[tk] = rec
-              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}%")
+              series[tk] = dict(zip(dates, closes))
+              print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}% 거래대금 ${rec['dv']}M")
               time.sleep(0.4)
+
+          # 최근 1년(SOXL 거래일 기준) 상관 — SOXL 상관, 서로 비슷하게 움직이는 종목(0.7 이상)
+          if 'SOXL' in series:
+              days = sorted(series['SOXL'])[-251:]
+              tks = list(series)
+              for tk in tks:
+                  c = corr(series[tk], series['SOXL'], days)
+                  data[tk]['corr'] = round(c, 2) if c is not None else None
+              for i, a in enumerate(tks):
+                  for b in tks[i+1:]:
+                      c = corr(series[a], series[b], days)
+                      if c is not None and c >= 0.7:
+                          data[a].setdefault('peers', []).append([b, round(c, 2)])
+                          data[b].setdefault('peers', []).append([a, round(c, 2)])
+              for tk in tks:
+                  if 'peers' in data[tk]:
+                      data[tk]['peers'].sort(key=lambda x: -x[1])
+              print('SOXL 상관:', ' '.join(f"{t} {data[t].get('corr')}" for t in tks))
 
           out = {
               'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
