@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: '0 2 * * 2-6'    # 화~토 02:00 UTC = 한국 11:00 (전날 미국 종가)
   workflow_dispatch:           # 수동 실행 버튼
+  push:                        # 종목을 추가·삭제하면 바로 수집
+    branches: [main]
+    paths: [tickers.txt]
+
+concurrency:                   # 겹쳐 실행되지 않게 순서대로
+  group: prices
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -154,4 +161,5 @@ jobs:
           git config user.email "actions@github.com"
           git add data.json
           git diff --staged --quiet || git commit -m "종가 갱신 $(date -u +%Y-%m-%d)"
+          git pull --rebase origin main   # 실행 중 tickers.txt가 바뀌었어도 푸시되게
           git push

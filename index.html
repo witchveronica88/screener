@@ -68,6 +68,15 @@ input,select,button{font-family:inherit}
      padding:2px 16px 12px;font-size:var(--f2);color:var(--ink3)}
 .sortsel{background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:7px;
          padding:6px 9px;font-size:var(--f2);outline:none}
+.srch{position:relative;padding:0 16px 10px}
+.srch input{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--ink);
+            border-radius:9px;padding:9px 34px 9px 12px;font-size:var(--f3);outline:none}
+.srch input:focus{border-color:var(--on)}
+.srch input::-webkit-search-cancel-button{display:none}
+.srch button{position:absolute;right:22px;top:4px;background:none;border:none;color:var(--ink3);
+             font-size:var(--f4);padding:4px 8px;cursor:pointer}
+.qadd{margin-top:14px;background:var(--on);border:none;color:#0B0E14;border-radius:8px;
+      padding:9px 16px;font-size:var(--f3);font-weight:600;cursor:pointer}
 
 /* ── 목록 ── */
 .list{padding:0 12px}
@@ -181,6 +190,16 @@ input,select,button{font-family:inherit}
                padding:9px 15px;font-size:var(--f3);font-weight:600;cursor:pointer;flex-shrink:0}
 .addnote{font-size:var(--f2);color:var(--ink3);line-height:1.7;margin-top:9px}
 .addnote code{font-family:var(--mono);color:var(--ink2)}
+.addnote a,.addmsg a{color:var(--on)}
+.addmsg{font-size:var(--f2);line-height:1.7;margin-top:9px;color:var(--ink2)}
+.addmsg.ok{color:var(--up)}.addmsg.err{color:var(--dn)}
+.ghrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;
+       padding-top:10px;border-top:1px solid var(--bd);font-size:var(--f2);color:var(--ink3)}
+.ghrow button{background:transparent;border:1px solid var(--bd2);color:var(--ink2);border-radius:7px;
+              padding:5px 10px;font-size:var(--f2);cursor:pointer;flex-shrink:0}
+.ghrow .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;
+            background:var(--ink3)}
+.ghrow .dot.on{background:var(--up)}
 .del{background:transparent;border:1px solid var(--bd2);color:var(--ink3);
      border-radius:8px;padding:8px 14px;font-size:var(--f2);cursor:pointer;width:100%}
 .empty{text-align:center;color:var(--ink3);padding:48px 20px;line-height:1.9}
@@ -253,6 +272,10 @@ input,select,button{font-family:inherit}
 </div>
 
 <div class="tabs" id="tabs"></div>
+<div class="srch">
+  <input id="q" type="search" placeholder="티커 · 이름 · 시나리오 검색" autocomplete="off" spellcheck="false">
+  <button id="qx" aria-label="검색어 지우기" hidden>×</button>
+</div>
 <div class="bar">
   <span id="cnt"></span>
   <select class="sortsel" id="sort">
@@ -386,7 +409,7 @@ function cautions(r,L,live,cus){
   if(cus){
     c.push(['개별 기업 위험','지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있습니다. 스위치법은 돌아오는 자산을 전제하므로, 지수보다 시드를 작게 잡는 편이 안전합니다.']);
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
-    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정해 1칸 '+nMaster+'주로 계산한 값입니다. 시드 금액은 아직 참고용일 뿐입니다. 저장소의 tickers.txt에 '+tk+'을(를) 적고 워크플로를 돌리면 실제 값으로 바뀝니다.']);
+    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정해 1칸 '+nMaster+'주로 계산한 값입니다. 시드 금액은 아직 참고용일 뿐입니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
     if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 1칸 주수를 그대로 믿기 어렵습니다.']);
     return c;
   }
@@ -411,7 +434,7 @@ const lqName=x=>['','매우나쁨','나쁨','보통','좋음','매우좋음'][x]
 const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력부족':'r-new'};
 const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
 
-let LIVE={}, STAMP=null;
+let LIVE={}, STAMP=null, Q='';
 let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null};}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,
@@ -432,9 +455,9 @@ const sgn=v=>v>0?'g':v<0?'r':'';
 const KNOWN=new Set(D.map(r=>r[0]));
 /* 개별주식 — data.json에 있는 미등록 티커 + 앱에서 직접 추가한 티커 */
 function customRows(){
-  const set=new Set([...Object.keys(LIVE).filter(t=>!KNOWN.has(t)),
-                     ...Object.keys(st.cust||{})]);
-  return [...set].sort().map(tk=>[tk,(st.cust[tk]&&st.cust[tk].nm)||'개별주식','1x',0,
+  const set=new Set([...Object.keys(LIVE),...REPO.keys(),...Object.keys(st.cust||{})]
+                     .filter(t=>!KNOWN.has(t)));
+  return [...set].sort().map(tk=>[tk,(st.cust[tk]&&st.cust[tk].nm)||REPO.get(tk)||'개별주식','1x',0,
     '—','—','—',null,13,4.0,1,null,0,'—',[]]);
 }
 const CUSTOM='개별주식';
@@ -446,6 +469,83 @@ function ladder(seed,div,P){
   return {unit,n0,gap:100/(n0+1),depth:div/(div+n0+1)*100};
 }
 
+/* ── GitHub 연동: tickers.txt를 앱에서 바로 수정 ──
+   토큰은 이 기기 브라우저에만 저장. tickers.txt가 바뀌면 워크플로가 자동으로 돈다. */
+const GH_OWNER='witchveronica88', GH_REPO='screener', GH_BRANCH='main', GH_KEY='scr_gh';
+const GH_EDIT=`https://github.com/${GH_OWNER}/${GH_REPO}/edit/${GH_BRANCH}/tickers.txt`;
+const GH_ACTIONS=`https://github.com/${GH_OWNER}/${GH_REPO}/actions`;
+const GH_NEWTOKEN='https://github.com/settings/personal-access-tokens/new';
+let REPO=new Map();   /* tickers.txt에 등록된 티커 → 메모(이름) */
+let MSG=null;         /* 추가 상자 아래 상태 메시지 [종류, html] */
+const ghTok=()=>{try{return localStorage.getItem(GH_KEY)||'';}catch(e){return '';}};
+
+function parseTickers(txt){
+  const m=new Map();
+  for(const line of txt.split('\n')){
+    const [a,...b]=line.split('#');
+    const t=a.trim().toUpperCase();
+    if(t)m.set(t,b.join('#').trim());
+  }
+  return m;
+}
+async function gh(path,opt={}){
+  const r=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}${path}`,{...opt,
+    headers:{'Authorization':'Bearer '+ghTok(),'Accept':'application/vnd.github+json',
+             'X-GitHub-Api-Version':'2022-11-28'}});
+  if(!r.ok){
+    let m='';try{m=(await r.json()).message;}catch(e){}
+    throw new Error(r.status===401?'토큰이 올바르지 않거나 만료됐어요.'
+      :r.status===403||r.status===404?'토큰에 이 저장소 Contents 쓰기 권한이 없어요.'
+      :r.status===409?'다른 변경과 겹쳤어요. 잠시 뒤 다시 시도하세요.'
+      :`GitHub 오류 ${r.status} ${m}`);
+  }
+  return r.status===204?null:r.json();
+}
+const b64dec=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const b64enc=s=>{let b='';new TextEncoder().encode(s).forEach(x=>b+=String.fromCharCode(x));return btoa(b);};
+/* tickers.txt를 읽어 fn으로 고친 뒤 커밋. 바뀐 게 없으면 false */
+async function editTickers(fn,msg){
+  const f=await gh(`/contents/tickers.txt?ref=${GH_BRANCH}`);
+  const txt=b64dec(f.content), nt=fn(txt);
+  if(nt===txt){REPO=parseTickers(txt);return false;}
+  await gh('/contents/tickers.txt',{method:'PUT',
+    body:JSON.stringify({message:msg,content:b64enc(nt),sha:f.sha,branch:GH_BRANCH})});
+  REPO=parseTickers(nt);
+  return true;
+}
+const repoAdd=(t,nm)=>editTickers(txt=>{
+  if(parseTickers(txt).has(t))return txt;
+  return txt.replace(/\n*$/,'\n')+t+(nm?'  # '+nm.replace(/[\r\n]/g,' '):'')+'\n';
+},'종목 추가 '+t);
+const repoDel=t=>editTickers(txt=>
+  txt.split('\n').filter(l=>l.split('#')[0].trim().toUpperCase()!==t).join('\n'),'종목 삭제 '+t);
+const setMsg=(k,h)=>{
+  /* 다시 그려도 입력 중인 티커·이름은 유지 */
+  const v=['ctk','cnm'].map(i=>{const e=document.getElementById(i);return e?e.value:'';});
+  MSG=[k,h];render();
+  ['ctk','cnm'].forEach((i,n)=>{const e=document.getElementById(i);if(e&&v[n])e.value=v[n];});
+};
+const WAIT=`보통 5분 안에 종가·RSI·변동성이 채워져요. 진행 상황은 <a href="${GH_ACTIONS}" target="_blank" rel="noopener">Actions</a>에서 볼 수 있어요.`;
+
+async function ghConnect(){
+  const t=(prompt('GitHub 토큰을 붙여넣으세요.\n(fine-grained 토큰 · screener 저장소만 · Contents: Read and write)')||'').trim();
+  if(!t)return;
+  try{localStorage.setItem(GH_KEY,t);}catch(e){}
+  try{
+    const r=await gh('');
+    if(!(r.permissions&&r.permissions.push))throw new Error('토큰에 이 저장소 쓰기 권한이 없어요.');
+    setMsg('ok','GitHub에 연결됐어요. 이제 여기서 추가·삭제하면 저장소에 바로 반영돼요.');
+  }catch(e){
+    try{localStorage.removeItem(GH_KEY);}catch(_){}
+    setMsg('err','연결 실패: '+e.message);
+  }
+}
+function ghDisconnect(){
+  if(!confirm('이 기기에서 GitHub 연결을 해제할까요?'))return;
+  try{localStorage.removeItem(GH_KEY);}catch(e){}
+  setMsg('','연결을 해제했어요.');
+}
+
 function bindAdd(){
   const b=document.getElementById('cadd');
   if(!b)return;
@@ -454,10 +554,19 @@ function bindAdd(){
     const t=(tk.value||'').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,'');
     if(!t)return;
     if(KNOWN.has(t)){alert(t+'은(는) 이미 목록에 있어요.');return;}
-    st.cust[t]={nm:(nm.value||'').trim()||'개별주식'};
-    tk.value='';nm.value='';save();render();
+    const name=(nm.value||'').trim();
+    st.cust[t]={nm:name||'개별주식'};
+    tk.value='';nm.value='';save();
+    if(!ghTok()){render();return;}
+    if(REPO.has(t)){setMsg('ok',t+'은(는) 이미 저장소에 등록돼 있어요.');return;}
+    setMsg('','저장소에 '+t+' 등록 중…');
+    repoAdd(t,name).then(()=>setMsg('ok',t+' 등록 완료. '+WAIT))
+      .catch(e=>setMsg('err',t+' 등록 실패: '+e.message+' 이 기기 목록에는 추가해 뒀어요.'));
   };
   b.onclick=go;
+  const gc=document.getElementById('ghc'), gd=document.getElementById('ghd');
+  if(gc)gc.onclick=ghConnect;
+  if(gd)gd.onclick=ghDisconnect;
   tk.onkeydown=e=>{if(e.key==='Enter')go();};
   nm.onkeydown=e=>{if(e.key==='Enter')go();};
 }
@@ -467,12 +576,17 @@ function tabs(){
   el.innerHTML=['all',CUSTOM,...SCENS].map(k=>
     `<button class="tab${st.grp===k?' on':''}" data-g="${k}">${k==='all'?'전체':k}</button>`).join('');
   el.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
-    st.grp=b.dataset.g;st.open=null;save();render();});
+    st.grp=b.dataset.g;st.open=null;save();
+    if(Q)setQ('');else render();});
 }
 
 function render(){
   const cus=customRows();
-  const rows=st.grp===CUSTOM?cus
+  const q=Q.trim().toUpperCase();
+  /* 검색어가 있으면 탭과 상관없이 전체에서 찾는다 */
+  const rows=q?[...D,...cus].filter(r=>[r[0],r[1],r[4],...((C[r[0]]||[])[3]||[])]
+                   .some(x=>x&&String(x).toUpperCase().includes(q)))
+    :st.grp===CUSTOM?cus
     :st.grp==='all'?[...D,...cus]
     :D.filter(r=>C[r[0]]&&C[r[0]][3].includes(st.grp));
   const withPx=rows.map(r=>{const p=priceOf(r[0]);
@@ -489,19 +603,34 @@ function render(){
      :st.sort==='price'?(a.p??1e9)-(b.p??1e9)
      :a.need-b.need);
 
-  const addForm=st.grp===CUSTOM?`<div class="addbox">
+  const tok=ghTok();
+  const addForm=st.grp===CUSTOM&&!q?`<div class="addbox">
       <div class="addrow">
         <input id="ctk" placeholder="티커" maxlength="8" autocapitalize="characters">
         <input id="cnm" placeholder="이름 (선택)" maxlength="20">
         <button id="cadd">추가</button>
       </div>
-      <div class="addnote">종가·RSI·변동성을 자동으로 받으려면 저장소의 <code>tickers.txt</code>에
-        티커를 한 줄씩 적고 워크플로를 돌리세요. 여기서만 추가하면 주가를 직접 넣어야 합니다.</div>
+      ${MSG?`<div class="addmsg ${MSG[0]}">${MSG[1]}</div>`:''}
+      ${tok?`<div class="addnote">추가·삭제하면 저장소 <code>tickers.txt</code>에 바로 반영되고
+        종가 수집이 자동으로 시작돼요.</div>`
+      :`<div class="addnote">지금은 이 기기에만 추가돼서 주가를 직접 넣어야 해요.
+        GitHub를 연결하면 저장소에 바로 등록되고 종가·RSI·변동성이 자동으로 채워져요.
+        연결 없이 하려면 <a href="${GH_EDIT}" target="_blank" rel="noopener">GitHub에서 tickers.txt 편집</a>.</div>`}
+      <div class="ghrow">${tok
+        ?'<span><i class="dot on"></i>GitHub 연결됨</span><button id="ghd">연결 해제</button>'
+        :`<span><i class="dot"></i>GitHub 미연결 · <a href="${GH_NEWTOKEN}" target="_blank" rel="noopener" style="color:var(--on)">토큰 만들기</a></span><button id="ghc">연결</button>`}</div>
     </div>`:'';
 
   const el=document.getElementById('list');
-  if(!vis.length){el.innerHTML=addForm+'<div class="empty">'+(st.grp===CUSTOM?
-    '아직 추가한 개별주식이 없어요.':'이 시나리오에 해당하는 종목이 없어요.')+'</div>';
+  if(!vis.length){
+    const qt=q.replace(/[^A-Z0-9.\-]/g,'');
+    el.innerHTML=addForm+'<div class="empty">'+(q?
+      `‘${esc(Q.trim())}’ 검색 결과가 없어요.`+(qt&&qt.length<=8&&!KNOWN.has(qt)?
+        `<br><button class="qadd" id="qadd">${qt} 개별주식으로 추가</button>`:'')
+      :st.grp===CUSTOM?'아직 추가한 개별주식이 없어요.':'이 시나리오에 해당하는 종목이 없어요.')+'</div>';
+    const qa=document.getElementById('qadd');
+    if(qa)qa.onclick=()=>{setQ('');st.grp=CUSTOM;save();tabs();render();
+      const i=document.getElementById('ctk');if(i){i.value=qt;document.getElementById('cnm').focus();}};
     bindAdd();return;}
 
   try{
@@ -615,7 +744,7 @@ function render(){
         ${caut.length?`<div class="sec"><span>주의 ${caut.length}</span><i></i></div>
         <div class="caut">${caut.map(([t,d])=>
           `<div><i>!</i><div><div class="ct">${t}</div><div class="cd">${d}</div></div></div>`).join('')}</div>`:''}
-        ${cus&&st.cust[tk]?`<div class="sec"><span>목록</span><i></i></div>
+        ${cus&&(st.cust[tk]||(tok&&REPO.has(tk)))?`<div class="sec"><span>목록</span><i></i></div>
         <button class="del" data-del="${tk}">${tk} 삭제</button>`:''}
       </div>
     </div>`;}).join('');
@@ -634,8 +763,14 @@ function render(){
   bindAdd();
   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();const t=b.dataset.del;
-    if(!confirm(t+'을(를) 목록에서 지울까요?'))return;
-    delete st.cust[t];delete st.px[t];st.open=null;save();render();});
+    const inRepo=!!ghTok()&&REPO.has(t);
+    if(!confirm(t+'을(를) 목록에서 지울까요?'+(inRepo?'\n저장소 tickers.txt에서도 삭제돼요.':'')))return;
+    delete st.cust[t];delete st.px[t];st.open=null;save();
+    if(!inRepo){render();return;}
+    delete LIVE[t];REPO.delete(t);
+    setMsg('','저장소에서 '+t+' 삭제 중…');
+    repoDel(t).then(()=>setMsg('ok',t+' 삭제 완료. 다음 수집부터 빠져요.'))
+      .catch(e=>setMsg('err',t+' 삭제 실패: '+e.message));});
   el.querySelectorAll('[data-auto]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();delete st.px[b.dataset.auto];save();render();});
   el.querySelectorAll('[data-px]').forEach(i=>{
@@ -667,7 +802,19 @@ document.getElementById('reset').onclick=()=>{
   st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
   document.getElementById('sort').value='need';applyFs();syncHelp();tabs();render();
 };
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const qi=document.getElementById('q'), qx=document.getElementById('qx');
+function setQ(v){Q=v;qi.value=v;qx.hidden=!v;st.open=null;render();}
+qi.oninput=()=>setQ(qi.value);
+qi.onkeydown=e=>{if(e.key==='Escape')setQ('');};
+qx.onclick=()=>{setQ('');qi.focus();};
+
 tabs();render();
+
+fetch('./tickers.txt?'+Date.now())
+  .then(r=>r.ok?r.text():Promise.reject(r.status))
+  .then(t=>{REPO=parseTickers(t);render();})
+  .catch(()=>{});
 
 fetch('./data.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
