@@ -133,6 +133,13 @@ input,select,button{font-family:inherit}
 .crit i.y{color:var(--up)}.crit i.n{color:var(--dn)}
 .crit .ck{flex:1;font-size:var(--f3);color:var(--ink2)}
 .crit .cv{font-family:var(--mono);font-size:var(--f2);color:var(--ink3);text-align:right}
+.best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
+.bt{font-size:var(--f1);letter-spacing:.16em;color:var(--on);font-weight:700}
+.bs{font-size:var(--f2);color:var(--ink3);margin:5px 0 4px;line-height:1.6}
+.bl{display:flex;align-items:baseline;gap:8px;padding:10px 0;border-top:1px solid var(--s2);cursor:pointer}
+.bl .nm{flex:1;min-width:0}
+.bv{font-family:var(--mono);font-size:var(--f2);color:var(--ink3);white-space:nowrap}
+.bm{font-family:var(--mono);font-size:var(--f3);color:var(--ink);min-width:58px;text-align:right}
 .rung{background:var(--s2);border-radius:11px;margin-top:8px;padding:11px 15px;
       display:flex;justify-content:space-between;font-family:var(--mono);
       font-size:var(--f2);color:var(--ink3);flex-wrap:wrap;gap:8px}
@@ -242,6 +249,8 @@ input,select,button{font-family:inherit}
       <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당한다. 매일 받아오는 종가로 다시 계산하며 1년치가 기준이다. 60일치는 지금 국면이 평소와 다른지 보는 참고값이다.</div></div>
     <div class="hitem"><div class="hterm">들어가기 전 확인 4가지</div>
       <div class="hdef">변동성 5% 이상 · 회복 이력 · 유동성 보통 이상 · SOXL 상관 높음 아님. <b>통과 여부만 보여 주고 목록에서 빼지 않는다.</b> 판단은 직접 한다.</div></div>
+    <div class="hitem"><div class="hterm">기준 통과 상위 3</div>
+      <div class="hdef">✗가 하나라도 있는 종목은 빼고, 통과가 많은 순 → 변동성이 큰 순으로 고른다. 최근 1년 상관 0.7 이상으로 같이 움직이는 종목은 하나만 넣는다. 타이밍은 보지 않는다. 스위치법은 떨어지면 사는 구조라서다. 고르는 참고일 뿐이고 판단은 직접 한다.</div></div>
   </div>
 
   <div class="hcard">
@@ -259,7 +268,11 @@ input,select,button{font-family:inherit}
     <div class="hitem"><div class="hterm">회복 여부</div>
       <div class="hdef">큰 하락 뒤 이전 수준을 되찾았는지의 기록. 스위치법은 돌아오는 자산을 전제하므로 변동성보다 먼저 볼 항목이다. 과거의 사실일 뿐 미래 예측은 아니다.</div></div>
     <div class="hitem"><div class="hterm">SOXL 상관</div>
-      <div class="hdef">높으면 분산이 아니라 같은 베팅의 증량이다. 반도체가 꺾이는 날 함께 꺾인다.</div></div>
+      <div class="hdef">최근 1년 일간 수익률로 매일 다시 계산한다. 0.7 이상 높음 · 0.4 이상 중간 · 그 아래 낮음. 높으면 분산이 아니라 같은 베팅의 증량이다. 반도체가 꺾이는 날 함께 꺾인다. 계산값이 없으면 마스터 자료 값을 쓴다.</div></div>
+    <div class="hitem"><div class="hterm">유동성</div>
+      <div class="hdef">최근 20일 하루 평균 거래대금(주가 × 거래량). $100M 이상 매우좋음 · $20M 좋음 · $5M 보통 · $1M 나쁨 · 그 아래 매우나쁨. 거래가 적으면 LOC 종가 체결이 밀릴 수 있다. 계산값이 없으면 마스터 자료 값을 쓴다.</div></div>
+    <div class="hitem"><div class="hterm">같이 움직이는 종목</div>
+      <div class="hdef">최근 1년 상관이 0.7 이상인 종목. 같이 오르고 같이 빠지니 함께 돌려도 분산이 되지 않는다.</div></div>
     <div class="hitem"><div class="hterm">구성 — 집중형 · 분산형 · 동일가중</div>
       <div class="hdef">집중형은 상위 몇 종목이 지수를 좌우한다. 분산형은 종목 수가 많아 개별 기업 리스크가 작다. 동일가중은 모든 종목 비중이 비슷해 상위 종목을 봐도 의미가 적고, 업종 전체의 방향이 중요하다.</div></div>
     <div class="hitem"><div class="hterm">구성 조회</div>
@@ -423,11 +436,12 @@ function cautions(r,L,live,cus){
   else if(mddEst) c.push(['최대낙폭 추정','실측이 없어 배수별 대리값을 쓴 수치입니다.']);
   if(warns.includes('액면병합')) c.push(['액면병합 이력','병합 전후 주가가 이어지지 않아 장기 차트가 왜곡됩니다. 수정주가 기준인지 확인하세요.']);
   if(warns.includes('미회복')) c.push(['미회복','큰 하락 뒤 아직 이전 수준을 되찾지 못했습니다. 스위치법은 돌아오는 자산을 전제합니다.']);
-  if(corr==='높음') c.push(['SOXL 상관 높음','반도체가 꺾이는 날 함께 꺾입니다. 분산이 아니라 같은 베팅의 증량입니다.']);
+  if(corrOf(r,L)==='높음') c.push(['SOXL 상관 높음','반도체가 꺾이는 날 함께 꺾입니다. 분산이 아니라 같은 베팅의 증량입니다.']);
   if(warns.includes('종목 집중')) c.push(['소수 종목 쏠림','상위 몇 종목이 지수 전체를 좌우합니다.']);
   if(warns.includes('ETN 구조')) c.push(['ETN 구조','펀드가 아니라 발행사 채권입니다. 발행사 신용위험과 조기상환 가능성이 있습니다.']);
   if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
-  if(lq<=2) c.push(['유동성 '+lqName(lq),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
+  const lv=lqOf(r,L);
+  if(lv&&lv<=2) c.push(['유동성 '+lqName(lv),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
   if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 변동성 값을 그대로 믿기 어렵습니다.']);
   if(!live){
     const why = (L&&L.price) ? 'σ를 낼 만큼 종가 이력이 쌓이지 않았습니다(21일 미만).' : '종가 자동 수집에 실패했습니다.';
@@ -436,6 +450,12 @@ function cautions(r,L,live,cus){
   return c;
 }
 const lqName=x=>['','매우나쁨','나쁨','보통','좋음','매우좋음'][x];
+/* 유동성·SOXL 상관 — 매일 받는 계산값이 있으면 그걸, 없으면 마스터 값 (σ와 같은 방식) */
+const lqLevel=dv=>dv>=100?5:dv>=20?4:dv>=5?3:dv>=1?2:1;
+const corrLevel=c=>c>=0.7?'높음':c>=0.4?'중간':'낮음';
+const lqOf=(r,L)=>L&&L.dv!=null?lqLevel(L.dv):r[3];
+const corrOf=(r,L)=>L&&L.corr!=null?corrLevel(L.corr):r[13];
+const fmtDv=v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':v>=10?'$'+Math.round(v)+'M':'$'+v.toFixed(1)+'M';
 
 const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력부족':'r-new'};
 const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
@@ -475,7 +495,7 @@ function rungOf(seed,P){
 /* 들어가기 전 확인 4가지 — 표시만 하고 목록에서 빼지 않는다.
    [통과 여부(true·false·null=모름), 항목, 값] */
 function criteria(r,L,live,cus,sig){
-  const [tk,,,lq,,,,,,,,,,corr]=r;
+  const tk=r[0];
   const c=[];
   const sigKnown=live||!cus, sig1=Math.round(sig*10)/10;   /* 화면에 보이는 값으로 판정 */
   c.push([sigKnown?sig1>=SIG_MIN:null,'변동성 '+SIG_MIN+'% 이상',
@@ -483,9 +503,29 @@ function criteria(r,L,live,cus,sig){
   let rec=cus?((L&&L.dd!=null)?(L.dd>=-10?'회복':L.dd>=-40?'부분회복':'미회복'):'—'):(C[tk]||['—'])[0];
   c.push([rec==='—'||rec==='이력부족'?null:rec!=='미회복','회복 이력',
     rec+(cus&&rec!=='—'?' · 고점 대비':'')]);
-  c.push([lq?lq>=3:null,'유동성 보통 이상',lq?lqName(lq):'미확인']);
-  c.push([corr&&corr!=='—'?corr!=='높음':null,'SOXL 상관 높음 아님',corr&&corr!=='—'?corr:'미확인']);
+  const lv=lqOf(r,L), cl=corrOf(r,L), liveLq=!!(L&&L.dv!=null), liveC=!!(L&&L.corr!=null);
+  c.push([lv?lv>=3:null,'유동성 보통 이상',
+    lv?lqName(lv)+(liveLq?' · 하루 '+fmtDv(L.dv):' · 마스터'):'미확인']);
+  c.push([cl&&cl!=='—'?cl!=='높음':null,'SOXL 상관 높음 아님',
+    cl&&cl!=='—'?cl+(liveC?' · '+L.corr.toFixed(2):' · 마스터'):'미확인']);
   return c;
+}
+
+/* 메인 화면 '기준 통과 상위 3' — ✗가 하나라도 있으면 빼고, 통과 많은 순 → 변동성 큰 순.
+   서로 같이 움직이는 종목(1년 상관 0.7 이상)은 하나만. SOXL 본 계좌는 뺀다. */
+function bestPicks(rows){
+  const cand=rows.filter(r=>r[0]!=='SOXL').map(r=>{
+    const tk=r[0], L=LIVE[tk]||null, live=!!(L&&L.sig!=null), cus=!KNOWN.has(tk), p=priceOf(tk);
+    const sig=sigOf(tk,r[9]), c=criteria(r,L,live,cus,sig);
+    return {r,tk,L,p,sig,live,ok:c.filter(x=>x[0]===true).length,bad:c.some(x=>x[0]===false)};
+  }).filter(x=>x.live&&x.p&&!x.bad).sort((a,b)=>b.ok-a.ok||b.sig-a.sig);
+  const near=(a,b)=>(a.L.peers||[]).some(p=>p[0]===b.tk), pick=[];
+  for(const x of cand){
+    if(pick.length>=3)break;
+    if(pick.some(y=>near(x,y)||near(y,x)))continue;
+    pick.push(x);
+  }
+  return pick;
 }
 
 /* ── GitHub 연동: tickers.txt를 앱에서 바로 수정 ──
@@ -652,8 +692,19 @@ function render(){
       const i=document.getElementById('ctk');if(i){i.value=qt;document.getElementById('cnm').focus();}};
     bindAdd();return;}
 
+  /* 메인 화면 상위 3 — 전체 탭, 검색 안 할 때만 */
+  const best=st.grp==='all'&&!q?bestPicks([...D,...cus]):[];
+  const bestHtml=best.length?`<div class="best">
+      <div class="bt">기준 통과 상위 ${best.length}</div>
+      <div class="bs">통과 많은 순 → 많이 출렁이는 순 · 같이 움직이는 종목은 하나만</div>
+      ${best.map(x=>`<div class="bl" data-go="${x.tk}">
+        <span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
+        <span class="bv">σ ${x.sig.toFixed(1)}% · ${x.ok}/4</span>
+        <span class="bm">${money(seedMin(x.p))}</span></div>`).join('')}
+    </div>`:'';
+
   try{
-  el.innerHTML=addForm+vis.map(({r,p})=>{
+  el.innerHTML=addForm+bestHtml+vis.map(({r,p})=>{
     const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
     const L=LIVE[tk]||null;
     const sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
@@ -743,14 +794,18 @@ function render(){
             if(cus) v = (L&&L.dd!=null)?(L.dd>=-10?'회복':L.dd>=-40?'부분회복':'미회복'):'—';
             return `<span class="bg ${RECCLS[v]||'r-none'}">${v}</span>`+(cus&&v!=='—'?' <span class="q">고점 대비 판정</span>':'');
           })()}</div></div>
-          <div><div class="sk">유동성</div><div class="sv">${lq?
-            `<span class="bg q${lq}">${lqName(lq)}</span>`:'<span class="q">미확인</span>'}</div></div>
-          <div><div class="sk">SOXL 상관</div><div class="sv">${corr}</div></div>
+          <div><div class="sk">유동성</div><div class="sv">${(()=>{const lv=lqOf(r,L);
+            return lv?`<span class="bg q${lv}">${lqName(lv)}</span>`+(L&&L.dv!=null?` <span class="q">하루 ${fmtDv(L.dv)}</span>`:' <span class="q">마스터</span>')
+              :'<span class="q">미확인</span>';})()}</div></div>
+          <div><div class="sk">SOXL 상관</div><div class="sv">${corrOf(r,L)||'—'}${
+            L&&L.corr!=null?` <span class="q">${L.corr.toFixed(2)}</span>`:corr&&corr!=='—'?' <span class="q">마스터</span>':''}</div></div>
           <div><div class="sk">${cus?'종목 정보':'구성 조회'}</div><div class="sv">${
             cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>`
             :ref&&ref!=='—'?`<a href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a>`
             :'<span class="q">없음</span>'}</div></div>
           ${cus?'':`<div class="wide"><div class="sk">구성</div><div class="sv">${cd[1]}</div></div>`}
+          ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
+            <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
         </div>
 
         ${cus?'':`<div class="sec"><span>움직이는 조건</span><i></i></div>
@@ -781,6 +836,11 @@ function render(){
     st.open=st.open===tk?null:tk;render();
     if(st.open){const r=document.querySelector(`[data-tk="${tk}"]`);
       if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  });
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{
+    const tk=b.dataset.go;st.open=tk;render();
+    const r=document.querySelector(`.row[data-tk="${tk}"]`);
+    if(r)r.scrollIntoView({block:'start',behavior:'smooth'});
   });
   bindAdd();
   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
