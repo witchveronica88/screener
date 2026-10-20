@@ -23,10 +23,10 @@ jobs:
 
       - name: 데이터 수집
         run: |
-          python3 << 'EOF'
-          import urllib.request, csv, io, json, math, time, datetime, os
+          python3 -u << 'EOF'
+          import urllib.request, csv, io, json, math, time, datetime, os, sys
 
-          BASE = """SOLT ETHU DPST RAM LABU BITX GDXU LMBO YINN RETL NAIL URAA
+          BASE = """SOLT ETHU DPST RAM LABU BITX GDXU YINN RETL NAIL URAA
           JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
           GUSH UTSL TECL WANT DRN EDC QQQU AGQ DUSL AIBU EURL FAS TMF CURE UBOT
           CHAU ERX UDOW TYD UGL SOXL""".split()
@@ -45,9 +45,9 @@ jobs:
 
           UA = {'User-Agent': 'Mozilla/5.0'}
 
-          def get_csv(url):
+          def get_csv(url, timeout=25):
               req = urllib.request.Request(url, headers=UA)
-              with urllib.request.urlopen(req, timeout=25) as r:
+              with urllib.request.urlopen(req, timeout=timeout) as r:
                   return r.read().decode('utf-8', 'replace')
 
           def num(x):
@@ -58,20 +58,16 @@ jobs:
               except (TypeError, ValueError):
                   return None
 
+          STOOQ_OFF = False   # Stooq가 연달아 실패하면 그날은 건너뛴다 (시간 초과로 수집이 몇십 분씩 늘어지는 것 방지)
+          stooq_fail = 0
+
           def history(tk):
-              """일봉 (날짜, 종가, 거래량) 리스트 반환 (오래된 순). Stooq → 실패 시 Yahoo"""
+              """일봉 (날짜, 종가, 거래량) 리스트 반환 (오래된 순). Yahoo 전체 이력 → 실패 시 Stooq"""
+              global STOOQ_OFF, stooq_fail
               try:
-                  txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d')
-                  rows = list(csv.DictReader(io.StringIO(txt)))
-                  out = [(r['Date'], float(r['Close']), num(r.get('Volume')))
-                         for r in rows if r.get('Close') not in (None, '', 'N/A')]
-                  if len(out) >= 30:
-                      return out
-              except Exception as e:
-                  print(f'  stooq 실패 {tk}: {e}')
-              try:
+                  # range=max는 월봉으로 바뀌므로 period1=0으로 전체 일봉을 받는다
                   url = (f'https://query1.finance.yahoo.com/v8/finance/chart/{tk}'
-                         '?range=5y&interval=1d')
+                         f'?period1=0&period2={int(time.time())}&interval=1d')
                   req = urllib.request.Request(url, headers=UA)
                   with urllib.request.urlopen(req, timeout=25) as r:
                       j = json.load(r)
@@ -82,9 +78,26 @@ jobs:
                   vo = q.get('volume') or [None] * len(cl)
                   out = [(datetime.date.fromtimestamp(t).isoformat(), c, num(v))
                          for t, c, v in zip(ts, cl, vo) if c is not None]
-                  return out
+                  if out:
+                      return out
               except Exception as e:
                   print(f'  yahoo 실패 {tk}: {e}')
+              if STOOQ_OFF:
+                  return []
+              try:
+                  txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d', timeout=10)
+                  rows = list(csv.DictReader(io.StringIO(txt)))
+                  out = [(r['Date'], float(r['Close']), num(r.get('Volume')))
+                         for r in rows if r.get('Close') not in (None, '', 'N/A')]
+                  stooq_fail = 0
+                  if len(out) >= 30:
+                      return out
+              except Exception as e:
+                  print(f'  stooq 실패 {tk}: {e}')
+                  stooq_fail += 1
+                  if stooq_fail >= 3:
+                      STOOQ_OFF = True
+                      print('  stooq 3회 연속 실패 — 이번 수집에서는 건너뜀')
               return []
 
           def maxdd(closes):
@@ -137,12 +150,18 @@ jobs:
               syy = sum((y - my) ** 2 for y in ys)
               return sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None
 
+          # 지난 수집 결과 — 이번에 실패한 종목은 이 값을 그대로 둔다
+          try:
+              prev = json.load(open('data.json', encoding='utf-8')).get('data', {})
+          except Exception:
+              prev = {}
+
           data = {}
           series = {}   # 상관 계산용 {티커: {날짜: 종가}}
           for tk in TICKERS:
               h = history(tk)
               if not h:
-                  print(f'{tk}: 데이터 없음')
+                  print(f'{tk}: 데이터 없음' + (' — 지난 값 유지' if tk in prev else ''))
                   continue
               dates = [d for d, _, _ in h]
               closes = [c for _, c, _ in h]
@@ -157,7 +176,7 @@ jobs:
                   'price': round(closes[-1], 2),
                   'date': dates[-1],
                   'chg': round((closes[-1]/closes[-2] - 1) * 100, 2) if len(closes) > 1 else None,
-                  'rsi': round(rsi(closes), 1) if rsi(closes) is not None else None,
+                  'rsi': round(r14, 1) if (r14 := rsi(closes)) is not None else None,
                   'sig': round(s1, 2) if s1 is not None else None,
                   'sigN': sn1,
                   'sig60': round(s2, 2) if s2 is not None else None,
@@ -179,6 +198,8 @@ jobs:
               days = sorted(series['SOXL'])[-251:]
               tks = list(series)
               for tk in tks:
+                  if tk == 'SOXL':
+                      continue   # 기준 종목 자신은 상관을 매기지 않는다
                   c = corr(series[tk], series['SOXL'], days)
                   data[tk]['corr'] = round(c, 2) if c is not None else None
               for i, a in enumerate(tks):
@@ -192,6 +213,15 @@ jobs:
                       data[tk]['peers'].sort(key=lambda x: -x[1])
               print('SOXL 상관:', ' '.join(f"{t} {data[t].get('corr')}" for t in tks))
 
+          fresh = len(data)
+          if fresh < len(TICKERS) / 2:
+              # 데이터 출처가 통째로 막힌 날 — 빈 data.json으로 덮어쓰지 않는다
+              print(f'\n수집 {fresh}/{len(TICKERS)}종목뿐이라 저장하지 않고 중단')
+              sys.exit(1)
+          for tk in TICKERS:
+              if tk not in data and tk in prev:
+                  data[tk] = {**prev[tk], 'stale': True}
+
           out = {
               'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
               'count': len(data),
@@ -199,8 +229,11 @@ jobs:
           }
           with open('data.json', 'w', encoding='utf-8') as f:
               json.dump(out, f, ensure_ascii=False, indent=1)
+          stale = [t for t in TICKERS if data.get(t, {}).get('stale')]
           missing = [t for t in TICKERS if t not in data]
-          print(f'\n완료 — {len(data)}/{len(TICKERS)}종목')
+          print(f'\n완료 — 새로 받음 {fresh}/{len(TICKERS)}종목')
+          if stale:
+              print('지난 값 유지:', ' '.join(stale))
           if missing:
               print('실패:', ' '.join(missing))
           EOF
