@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.0)
+"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.1)
+
+v2.1: 주봉·월봉 3단 하향 이탈은 ⚠️ 경계로 올리지 않고 남은 위험으로만 표시한다.
+      과거 신호에서 그 조건의 목표 도달률이 전체와 차이가 없었다(SOXL 60% vs 65%, TQQQ 67% vs 59%).
 
 기준자산(SOXX·QQQ)의 확정 일봉으로 SCR 3단 신호를 판정하고, VIX 완화/악화,
 주봉·월봉 상위 추세, UVIX 사이클을 합쳐 '현재 판단' 카드를 만든다.
@@ -7,7 +10,7 @@
 """
 import urllib.request, urllib.parse, csv, io, json, time, datetime, sys
 
-RULE = 'Rule v2.0'
+RULE = 'Rule v2.1'
 UA = {'User-Agent': 'Mozilla/5.0'}
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
 SYMS = ['SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX']
@@ -332,15 +335,15 @@ def judge(base, prod, bars, n=None):
                   'kind': '엄격 동시 이탈' if dn['strict'] else '순차 이탈'} if dn else None
 
     serious = bool((wk and wk['brk']) or (mo and mo['brk']))
-    weak = bool((wk and wk['weak']) or (mo and mo['weak']))
+    weak = bool((wk and wk['weak']) or (mo and mo['weak'])) or serious
     R['weak'] = weak; R['serious'] = serious
 
     # 판정 우선순위: 데이터 → 위험 경고 → VIX 완화 수준 → 개별 신호
     if up_live:
-        if vx['st'] == 'worse' or serious:
+        if vx['st'] == 'worse':
             st, lb = 'warn', '⚠️ 신규 진입 경계'
             ln = '단기 반등 신호가 있으나 시장 변동성 위험이 커 신규 진입은 경계가 필요합니다.'
-            ln += ' (원인: ' + (vx['why'] if vx['st'] == 'worse' else '주봉·월봉 3단 하향 이탈') + ')'
+            ln += ' (원인: ' + vx['why'] + ')'
         elif vx['st'] in ('confirm', 'fast'):
             st = 'buy'
             typ = '확인형' if vx['st'] == 'confirm' else '초기 반등형'
@@ -366,6 +369,7 @@ def judge(base, prod, bars, n=None):
     else:
         st, lb = 'neutral', '⚪ 중립·보유 관찰'
         ln = '뚜렷한 방향 신호 없이 중립 구간을 지나고 있습니다.'
+        R['live'] = bool(up and R['sig']['valid'] and R['sig']['age'] <= 60 and not (dn and dn['i'] > up['i']))
         if up and R['sig']['valid'] and not (dn and dn['i'] > up['i']):
             ln += ' (기발생 유효 신호: 관찰 저점 관리)'
     R.update(state=st, label=lb, line=ln)
@@ -605,7 +609,10 @@ def backtest(base, prod, bars):
         r = simulate(s, B, P, pidx, bidx, 1 + TARGET / 100)
         rn = simulate(s, B, P, pidx, bidx, 1 + (TARGET + COST) / 100)
         pi = pidx.get(d)
+        Bs = B[:s['i'] + 1]; wk = upper_trend(Bs, 'w'); mo = upper_trend(Bs, 'm')   # 신호일까지의 자료만
         rows.append({'s': s, 'd': d, 'strict': s['strict'], 'vix': vs,
+                     'weak': bool((wk and wk['weak']) or (mo and mo['weak'])),
+                     'serious': bool((wk and wk['brk']) or (mo and mo['brk'])),
                      'div': any(b >= s['start'] - 5 and b + 3 <= s['i'] for a, b in divs),
                      'gap': (r['entry'] / P[pi]['c'] - 1) * 100 if r else None, 'r': r, 'rn': rn})
     return rows, sigs, divs, B, P, pidx
@@ -640,6 +647,9 @@ def scorecard(rows):
             stats('VIX 악화', f(lambda x: x['vix'] == 'worse')),
             stats('하락 출발', gp(-999, 0), '익일 시가 갭 (추격 정도)'),
             stats('0~2% 상승', gp(0, 2)), stats('2~5% 상승', gp(2, 5)), stats('5% 이상 상승', gp(5, 999)),
+            stats('상위 추세 양호', f(lambda x: not x['weak'] and not x['serious']), '신호일 주봉·월봉 상태'),
+            stats('상위 추세 약세', f(lambda x: x['weak'] and not x['serious'])),
+            stats('주봉·월봉 3단 하향 이탈', f(lambda x: x['serious'])),
             stats('RSI 다이버전스 동반', f(lambda x: x['div']), '다이버전스'),
             stats('다이버전스 없음', f(lambda x: not x['div']))]
 
@@ -710,6 +720,67 @@ def save_log(out):
         json.dump(log, f, ensure_ascii=False, indent=1)
 
 
+VIX_EASY = {'worse': '커짐', 'confirm': '가라앉음', 'fast': '막 꺾이는 중', 'neutral': '보통'}
+
+
+def plain_reason(y, t):
+    """요약 탭용 — 어제와 무엇이 달라졌는지 쉬운 말로"""
+    if y['state'] == 'wait' or t['state'] == 'wait':
+        return '어제와 비교할 자료가 부족합니다.'
+    why = []
+    ys, ts = y.get('sig'), t.get('sig')
+    fresh = ts and (not ys or ys['date'] != ts['date'])
+    if fresh:
+        why.append('많이 빠졌다가 되살아나는 신호가 새로 나왔습니다')
+    if ys and ts and ys['date'] == ts['date']:
+        if ys['valid'] and not ts['valid']:
+            why.append('가격이 기준 저점 아래로 내려가 반등 신호가 취소됐습니다')
+        elif ys['new'] and not ts['new'] and ts['valid']:
+            why.append('신호가 나온 지 3일이 지났습니다(신호는 아직 살아 있음)')
+    td, yd = t.get('dnSig'), y.get('dnSig')
+    if td and td['age'] == 0:
+        why.append('과열 뒤 꺾이는 신호가 나왔습니다')
+    elif td and yd and yd['age'] < NEW_DAYS <= td['age']:
+        why.append('꺾임 신호가 나온 지 3일이 지났습니다')
+    if t.get('setupUp') and not y.get('setupUp'):
+        why.append("세 지표가 모두 '너무 많이 빠짐' 구간에 들어갔습니다")
+    if y.get('setupUp') and not t.get('setupUp') and not fresh:
+        why.append('10거래일 안에 되살아나지 못해 관찰을 끝냈습니다')
+    if t.get('setupDn') and not y.get('setupDn'):
+        why.append("세 지표가 모두 '너무 많이 오름' 구간에 들어갔습니다")
+    if y['vix'] != t['vix']:
+        why.append(f"시장 불안(VIX)이 '{VIX_EASY[y['vix']]}'에서 '{VIX_EASY[t['vix']]}'(으)로 바뀌었습니다")
+    if y.get('weak') != t.get('weak'):
+        why.append('큰 흐름(주·월 단위) 약세가 ' + ('시작됐습니다' if t.get('weak') else '풀렸습니다'))
+    head = '어제와 같은 판단' if y['label'] == t['label'] else '어제와 판단이 달라짐'
+    return head + (' — ' + ' · '.join(why) if why else ' — 달라진 조건 없음')
+
+
+def plain_risks(t, vxf):
+    out = []
+    for nm, u in (('주 단위', t.get('wk')), ('월 단위', t.get('mo'))):
+        if u and u['brk']:
+            out.append(f'{nm}로 과열 뒤 꺾인 상태')
+        elif u and u['weak']:
+            out.append(f'{nm} 흐름이 아직 약세')
+    if not vxf:
+        out.append('VIX 선물 자료를 확인하지 못함')
+    elif vxf['back']:
+        out.append('선물 시장이 단기 불안을 반영 중')
+    if t.get('sig') and t['sig']['new'] and t['sig']['hot']:
+        out.append('신호 당일 이미 단기 급등')
+    return out
+
+
+def past_like(t, rows):
+    """지금과 같은 조건이던 과거 회복 신호의 결과 (요약 탭 근거 한 줄)"""
+    v = t['vix']
+    sel = [x for x in rows if x['vix'] == v]
+    nm = f"시장 불안(VIX)이 '{VIX_EASY[v]}'일 때 나온 반등 신호"
+    st = stats(nm, sel)
+    return st if st['n'] else None
+
+
 def main():
     bars = {}
     for s in SYMS:
@@ -745,6 +816,8 @@ def main():
         t.update(prod=prod, base=base)
         if t['state'] != 'wait':
             t['change'] = change_reason(y, t)
+            t['easy'] = plain_reason(y, t)
+            t['easyRisks'] = plain_risks(t, vxf)
             t['risks'] = risks(t, vxf)
             t['next'] = next_states(base, t, vx)
             t['hist'] = history(base, prod, bars, t)
@@ -763,6 +836,9 @@ def main():
         if bars[prod]:
             rows, sigs, divs, B, P, pidx = backtest(base, prod, bars)
             score[prod] = {'from': P[0]['d'], 'rows': scorecard(rows)}
+            card = next(c for c in cards if c['prod'] == prod)
+            if card['state'] != 'wait':
+                card['past'] = past_like(card, rows)
             events[prod] = event_log(base, prod, rows, sigs, divs, B, P, pidx)
     for s in ('SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX'):
         table.append(summary_row(s.replace('^', ''), bars[s], inv.get(s)))
