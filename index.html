@@ -13,6 +13,7 @@
   --ink:#151A23;--ink2:#465061;--ink3:#69727F;
   --on:#4C58D6;--onDim:#E2E5FB;--onInk:#FFFFFF;
   --up:#12804F;--dn:#D2384B;--warn:#9A6200;
+  --st-watch:#E0B400;--st-hot:#E8791E;   /* 상황판 상태 띠: 매수 관찰, 매도 관찰 */
   --fs:1;
   --fs-xl:calc(24px*var(--fs));   /* 화면 제목, 큰 숫자 */
   --fs-l:calc(18px*var(--fs));    /* 소제목(섹션 제목) */
@@ -245,6 +246,29 @@ input,select,button{font-family:inherit}
 .dv div+div{margin-top:3px}
 .dv .g,.dpx .g{color:var(--up)}.dv .r,.dpx .r{color:var(--dn)}.dv .w{color:var(--warn)}
 .dv small{font-size:var(--fs-s);color:var(--ink3)}
+.dchart{margin-top:6px}
+.dchart svg{display:block;width:100%;overflow:hidden}
+.dchart .cap{font-size:var(--fs-s);color:var(--ink3);margin:9px 0 3px;display:flex;justify-content:space-between;gap:8px}
+.dchart .cap .mono{white-space:nowrap;flex-shrink:0}
+.dchart .band{fill:var(--onDim);opacity:.7}
+.dchart .ma{stroke:var(--ink3);stroke-dasharray:3 3;fill:none}
+.dchart .ln{stroke:var(--on);fill:none;stroke-width:1.5}
+.dchart .gl{stroke:var(--bd2);stroke-dasharray:2 3}
+.dchart .cu{stroke:var(--up);fill:var(--up)}.dchart .cd{stroke:var(--dn);fill:var(--dn)}
+.dchart .hit{fill:transparent;cursor:pointer}
+.dchart .sel{fill:var(--s3);opacity:.6}
+.dchart .mk-ro{fill:var(--st-watch)}.dchart .mk-rb{fill:var(--st-hot)}
+.dchart .mk-us,.dchart .mk-uq{fill:var(--up)}.dchart .mk-dn{fill:var(--dn)}
+.dchart .mk-uq{fill:var(--s1);stroke:var(--up);stroke-width:1.5}
+.dchart .mk-x{stroke:var(--dn);stroke-width:2;fill:none}
+.dchart .mk-dl{fill:var(--s1);stroke:var(--on);stroke-width:1.5}.dchart .mk-dc{fill:var(--on)}
+.rb-buy{fill:var(--up)}.rb-sell{fill:var(--dn)}.rb-warn{fill:var(--warn)}
+.rb-watch{fill:var(--st-watch)}.rb-hot{fill:var(--st-hot)}.rb-neutral{fill:var(--s3)}
+.dday{background:var(--s2);border-radius:9px;padding:10px 12px;margin-top:10px;font-size:var(--fs-s);
+      color:var(--ink2);line-height:1.7}
+.dday b{color:var(--ink);font-size:var(--fs-m)}
+.dleg{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;margin-top:8px}
+.dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 3px 0 8px;vertical-align:-1px}
 .dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -933,6 +957,56 @@ const sg=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
 const sc=v=>v>0?'g':v<0?'r':'';
 const drow=(k,v)=>`<div class="drow"><div class="dk">${k}</div><div class="dv">${v}</div></div>`;
 const lines=a=>a.map(x=>`<div>${x}</div>`).join('');
+/* 최근 1개월 차트: 가격(볼린저밴드·50일선·마커) + 상태 색 띠 + SCR 3단 지표 */
+const DSEL={};
+const MK={ro:'과매도 준비',rb:'과매수 준비',us:'SCR 엄격 동시 회복',uq:'SCR 순차 회복',dn:'SCR 3단 하향 이탈',
+  x:'신호 무효화(저점 이탈)',dl:'RSI 다이버전스 2차 저점',dc:'RSI 다이버전스 확인'};
+function deskChart(c){
+  const H=c.hist; if(!H||!H.length)return '';
+  const n=H.length, W=300, cw=W/n, X=i=>cw*(i+.5), sel=Math.min(DSEL[c.prod]??n-1,n-1);
+  const svg=(h,body)=>`<svg viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" style="height:${h}px">`+
+    `<rect class="sel" x="${cw*sel}" y="0" width="${cw}" height="${h}"/>${body}`+
+    H.map((_,i)=>`<rect class="hit" data-i="${i}" x="${cw*i}" y="0" width="${cw}" height="${h}"/>`).join('')+`</svg>`;
+  /* 가격 */
+  const PH=150, cl=Math.min(...H.map(d=>d.l)), ch=Math.max(...H.map(d=>d.h));
+  const lo=cl-(ch-cl)*.12, hi=ch+(ch-cl)*.12,   /* 축은 봉 기준 — 밴드·50일선은 넘치면 잘린다 */ Y=v=>8+(PH-22)*(1-(v-lo)/(hi-lo||1));
+  const path=k=>H.map((d,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(d[k]).toFixed(1)}`).join('');
+  let g=`<path class="band" d="${path('bu')}${H.map((d,i)=>`L${X(n-1-i).toFixed(1)} ${Y(H[n-1-i].bl).toFixed(1)}`).join('')}Z"/>`+
+    `<path class="ma" vector-effect="non-scaling-stroke" d="${path('m50')}"/>`;
+  H.forEach((d,i)=>{const u=d.c>=d.o, bw=Math.max(cw*.55,3), y1=Y(Math.max(d.o,d.c)), y2=Y(Math.min(d.o,d.c));
+    g+=`<line class="${u?'cu':'cd'}" x1="${X(i)}" x2="${X(i)}" y1="${Y(d.h)}" y2="${Y(d.l)}"/>`+
+       `<rect class="${u?'cu':'cd'}" x="${X(i)-bw/2}" y="${y1}" width="${bw}" height="${Math.max(y2-y1,1)}"/>`;
+    let below=Y(d.l)+7, above=Y(d.h)-7;
+    d.marks.forEach(m=>{const x=X(i);
+      if(m==='ro'){g+=`<circle class="mk-ro" cx="${x}" cy="${below}" r="2.5"/>`;below+=8;}
+      else if(m==='rb'){g+=`<circle class="mk-rb" cx="${x}" cy="${above}" r="2.5"/>`;above-=8;}
+      else if(m==='us'||m==='uq'){g+=`<path class="mk-${m}" d="M${x} ${below-4}L${x+4.5} ${below+4}L${x-4.5} ${below+4}Z"/>`;below+=11;}
+      else if(m==='dn'){g+=`<path class="mk-dn" d="M${x} ${above+4}L${x+4.5} ${above-4}L${x-4.5} ${above-4}Z"/>`;above-=11;}
+      else if(m==='x'){g+=`<path class="mk-x" d="M${x-4} ${above-4}L${x+4} ${above+4}M${x+4} ${above-4}L${x-4} ${above+4}"/>`;above-=11;}
+      else{g+=`<rect class="mk-${m}" x="${x-3.5}" y="${below-3.5}" width="7" height="7" transform="rotate(45 ${x} ${below})"/>`;below+=11;}
+    });});
+  let h=`<div class="dchart" data-p="${c.prod}"><div class="cap"><span>${c.base} · 볼린저밴드 · 50일선</span>`+
+    `<span class="mono">$${lo.toFixed(0)}~${hi.toFixed(0)}</span></div>`+svg(PH,g);
+  /* 상태 색 띠 */
+  h+=`<div class="cap"><span>날짜별 상태 (누르면 그날 판정)</span><span class="mono">${md(H[0].d)}~${md(H[n-1].d)}</span></div>`+
+    svg(16,H.map((d,i)=>`<rect class="rb-${d.state}" x="${cw*i+.5}" y="1" width="${cw-1}" height="14" rx="2"/>`).join(''));
+  /* 지표 */
+  const osc=(k,nm,min,max,a,b)=>{const hh=46, y=v=>3+(hh-6)*(1-(Math.max(min,Math.min(max,v))-min)/(max-min));
+    return `<div class="cap"><span>${nm}</span><span class="mono">${H[sel][k]}</span></div>`+svg(hh,
+      [a,b].map(t=>`<line class="gl" vector-effect="non-scaling-stroke" x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}"/>`).join('')+
+      `<path class="ln" vector-effect="non-scaling-stroke" d="${H.map((d,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${y(d[k]).toFixed(1)}`).join('')}"/>`);};
+  h+=osc('k','%K(5) · 기준선 20 / 80',0,100,20,80)+osc('cci','CCI(20) · 기준선 -100 / +100',-250,250,-100,100)+
+     osc('rsi','RSI(14) · 기준선 30 / 70',0,100,30,70);
+  const d=H[sel];
+  h+=`<div class="dday"><b>${md(d.d)} · ${d.label}</b><br>${d.change}<br>`+
+    `<span class="mono">종가 $${d.c} · %K ${d.k} · CCI ${d.cci} · RSI ${d.rsi} · 이격도 ${d.disp}</span>`+
+    (d.marks.length?`<br>표시: ${d.marks.map(m=>MK[m]).join(' · ')}`:'')+
+    `<br><small>그날까지의 자료만으로 다시 계산한 판정입니다.</small></div>`;
+  h+=`<div class="dleg">상태 띠<i style="background:var(--up)"></i>매수 검토<i style="background:var(--st-watch)"></i>매수 관찰`+
+    `<i style="background:var(--warn)"></i>진입 경계<i style="background:var(--st-hot)"></i>매도 관찰<i style="background:var(--dn)"></i>매도 검토`+
+    `<i style="background:var(--s3)"></i>중립<br>마커 ● 준비 · ▲ 회복(채움=엄격, 빈=순차) · ▼ 이탈 · ✕ 무효화 · ◆ 다이버전스(빈=저점, 채움=확인)</div>`;
+  return h+'</div>';
+}
 function deskCard(c){
   const head=`<div class="dhead"><span class="tk">${c.prod}</span><span class="lev">기준자산 ${c.base}</span>`+
     (c.ind?`<span class="dpx">$${c.ind.pclose} <span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span></span>`:'')+`</div>`;
@@ -956,6 +1030,7 @@ function deskCard(c){
   if(c.next.length)h+=drow('다음 상태 조건',lines(c.next));
   h+=drow(`지표 (${c.base} ${md(c.asof)} 종가 $${c.ind.close} ${sg(c.ind.chg)})`,
     `<span class="mono">%K ${c.ind.k} · CCI ${c.ind.cci} · RSI ${c.ind.rsi} · 50일 이격도 ${c.ind.disp}</span>`);
+  h+=drow('최근 1개월 차트',deskChart(c));
   return h+'</div>';
 }
 function deskUvix(u){
@@ -998,6 +1073,8 @@ function renderDesk(){
     `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산<br>`+
     `신호 판정과 무효화는 기준자산(SOXX·QQQ)으로만 계산하고, SOXL·TQQQ 가격은 참고로 함께 표시합니다.</div>`;
 }
+document.getElementById('vDesk').onclick=e=>{const r=e.target.closest('.hit');if(!r)return;
+  DSEL[r.closest('.dchart').dataset.p]=+r.dataset.i;const y=window.scrollY;renderDesk();window.scrollTo(0,y);};
 function syncView(){
   const d=st.view==='desk';
   document.getElementById('vScr').hidden=d;document.getElementById('vDesk').hidden=!d;
