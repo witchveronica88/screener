@@ -525,6 +525,7 @@ def uvix_card(U, X):
     pk = surged and any(s['side'] == 'dn' and s['i'] > ml for s in sigs)
     ob = I['k'][-1] >= 80 and I['cci'][-1] >= 100 and I['rsi'][-1] >= 70
     rise = pct(c[-1], c[ml])
+    r['spark'] = [{'d': b['d'], 'c': round(b['c'], 2)} for b in U[-21:]]
     r['month'] = {'lowClose': round(c[ml], 2), 'lowDate': U[ml]['d'],
                   'lowIntra': round(min(U[i]['l'] for i in mi), 2), 'rise': rise,
                   'peakRise': round(peak * 100, 1), 'ob': ob, 'peakout': pk,
@@ -540,6 +541,9 @@ def market_card(S, V, vx, vxf):
     sc = pct(S[-1]['c'], S[-2]['c'])
     r = {'spy': round(S[-1]['c'], 2), 'spyChg': sc, 'vix': vx, 'vixLabel': VIX_KO[vx['st']], 'fut': vxf}
     vc = vx['chg']
+    vc5 = sma([b['c'] for b in V], 5)
+    r['spark'] = [{'d': V[i]['d'], 'c': round(V[i]['c'], 2), 'm5': round(vc5[i], 2)}
+                  for i in range(len(V) - 21, len(V))]
     r['couple'] = ('고점 경계 관찰' if sc > 0 and vc > 0 else '바닥 소진 관찰' if sc < 0 and vc < 0 else None)
     return r
 

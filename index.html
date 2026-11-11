@@ -294,6 +294,32 @@ input,select,button{font-family:inherit}
 .srow b{color:var(--ink)}.srow b.g{color:var(--up)}.srow b.r{color:var(--dn)}
 .srow small{color:var(--ink3);font-size:var(--fs-s)}
 .dsum .more{font-size:var(--fs-s);color:var(--on);margin-top:7px}
+.dboard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.dtile{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:11px 12px;cursor:pointer;min-width:0}
+.dtile .th{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.lamp{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:var(--s3);border:3px solid var(--s2)}
+.lamp.buy{background:var(--up)}.lamp.sell,.lamp.worse{background:var(--dn)}.lamp.warn{background:var(--warn)}
+.lamp.watch{background:var(--st-watch)}.lamp.hot{background:var(--st-hot)}
+.dtile .tt{font-size:var(--fs-s);color:var(--ink3);font-family:var(--mono)}
+.dtile .tw{font-size:var(--fs-l);font-weight:700;line-height:1.25;word-break:keep-all}
+.spk{display:block;width:100%;overflow:hidden;margin-top:10px}
+.spk .p{stroke:var(--ink2);fill:none;stroke-width:1.6}.spk .a{fill:var(--s2)}
+.spk .l2{stroke:var(--ink3);fill:none;stroke-dasharray:3 3}
+.spk .ref{stroke:var(--dn);stroke-dasharray:4 3}
+.spkc{font-size:var(--fs-s);color:var(--ink3);display:flex;justify-content:space-between;gap:8px;margin-top:3px}
+.gz{position:relative;height:12px;border-radius:6px;background:var(--s2);margin:7px 0 4px}
+.gz i{position:absolute;top:0;bottom:0;opacity:.3}
+.gz i.r{background:var(--dn);border-radius:6px 0 0 6px}.gz i.g{background:var(--up);border-radius:0 6px 6px 0}
+.gz b{position:absolute;top:-5px;width:5px;height:22px;border-radius:3px;background:var(--ink);transform:translateX(-50%)}
+.gzt{font-size:var(--fs-s);color:var(--ink3);margin-top:11px}
+.gzt b{color:var(--ink)}
+.gzl{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-s);color:var(--ink3)}
+.fbar{display:flex;gap:10px;align-items:flex-end;height:74px;margin-top:10px}
+.fbar div{flex:1;min-width:0;text-align:center;font-size:var(--fs-s);color:var(--ink3);display:flex;
+          flex-direction:column;justify-content:flex-end;height:100%}
+.fbar i{display:block;background:var(--onDim);border-radius:5px 5px 0 0;margin-top:2px}
+.fbar div.cur i{background:var(--on)}
+.fbar span{font-family:var(--mono);color:var(--ink)}
 .dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -1038,6 +1064,7 @@ function deskCard(c){
   let h=`<div class="dcard ${c.state}">${head}<div class="dbadge">${c.label}</div><div class="dline">${c.line}</div>`;
   if(c.state==='wait')return h+'<div style="height:9px"></div></div>';
   if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${b}</span>`).join('')}</div>`;
+  h+=deskChart(c);
   h+=drow('어제 대비',c.change.replace(/^어제 대비: /,''));
   const s=c.sig&&c.sig.age<=60?c.sig:null;
   if(!s)h+=drow('신호 상태','최근 60거래일 안에 회복 신호 없음');
@@ -1055,7 +1082,6 @@ function deskCard(c){
   if(c.next.length)h+=drow('다음 상태 조건',lines(c.next));
   h+=drow(`지표 (${c.base} ${md(c.asof)} 종가 $${c.ind.close} ${sg(c.ind.chg)})`,
     `<span class="mono">%K ${c.ind.k} · CCI ${c.ind.cci} · RSI ${c.ind.rsi} · 50일 이격도 ${c.ind.disp}</span>`);
-  h+=drow('최근 1개월 차트',deskChart(c));
   return h+'</div>';
 }
 function deskUvix(u){
@@ -1066,6 +1092,7 @@ function deskUvix(u){
   h+=`<div class="dbadge">사이클: ${cy.stage}${cy.day?` · ${cy.day}일차`:''}</div><div class="dline">${cy.note}</div>`;
   if(u.vxxLow)h+=`<div class="dchips"><span>VXX 동반 신저가</span></div>`;
   if(u.jump)h+=drow('주의','<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있어 사이클 판정을 믿기 어렵습니다.</span>');
+  h+=uvixSpark(u,110);
   h+=drow('신저가 사이클',cy.day
     ?lines([`시작 ${md(cy.start)} · 진행 중 최저 종가 $${cy.low} <small>(${md(cy.lowDate)})</small> · 현재 ${sg(cy.fromLow)}`,
         `종가 $${cy.target} 이상이면 사이클 완료(+10%)`+(cy.hiHit?' <small>· 장중 고가는 +10% 도달</small>':'')])
@@ -1082,6 +1109,7 @@ function deskMarket(m){
   let h=`<div class="dcard ${cls}"><div class="dhead"><span class="tk">시장 환경</span><span class="lev">SPY · VIX</span></div>`;
   h+=`<div class="dbadge">VIX ${m.vixLabel}</div><div class="dline">${v.why}</div>`;
   if(m.couple)h+=`<div class="dchips"><span>${m.couple}</span></div>`;
+  h+=vixSpark(m,110)+futBars(m);
   h+=drow('SPY',`$${m.spy} <span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>`);
   h+=drow('VIX 현물',`${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span> <small>· 5일선 ${v.m5} ${v.above5?'위':'아래'} · %K ${v.k}</small>`);
   h+=drow('VIX 선물 기간구조',f
@@ -1146,63 +1174,103 @@ function secLog(){
     :'<div class="dstamp" style="padding:0">아직 기록이 없습니다.</div>';
   return dsec('l','지난 판정 기록',`<div class="dstamp" style="padding:0">매일 갱신 때 화면에 표시한 판정을 그대로 남깁니다. 나중에 규칙이 바뀌어도 이 기록은 고치지 않습니다.</div>`+d);
 }
-/* 요약 탭: 맨 위 한 문장 + 종목마다 쉬운 말로 */
+/* 요약 탭: 맨 위 신호등 판 + 종목마다 작은 차트·막대, 글은 그 아래 */
 const VE={worse:'커지는 중',confirm:'가라앉음',fast:'막 꺾이는 중',neutral:'보통'};
+const SW={buy:'매수 검토',warn:'보류',watch:'지켜보기',hot:'과열',sell:'꺾임',neutral:'신호 없음',wait:'확인 중'};
 function easyState(c){
   const s=c.sig;
   if(c.state==='buy')return ['🟢 매수 검토해 볼 만함',
-    (c.type==='확인형'?'많이 빠졌다가 되살아났고, 시장 불안도 가라앉았습니다.':'많이 빠졌다가 되살아났지만, 시장 불안은 이제 막 꺾이는 중이라 확인이 덜 됐습니다.')+
-    (c.weak?' 다만 큰 흐름은 아직 약세라 짧게 보는 편이 안전합니다.':''),'매수 검토'];
-  if(c.state==='warn')return ['⚠️ 반등 신호는 났지만 보류','되살아나는 신호는 나왔는데 시장 불안(VIX)이 다시 커지고 있습니다.','신호는 났지만 보류'];
+    '많이 빠졌다가 되살아났고, 시장 불안도 가라앉았습니다.'+(c.weak?' 다만 큰 흐름은 아직 약세라 짧게 보는 편이 안전합니다.':'')];
+  if(c.state==='warn')return ['⚠️ 반등 신호는 났지만 보류','되살아나는 신호는 나왔는데 시장 불안(VIX)이 다시 커지고 있습니다.'];
   if(c.state==='watch')return s&&s.new&&s.valid
-    ?['🟡 되살아났지만 더 지켜보기',c.type==='초기 반등형'?'가격은 되살아났지만 시장 불안이 이제 막 꺾이는 중이라 확인이 덜 됐습니다. 불안이 확실히 가라앉으면 매수 검토로 바뀝니다.':'가격은 되살아났는데 시장 불안이 아직 풀리지 않았습니다.','더 지켜보기']
-    :['🟡 많이 빠짐 — 더 지켜보기','많이 내려왔지만 되살아나는 신호는 아직 없습니다.','많이 빠져서 지켜보는 중'];
-  if(c.state==='hot')return ['🟠 많이 올라 과열 — 추격 조심','많이 올랐지만 아직 꺾이지는 않았습니다. 새로 사기에는 부담스러운 자리입니다.','과열이라 추격 조심'];
-  if(c.state==='sell')return ['🔴 과열 뒤 꺾임','많이 오른 뒤 힘이 빠지는 신호가 나왔습니다. 새로 사는 것은 미루는 편이 낫습니다.','과열 뒤 꺾임'];
-  if(c.state==='wait')return ['⏳ 자료 확인 중',c.line,'자료 확인 중'];
-  return ['⚪ 뚜렷한 신호 없음',c.live?`${s.age}거래일 전에 나온 반등 신호가 아직 살아 있습니다. 새 신호는 없습니다.`:'사야 할 신호도, 과열 신호도 없습니다.','신호 없음'];
+    ?['🟡 되살아났지만 더 지켜보기',c.type==='초기 반등형'?'가격은 되살아났지만 시장 불안이 이제 막 꺾이는 중이라 확인이 덜 됐습니다. 불안이 확실히 가라앉으면 매수 검토로 바뀝니다.':'가격은 되살아났는데 시장 불안이 아직 풀리지 않았습니다.']
+    :['🟡 많이 빠짐 — 더 지켜보기','많이 내려왔지만 되살아나는 신호는 아직 없습니다.'];
+  if(c.state==='hot')return ['🟠 많이 올라 과열 — 추격 조심','많이 올랐지만 아직 꺾이지는 않았습니다. 새로 사기에는 부담스러운 자리입니다.'];
+  if(c.state==='sell')return ['🔴 과열 뒤 꺾임','많이 오른 뒤 힘이 빠지는 신호가 나왔습니다. 새로 사는 것은 미루는 편이 낫습니다.'];
+  if(c.state==='wait')return ['⏳ 자료 확인 중',c.line];
+  return ['⚪ 뚜렷한 신호 없음',c.live?`${s.age}거래일 전에 나온 반등 신호가 아직 살아 있습니다. 새 신호는 없습니다.`:'사야 할 신호도, 과열 신호도 없습니다.'];
 }
 const srow=(k,v)=>`<div class="srow"><span class="sk">${k}</span>${v}</div>`;
+/* 작은 선 차트. ref=가로 기준선 값, l2=두 번째 선(점선), rib=상태 띠 */
+function spark(vals,h,o={}){
+  const n=vals.length, W=300, all=vals.concat(o.l2||[],o.ref!=null?[o.ref]:[]);
+  const lo=Math.min(...all), hi=Math.max(...all), pad=(hi-lo)*.1||1, rh=o.rib?9:0;
+  const X=i=>W*i/(n-1), Y=v=>4+(h-rh-8)*(1-(v-lo+pad)/(hi-lo+2*pad));
+  const d=a=>a.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('');
+  return `<svg class="spk" viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" style="height:${h}px">`+
+    `<path class="a" d="${d(vals)}L${W} ${h-rh}L0 ${h-rh}Z"/>`+
+    (o.ref!=null?`<line class="ref" vector-effect="non-scaling-stroke" x1="0" x2="${W}" y1="${Y(o.ref)}" y2="${Y(o.ref)}"/>`:'')+
+    (o.l2?`<path class="l2" vector-effect="non-scaling-stroke" d="${d(o.l2)}"/>`:'')+
+    `<path class="p" vector-effect="non-scaling-stroke" d="${d(vals)}"/>`+
+    (o.rib?o.rib.map((st,i)=>`<rect class="rb-${st}" x="${W*i/n+.5}" y="${h-7}" width="${W/n-1}" height="7" rx="1.5"/>`).join(''):'')+`</svg>`;
+}
+/* 막대: 왼쪽 끝 lo, 오른쪽 끝 hi, 0 지점 기준 좌=빨강 우=초록, 표시=cur */
+function gauge(lo,hi,cur,zero){
+  const f=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+  return `<div class="gz"><i class="r" style="left:0;width:${f(zero)}%"></i><i class="g" style="left:${f(zero)}%;right:0"></i><b style="left:${f(cur)}%"></b></div>`;
+}
+function rsiGauge(c){
+  return `<div class="gzt">지금 위치 <b>RSI ${c.ind.rsi}</b></div>`+
+    `<div class="gz"><i class="g" style="left:0;width:30%;border-radius:6px 0 0 6px"></i><i class="r" style="left:70%;right:0;border-radius:0 6px 6px 0"></i><b style="left:${c.ind.rsi}%"></b></div>`+
+    `<div class="gzl"><span>← 많이 빠짐</span><span>많이 오름 →</span></div>`;
+}
+function futBars(m){
+  const f=m.fut; if(!f)return '';
+  const a=[['현물',m.vix.c,1],['근월',f.vx1,0],['차근월',f.vx2,0]], mn=Math.min(...a.map(x=>x[1])), hi=Math.max(...a.map(x=>x[1])), lo=mn-Math.max(hi-mn,.01);   /* 가장 낮은 막대가 절반 높이 */
+  return `<div class="fbar">${a.map(x=>`<div class="${x[2]?'cur':''}"><span>${x[1].toFixed(1)}</span><i style="height:${(8+38*(x[1]-lo)/(hi-lo)).toFixed(0)}px"></i>${x[0]}</div>`).join('')}</div>`+
+    `<div class="spkc"><span>${f.back?'가까운 달이 더 비쌈 — 단기 불안이 남아 있음':'먼 달이 더 비쌈 — 평소 모습'}</span></div>`;
+}
+function uvixSpark(u,h){
+  const cy=u.cycle, ref=cy.day?cy.target:cy.allLow;
+  return spark(u.spark.map(x=>x.c),h,{ref})+`<div class="spkc"><span>1개월</span><span>점선: ${cy.day?`사이클 끝 $${cy.target}`:`사상 최저 $${cy.allLow}`}</span></div>`;
+}
+function vixSpark(m,h){
+  return spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<div class="spkc"><span>VIX 1개월</span><span>점선: 5일 평균</span></div>`;
+}
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix;
   const px=(p,ch)=>`<span class="dpx">$${p} <span class="${sc(ch)}">${sg(ch)}</span></span>`;
-  let h=`<div class="dhl"><div class="dk">오늘 한 줄</div>${D.cards.map(c=>`<b>${c.prod}</b> ${easyState(c)[2]}`).join(' · ')}.<br>`+
-    `시장 불안(VIX)은 <b>${VE[v.st]}</b>.</div>`;
+  const tile=(dt,cls,name,word,sub)=>`<div class="dtile" data-dt="${dt}"><div class="th"><span class="lamp ${cls}"></span><span class="tt">${name}</span></div><div class="tw">${word}</div><div class="tt">${sub}</div></div>`;
+  const ucls=!u?'':u.month.rise>=25?'warn':u.cycle.day>=4&&u.cycle.day<=12?'watch':'';
+  let h=`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.state,c.prod,SW[c.state],c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span>`:'')).join('')+
+    (u?tile('UVIX',ucls,'UVIX',u.cycle.day?`${u.cycle.day}일차`:u.cycle.stage,`저점 대비 ${sg(u.month.rise)}`):'')+
+    tile('MKT',v.st==='confirm'?'buy':v.st==='fast'?'watch':v.st,'시장 불안',VE[v.st],`VIX ${v.c}`)+`</div>`;
   h+=D.cards.map(c=>{
     const [t,sub]=easyState(c), s=c.sig&&c.sig.valid&&c.sig.age<=60?c.sig:null;
-    let b='';
+    let g='', b='';
     if(c.state!=='wait'){
+      if(c.hist&&c.hist.length>2)g+=spark(c.hist.map(x=>x.c),64,{rib:c.hist.map(x=>x.state),ref:s?s.low:null})+
+        `<div class="spkc"><span>${c.base} 1개월</span>${s?'<span>점선: 취소선</span>':''}</div>`;
+      if(s&&s.pLow!=null){
+        const ref=s.pNextOpen??s.pSigClose, lo=(s.pLow/ref-1)*100, cur=(c.ind.pclose/ref-1)*100, hi=Math.max(D.target,cur);
+        g+=`<div class="gzt">${c.prod} 지금 <b class="${sc(cur)}">${sg(cur)}</b> <small>(${s.pNextOpen!=null?'신호 다음 날 시가':'신호일 종가'} 대비)</small></div>`+
+          gauge(Math.min(lo,cur),hi,cur,0)+`<div class="gzl"><span>신호 취소 ${sg(lo)}</span><span>목표 +${D.target}%</span></div>`;
+      }
+      g+=rsiGauge(c);
       b+=srow('어제와 비교',c.easy);
       if(s){
         b+=srow('신호 취소선',`${c.base} <b>$${s.low}</b> — 지금보다 <b>${s.dist.toFixed(1)}%</b> 아래. 종가가 이 밑으로 가면 신호 취소`);
-        b+=srow('신호 뒤 가격',`${c.base} <b class="${sc(s.mvClose)}">${sg(s.mvClose)}</b>`+(s.pMvClose!=null?` · ${c.prod} <b class="${sc(s.pMvClose)}">${sg(s.pMvClose)}</b>`:'')+
-          ` <small>(많이 올랐을수록 뒤늦은 추격)</small>`);
-        if(s.pDist!=null)b+=srow('잘될 때 / 틀릴 때',`목표 <b class="g">+${D.target}%</b> / 신호 취소 때 ${c.prod} 약 <b class="r">-${s.pDist.toFixed(1)}%</b>`);
         if(c.past&&s.new)b+=srow('과거 비슷한 때',`${c.past.cat} ${c.past.n}건 중 <b>${c.past.hit}%</b>가 +${D.target}% 도달 · 가는 길에 평균 ${c.past.maeAvg}% 더 빠짐 <small>(건수가 적어 참고만)</small>`);
-      }else{
-        const g=c.ind.disp-100;
-        b+=srow('지금 위치',`50일 평균보다 <b class="${sc(g)}">${sg(g)}</b> · RSI ${c.ind.rsi} <small>(30 이하면 많이 빠짐, 70 이상이면 많이 오름)</small>`);
-        if(c.setupUp)b+=srow('남은 기간',`${c.setupUp.left}거래일 안에 되살아나야 신호로 인정`);
-      }
+      }else if(c.setupUp)b+=srow('남은 기간',`${c.setupUp.left}거래일 안에 되살아나야 신호로 인정`);
       if(c.easyRisks&&c.easyRisks.length&&(s||c.state!=='neutral'))b+=srow('조심할 점',c.easyRisks.join(' · '));
     }
     return `<div class="dcard dsum ${c.state}" data-dt="${c.prod}"><div class="dhead"><span class="tk">${c.prod}</span>`+
       `<span class="lev">기준 ${c.base}</span>${c.ind?px(c.ind.pclose,c.ind.pchg):''}</div>`+
-      `<div class="dbadge">${t}</div><div class="dline">${sub}</div>${b}<div class="more">자세히 ›</div></div>`;}).join('');
+      `<div class="dbadge">${t}</div>${g}<div class="dline" style="margin-top:12px">${sub}</div>${b}<div class="more">자세히 ›</div></div>`;}).join('');
   if(u){const cy=u.cycle, d=cy.day;
     const t=cy.stage==='대기'?'새 최저가를 아직 안 깸 (대기)':cy.stage==='완료'?'저점에서 +10% 반등 — 한 사이클 끝'
       :d<=3?`새 최저가를 깬 직후 (${d}일차)`:d<=12?`반등을 지켜볼 구간 (${d}일차)`:d<=25?`저점 행진이 길어짐 (${d}일차)`:`저점 행진이 너무 길어짐 (${d}일차)`;
     const ms=u.month.peakout?'급등한 뒤 꺾임 확인 — 주식 반등에 유리한 힌트':u.month.rise>=25?'급등 중 — 시장이 불안하다는 뜻'
       :u.month.peakRise>=25?'급등했다가 가라앉는 중':'급등 아님';
     h+=`<div class="dcard dsum" data-dt="UVIX"><div class="dhead"><span class="tk">UVIX</span><span class="lev">시장이 불안할 때 오르는 상품</span>${px(u.close,u.chg)}</div>`+
-      `<div class="dbadge">${t}</div>`+srow('이번 달 저점보다',`<b>${sg(u.month.rise)}</b> · ${ms}`)+
+      `<div class="dbadge">${t}</div>${uvixSpark(u,64)}`+srow('이번 달 저점보다',`<b>${sg(u.month.rise)}</b> · ${ms}`)+
       (d?srow('사이클 끝 조건',`종가 $${cy.target} 이상 (저점 대비 +10%)`):srow('다음 시작 조건',`종가가 사상 최저 $${cy.allLow} 아래로 내려가면 1일차`))+
       `<div class="more">자세히 ›</div></div>`;}
   h+=`<div class="dcard dsum ${v.st==='worse'?'warn':v.st==='neutral'?'':'buy'}" data-dt="MKT"><div class="dhead"><span class="tk">시장</span>`+
     `<span class="lev">SPY ${sg(m.spyChg)}</span><span class="dpx">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
-    `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div>`+
-    `<div class="dline">${v.st==='worse'?'불안이 커지는 동안에는 반등 신호가 나와도 새로 사는 것을 미룹니다.':v.st==='confirm'?'이틀 연속 내렸고 최근 5일 평균보다 낮습니다.':v.st==='fast'?'꺾이기 시작했지만 아직 확인은 덜 됐습니다.':'가라앉는 조짐도, 커지는 조짐도 없습니다.'}</div>`+
-    srow('선물 시장',m.fut?(m.fut.back?'가까운 달이 더 비쌈 — 단기 불안이 아직 남아 있다는 뜻':'먼 달이 더 비쌈 — 평소 모습'):'자료를 확인하지 못함')+
+    `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div>${vixSpark(m,64)}${futBars(m)}`+
+    `<div class="dline" style="margin-top:12px">${v.st==='worse'?'불안이 커지는 동안에는 반등 신호가 나와도 새로 사는 것을 미룹니다.':v.st==='confirm'?'이틀 연속 내렸고 최근 5일 평균보다 낮습니다.':v.st==='fast'?'꺾이기 시작했지만 아직 확인은 덜 됐습니다.':'가라앉는 조짐도, 커지는 조짐도 없습니다.'}</div>`+
+    (m.fut?'':srow('선물 시장','자료를 확인하지 못함'))+
     (m.couple?srow('참고',m.couple==='바닥 소진 관찰'?'주가와 VIX가 같이 내림 — 하락이 지쳐 가는 모습일 수 있음':'주가와 VIX가 같이 오름 — 고점 근처일 수 있어 조심'):'')+
     `<div class="more">자세히 ›</div></div>`;
   return h+secRules()+secLog();
