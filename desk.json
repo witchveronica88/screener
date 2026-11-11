@@ -1,0 +1,236 @@
+{
+ "rule": "Rule v2.0",
+ "asof": "2026-11-10",
+ "updated": "2026-11-11T10:21+00:00",
+ "cards": [
+  {
+   "asof": "2026-11-10",
+   "vix": "confirm",
+   "ind": {
+    "k": 61.7,
+    "d": 47.1,
+    "cci": -91.2,
+    "rsi": 39.1,
+    "disp": 84.9,
+    "close": 146.59,
+    "pclose": 56.06,
+    "chg": -0.1,
+    "pchg": -0.2
+   },
+   "ok": {
+    "k": true,
+    "cci": true,
+    "rsi": true
+   },
+   "wk": {
+    "cci": -222.8,
+    "rsi": 37.0,
+    "weak": true,
+    "brk": false,
+    "asof": "2026-11-06",
+    "prev": {
+     "cci": -186.0,
+     "rsi": 42.1
+    }
+   },
+   "mo": {
+    "cci": 87.2,
+    "rsi": 59.6,
+    "weak": false,
+    "brk": true,
+    "asof": "2026-10-30",
+    "prev": {
+     "cci": 40.0,
+     "rsi": 56.4
+    }
+   },
+   "sig": {
+    "kind": "순차 회복",
+    "date": "2026-11-10",
+    "age": 0,
+    "new": true,
+    "valid": true,
+    "brokeDate": null,
+    "low": 131.9,
+    "lowDate": "2026-11-05",
+    "sigClose": 146.59,
+    "hot": false,
+    "mvClose": 0.0,
+    "dist": 10.0,
+    "pSigClose": 56.06,
+    "pMvClose": 0.0,
+    "pLow": 40.87,
+    "pDist": 27.1
+   },
+   "badges": [
+    "볼밴 하단 지지",
+    "하방 이격 과대"
+   ],
+   "dnSig": {
+    "date": "2026-06-05",
+    "age": 109,
+    "kind": "순차 이탈"
+   },
+   "weak": true,
+   "serious": true,
+   "state": "warn",
+   "label": "⚠️ 신규 진입 경계",
+   "line": "단기 반등 신호가 있으나 시장 변동성 위험이 커 신규 진입은 경계가 필요합니다. (원인: 주봉·월봉 3단 하향 이탈)",
+   "setupUp": null,
+   "setupDn": false,
+   "prod": "SOXL",
+   "base": "SOXX",
+   "change": "어제 대비: 매수 관찰 → 신규 진입 경계 / 순차 회복 완료 — 마지막 미충족 조건 CCI -100선 회복",
+   "risks": [
+    "주봉 약세(CCI -222.8 · RSI 37.0)",
+    "월봉 3단 하향 이탈",
+    "VIX 선물 백워데이션(단기 공포 역전)"
+   ],
+   "next": [
+    "무효화: 기준자산(SOXX) 종가가 관찰 저점($131.9)을 하회하면 '신호 무효화(저점 이탈)'"
+   ]
+  },
+  {
+   "asof": "2026-11-10",
+   "vix": "confirm",
+   "ind": {
+    "k": 50.9,
+    "d": 42.3,
+    "cci": -96.2,
+    "rsi": 40.1,
+    "disp": 93.8,
+    "close": 674.76,
+    "pclose": 56.56,
+    "chg": -0.7,
+    "pchg": -1.8
+   },
+   "ok": {
+    "k": true,
+    "cci": true,
+    "rsi": true
+   },
+   "wk": {
+    "cci": -232.2,
+    "rsi": 39.4,
+    "weak": true,
+    "brk": false,
+    "asof": "2026-11-06",
+    "prev": {
+     "cci": -166.6,
+     "rsi": 44.5
+    }
+   },
+   "mo": {
+    "cci": 102.6,
+    "rsi": 62.5,
+    "weak": false,
+    "brk": false,
+    "asof": "2026-10-30",
+    "prev": {
+     "cci": 55.5,
+     "rsi": 59.9
+    }
+   },
+   "sig": {
+    "kind": "순차 회복",
+    "date": "2026-11-10",
+    "age": 0,
+    "new": true,
+    "valid": true,
+    "brokeDate": null,
+    "low": 647.05,
+    "lowDate": "2026-11-05",
+    "sigClose": 674.76,
+    "hot": false,
+    "mvClose": 0.0,
+    "dist": 4.1,
+    "pSigClose": 56.56,
+    "pMvClose": 0.0,
+    "pLow": 50.47,
+    "pDist": 10.8
+   },
+   "badges": [
+    "볼밴 하단 지지",
+    "하방 이격 과대"
+   ],
+   "dnSig": {
+    "date": "2026-06-05",
+    "age": 109,
+    "kind": "순차 이탈"
+   },
+   "weak": true,
+   "serious": false,
+   "type": "확인형",
+   "state": "buy",
+   "label": "🟢 매수 검토 우세 · 기술적 반등형(확인형)",
+   "line": "일봉 SCR 회복 및 VIX 완화 확인 / 단, 주봉·월봉 상위 추세 약세 주의 (짧은 목표 수익 권장)",
+   "setupUp": null,
+   "setupDn": false,
+   "prod": "TQQQ",
+   "base": "QQQ",
+   "change": "어제 대비: 매수 관찰 → 매수 검토 우세 · 기술적 반등형(확인형) / 순차 회복 완료 — 마지막 미충족 조건 CCI -100선 회복",
+   "risks": [
+    "주봉 약세(CCI -232.2 · RSI 39.4)",
+    "VIX 선물 백워데이션(단기 공포 역전)"
+   ],
+   "next": [
+    "무효화: 기준자산(QQQ) 종가가 관찰 저점($647.05)을 하회하면 '신호 무효화(저점 이탈)'",
+    "경계: VIX가 하루 +10% 이상 급등하거나 2거래일 연속 상승하며 5일선을 넘으면 '⚠️ 신규 진입 경계'",
+    "강화: 주봉 확정 CCI(20) 0선 · RSI(14) 50선을 회복하면 '기술적 반등형' 경고 해제"
+   ]
+  }
+ ],
+ "uvix": {
+  "asof": "2026-11-10",
+  "close": 37.57,
+  "chg": -0.1,
+  "lastDone": {
+   "date": "2026-10-16",
+   "days": 22
+  },
+  "cycle": {
+   "stage": "대기",
+   "note": "직전 반등 완료 후 아직 사상 신저가(종가)를 갱신하지 않았습니다.",
+   "allLow": 32.84,
+   "toLow": 12.6
+  },
+  "month": {
+   "lowClose": 33.11,
+   "lowDate": "2026-11-04",
+   "lowIntra": 32.63,
+   "rise": 13.5,
+   "peakRise": 61.2,
+   "ob": false,
+   "peakout": false,
+   "k": 23.8,
+   "cci": -11.3,
+   "rsi": 48.1,
+   "status": "급등 후 되돌림 (SCR 꺾임 신호는 없음)"
+  }
+ },
+ "market": {
+  "spy": 749.92,
+  "spyChg": -0.4,
+  "vix": {
+   "c": 19.46,
+   "chg": -2.3,
+   "m5": 21.96,
+   "above5": false,
+   "k": 24.5,
+   "st": "confirm",
+   "why": "VIX 2거래일 연속 하락 + 5일선 아래"
+  },
+  "vixLabel": "완화 확인",
+  "fut": {
+   "vx1": 19.9067,
+   "vx1exp": "2026-11-18",
+   "vx2": 19.5125,
+   "vx2exp": "2026-12-16",
+   "sp1": 0.45,
+   "sp2": -0.39,
+   "back": true,
+   "shape": "백워데이션(단기 공포 역전)"
+  },
+  "couple": "바닥 소진 관찰"
+ }
+}

@@ -220,6 +220,32 @@ input,select,button{font-family:inherit}
 .foot code{font-family:var(--mono);color:var(--ink2)}
 .rst{margin-top:16px;background:transparent;border:1px solid var(--bd2);color:var(--ink3);
      border-radius:8px;padding:8px 15px;font-size:var(--fs-s);cursor:pointer}
+
+/* ── 상황판 ── */
+.views{display:flex;gap:6px;margin-top:11px}
+.views button{flex:1;background:var(--s1);border:1px solid var(--bd);color:var(--ink3);border-radius:8px;
+              padding:8px 0;font-size:var(--fs-s);cursor:pointer}
+.views button.on{background:var(--on);border-color:var(--on);color:var(--onInk);font-weight:600}
+#vDesk{padding:12px 12px 0}
+.dstamp{font-size:var(--fs-s);color:var(--ink3);line-height:1.7;padding:0 4px 10px}
+.dcard{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--bd2);border-radius:13px;
+       padding:15px 15px 6px;margin-bottom:10px;overflow-wrap:anywhere}
+.dcard.buy{border-left-color:var(--up)}.dcard.sell{border-left-color:var(--dn)}
+.dcard.warn,.dcard.watch,.dcard.hot{border-left-color:var(--warn)}
+.dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dhead .dpx{margin-left:auto;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2)}
+.dbadge{font-size:var(--fs-l);font-weight:700;margin:10px 0 5px;line-height:1.4}
+.dline{font-size:var(--fs-m);color:var(--ink2);line-height:1.65}
+.dchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.dchips span{background:var(--onDim);color:var(--ink);border-radius:6px;padding:3px 8px;font-size:var(--fs-s)}
+.drow{padding:10px 0;border-top:1px solid var(--s2);margin-top:10px}
+.drow+.drow{margin-top:0}
+.dk{font-size:var(--fs-s);color:var(--ink3);margin-bottom:3px}
+.dv{font-size:var(--fs-m);color:var(--ink);line-height:1.65}
+.dv div+div{margin-top:3px}
+.dv .g,.dpx .g{color:var(--up)}.dv .r,.dpx .r{color:var(--dn)}.dv .w{color:var(--warn)}
+.dv small{font-size:var(--fs-s);color:var(--ink3)}
+.dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -237,8 +263,12 @@ input,select,button{font-family:inherit}
       <button class="helpbtn" id="helpbtn">용어</button>
     </div>
   </div>
+  <div class="views" id="views">
+    <button data-v="scr">종목</button><button data-v="desk">상황</button>
+  </div>
 </div>
 
+<div id="vScr">
 <div class="help" id="help">
   <div class="hcard">
     <h4>시드</h4>
@@ -316,6 +346,9 @@ input,select,button{font-family:inherit}
   σ는 매일 받는 종가로 재계산 · 종목 정보 출처 레버리지 ETF 마스터
   <br><button class="rst" id="reset">입력한 주가 · 설정 초기화</button>
 </div>
+</div>
+
+<div id="vDesk" hidden></div>
 
 <script>
 const KEY='scr_v10', DIV=15, MIN_SH=5, SIG_MIN=5;
@@ -461,10 +494,11 @@ const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력
 const SCENS=[...new Set(Object.values(C).flatMap(c=>c[3]))];
 
 let LIVE={}, STAMP=null, Q='';
-let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
+let DESK=null;
+let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{},view:'scr'};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null};}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,
-  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs,cust:st.cust}));}catch(e){}};
+  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs,cust:st.cust,view:st.view}));}catch(e){}};
 
 const priceOf=t=>{const v=st.px[t];
   if(v!==undefined&&v!==null&&v!=='')return parseFloat(v);
@@ -881,7 +915,7 @@ document.getElementById('sort').value=st.sort;
 document.getElementById('sort').onchange=e=>{st.sort=e.target.value;save();render();};
 document.getElementById('reset').onclick=()=>{
   try{localStorage.removeItem(KEY);}catch(e){}
-  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{}};
+  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{},view:st.view};
   document.getElementById('sort').value='need';applyFs();syncHelp();tabs();render();
 };
 const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -892,6 +926,91 @@ qi.onkeydown=e=>{if(e.key==='Escape')setQ('');};
 qx.onclick=()=>{setQ('');qi.focus();};
 
 tabs();render();
+
+/* ── 상황판 (desk.json — 하루 한 번, 확정 종가 기준) ── */
+const md=d=>{if(!d)return'';const a=d.split('-');return `${+a[1]}/${+a[2]}`;};
+const sg=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
+const sc=v=>v>0?'g':v<0?'r':'';
+const drow=(k,v)=>`<div class="drow"><div class="dk">${k}</div><div class="dv">${v}</div></div>`;
+const lines=a=>a.map(x=>`<div>${x}</div>`).join('');
+function deskCard(c){
+  const head=`<div class="dhead"><span class="tk">${c.prod}</span><span class="lev">기준자산 ${c.base}</span>`+
+    (c.ind?`<span class="dpx">$${c.ind.pclose} <span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span></span>`:'')+`</div>`;
+  let h=`<div class="dcard ${c.state}">${head}<div class="dbadge">${c.label}</div><div class="dline">${c.line}</div>`;
+  if(c.state==='wait')return h+'<div style="height:9px"></div></div>';
+  if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${b}</span>`).join('')}</div>`;
+  h+=drow('어제 대비',c.change.replace(/^어제 대비: /,''));
+  const s=c.sig&&c.sig.age<=60?c.sig:null;
+  if(!s)h+=drow('신호 상태','최근 60거래일 안에 회복 신호 없음');
+  else if(!s.valid)h+=drow('신호 상태',`<span class="r">신호 무효화(저점 이탈)</span> ${md(s.brokeDate)} <small>· ${s.kind} ${md(s.date)} · 관찰 저점 $${s.low}</small>`);
+  else{
+    h+=drow('신호 상태',`<span class="g">유효 유지</span> · ${s.kind} ${md(s.date)} <small>(${s.new?`신규 ${s.age+1}거래일차`:`기발생 · 경과 ${s.age}거래일`})</small>`);
+    const pos=(nm,close,open,mc,mo,cur)=>`${nm} 신호 종가 $${close} → 현재 $${cur} <b class="${sc(mc)}">${sg(mc)}</b>`+
+      (open!=null?` <small>· 익일 시가 $${open} 대비 ${sg(mo)}</small>`:` <small>· 익일 시가는 다음 거래일에 확정</small>`);
+    h+=drow('진입 위치 (신호 이후 가격 이동)',lines([pos(c.base,s.sigClose,s.nextOpen,s.mvClose,s.mvOpen,c.ind.close)]
+      .concat(s.pSigClose!=null?[pos(c.prod,s.pSigClose,s.pNextOpen,s.pMvClose,s.pMvOpen,c.ind.pclose)]:[])));
+    h+=drow('무효화 거리',lines([`${c.base} 관찰 저점 $${s.low} <small>(${md(s.lowDate)} 종가)</small>까지 <b>-${s.dist.toFixed(1)}%</b> 여유`]
+      .concat(s.pLow!=null?[`${c.prod} 저점일 종가 $${s.pLow}로 돌아가면 <b>-${s.pDist.toFixed(1)}%</b> <small>· 3배 단순 환산 -${(s.dist*3).toFixed(1)}%</small>`]:[])));
+  }
+  h+=drow('남은 위험',c.risks.join(' / '));
+  if(c.next.length)h+=drow('다음 상태 조건',lines(c.next));
+  h+=drow(`지표 (${c.base} ${md(c.asof)} 종가 $${c.ind.close} ${sg(c.ind.chg)})`,
+    `<span class="mono">%K ${c.ind.k} · CCI ${c.ind.cci} · RSI ${c.ind.rsi} · 50일 이격도 ${c.ind.disp}</span>`);
+  return h+'</div>';
+}
+function deskUvix(u){
+  if(!u)return '';
+  const cy=u.cycle, m=u.month;
+  let h=`<div class="dcard"><div class="dhead"><span class="tk">UVIX</span><span class="lev">변동성 2배 · 전용 규칙</span>`+
+    `<span class="dpx">$${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span></span></div>`;
+  h+=`<div class="dbadge">사이클: ${cy.stage}${cy.day?` · ${cy.day}일차`:''}</div><div class="dline">${cy.note}</div>`;
+  if(u.vxxLow)h+=`<div class="dchips"><span>VXX 동반 신저가</span></div>`;
+  h+=drow('신저가 사이클',cy.day
+    ?lines([`시작 ${md(cy.start)} · 진행 중 최저 종가 $${cy.low} <small>(${md(cy.lowDate)})</small> · 현재 ${sg(cy.fromLow)}`,
+        `종가 $${cy.target} 이상이면 사이클 완료(+10%)`+(cy.hiHit?' <small>· 장중 고가는 +10% 도달</small>':'')])
+    :lines([`사상 최저 종가 $${cy.allLow}까지 -${cy.toLow.toFixed(1)}% <small>· 그 아래로 마감하면 1일차 시작</small>`]
+        .concat(u.lastDone?[`<small>직전 사이클 완료 ${md(u.lastDone.date)} (${u.lastDone.days}거래일 만에)</small>`]:[])));
+  h+=drow('월중 급등·피크아웃',lines([`<b>${m.status}</b>`,
+    `당월 저점 종가 $${m.lowClose} <small>(${md(m.lowDate)} · 장중 저가 $${m.lowIntra})</small> 대비 현재 <b>${sg(m.rise)}</b> <small>· 월중 최고 ${sg(m.peakRise)}</small>`,
+    `일봉 SCR 과매수 ${m.ob?'<span class="w">진입</span>':'아님'} <small class="mono">· %K ${m.k} · CCI ${m.cci} · RSI ${m.rsi}</small>`]));
+  return h+'</div>';
+}
+function deskMarket(m){
+  const v=m.vix, f=m.fut;
+  const cls=v.st==='worse'?'warn':v.st==='neutral'?'':'buy';
+  let h=`<div class="dcard ${cls}"><div class="dhead"><span class="tk">시장 환경</span><span class="lev">SPY · VIX</span></div>`;
+  h+=`<div class="dbadge">VIX ${m.vixLabel}</div><div class="dline">${v.why}</div>`;
+  if(m.couple)h+=`<div class="dchips"><span>${m.couple}</span></div>`;
+  h+=drow('SPY',`$${m.spy} <span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>`);
+  h+=drow('VIX 현물',`${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span> <small>· 5일선 ${v.m5} ${v.above5?'위':'아래'} · %K ${v.k}</small>`);
+  h+=drow('VIX 선물 기간구조',f
+    ?lines([`<b>${f.shape}</b>`,`근월 ${f.vx1.toFixed(2)} <small>(현물 대비 ${f.sp1>0?'+':''}${f.sp1})</small> · 차근월 ${f.vx2.toFixed(2)} <small>(근월 대비 ${f.sp2>0?'+':''}${f.sp2})</small>`])
+    :'선물 확인 미완료 — 현물 기준 부분 판정');
+  return h+'</div>';
+}
+function renderDesk(){
+  const el=document.getElementById('vDesk');
+  if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 오전 7시) 뒤에 보입니다.</div>';return;}
+  const u=new Date(DESK.updated);
+  const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
+  el.innerHTML=`<div class="dstamp">가격 기준 거래일 <b>${md(DESK.asof)}</b> (미국 확정 종가) · 화면 갱신 ${ut}</div>`+
+    DESK.cards.map(deskCard).join('')+deskUvix(DESK.uvix)+deskMarket(DESK.market)+
+    `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산<br>`+
+    `신호 판정과 무효화는 기준자산(SOXX·QQQ)으로만 계산하고, SOXL·TQQQ 가격은 참고로 함께 표시합니다.</div>`;
+}
+function syncView(){
+  const d=st.view==='desk';
+  document.getElementById('vScr').hidden=d;document.getElementById('vDesk').hidden=!d;
+  document.getElementById('helpbtn').hidden=d;
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.view));
+  if(d)renderDesk();
+}
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{st.view=b.dataset.v;save();syncView();window.scrollTo(0,0);});
+syncView();
+fetch('./desk.json?'+Date.now())
+  .then(r=>r.ok?r.json():Promise.reject(r.status))
+  .then(j=>{DESK=j;if(st.view==='desk')renderDesk();})
+  .catch(()=>{});
 
 fetch('./tickers.txt?'+Date.now())
   .then(r=>r.ok?r.text():Promise.reject(r.status))
