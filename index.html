@@ -383,7 +383,23 @@ input,select,button{font-family:inherit}
     <div class="hitem"><div class="hterm">RSI (14)</div>
       <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 참고 지표일 뿐이며, 스위치법은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없다.</div></div>
     <div class="hitem"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
-      <div class="hdef">두 개를 함께 두는 이유가 있다. <b>역대</b>는 남은 하락 여력을 재는 값이다 — 잔여 낙폭 계산이 역사적 최대낙폭과 짝을 이루므로 기준이 같아야 한다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값이다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보인다.</div></div>
+      <div class="hdef">두 개를 함께 두는 이유가 있다. <b>역대</b>는 과거 최대낙폭과 나란히 놓고 비교하는 참고값이다. 과거 최대낙폭이 앞으로의 하락 한도는 아니므로, 둘의 차이를 남은 안전 여유로 읽으면 안 된다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값이다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보인다.</div></div>
+  </div>
+
+  <div class="hcard">
+    <h4>급락 위험</h4>
+    <div class="hitem"><div class="hterm">급락일 평균 손실</div>
+      <div class="hdef">최근 3년 수익률을 나쁜 순으로 줄 세워 하위 5%만 평균한 값. <b>하루</b>는 가장 나빴던 날들의 평균이고, <b>5일</b>은 5거래일을 이어 붙였을 때의 평균이다. 분할 매수가 무너지는 건 하루 급락보다 반등 없이 며칠 이어지는 하락이라 5일 값을 함께 둔다. 상장이 3년보다 짧으면 있는 만큼만 쓰고 일수를 적는다. 표본이 적을수록 값이 크게 흔들린다.</div></div>
+    <div class="hitem"><div class="hterm">SOXL 급락일</div>
+      <div class="hdef">최근 3년 중 SOXL이 가장 크게 빠진 날(하위 10%)만 골라, 그날 이 종목이 평균 얼마나 빠졌는지 본다. SOXL 상관은 1년 전체 평균이라 평소엔 따로 놀다가 급락 때만 같이 무너지는 종목을 놓친다. SOXL 하락폭의 0.7배 이상 함께 빠지면 주의에 올린다. 0.7은 이 화면에서 정한 기준이다.</div></div>
+    <div class="hitem"><div class="hterm">회복 기간</div>
+      <div class="hdef"><b>지금</b>은 역대 고점(종가) 밑에 머문 기간, <b>최장</b>은 고점을 다시 넘는 데 가장 오래 걸렸던 기록이다. 기다려 본 적 있는 시간보다 지금 더 오래 못 돌아오고 있는지 본다.</div></div>
+    <div class="hitem"><div class="hterm">3년 낙폭</div>
+      <div class="hdef">최근 3년 안에서의 최대 하락폭. 상장 이후 전체 기록은 종목마다 겪은 위기가 달라 서로 비교하기 어렵다. 종목끼리 견줄 때는 이 값을 쓴다.</div></div>
+    <div class="hitem"><div class="hterm">변동성 감가</div>
+      <div class="hdef">오르내림만으로 1년에 깎이는 추정치. 하루 평균 수익률이 0이어도 출렁임이 크면 복리로 값이 줄어든다. <code>1 − exp(−σ² ÷ 2 × 252)</code>, σ는 1년 일간 변동성. 변동성은 스위치법의 연료이면서 그냥 들고 있을 때의 비용이다.</div></div>
+    <div class="hitem"><div class="hterm">기초자산 대비</div>
+      <div class="hdef">최근 1년 참조 ETF 수익률에 배수를 곱한 값과 상품의 실제 수익률을 견준다. 레버리지 상품은 하루 수익률의 배수를 맞추므로 기간이 길어지면 단순 배수와 달라진다. 기초자산이 회복해도 상품은 못 돌아올 수 있다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치이고, 배당을 반영한 수정종가로 계산한다.</div></div>
   </div>
 
   <div class="hcard">
@@ -550,6 +566,15 @@ ETHU:['이력부족','실물·채권 · 이더리움 선물','이더리움 2배.
 SOLT:['이력부족','실물·채권 · 솔라나 선물','솔라나 2배. σ 추정 10.1%로 이 문서 전체 1위입니다. 공식대로면 기대 수익률도 1위인데, 동시에 이력이 가장 짧고 유동성도 낮습니다. 이론값과 실제 위험의 괴리가 가장 큰 종목입니다. 알트코인은 강세장에서 비트코인을 앞서고 약세장에서는 훨씬 깊이 빠지는 비대칭이 있습니다. σ가 높다는 이유만으로 접근하면 안 되는 대표적인 경우입니다.',['크립토 강세','위험선호 확대']],
 };
 
+/* SOXL 급락일(3년 하위 10%)에 SOXL 하락폭의 몇 배로 같이 빠졌나. 표본이 없으면 null */
+const CRASH_MIN=0.7;
+const crashRatio=L=>L&&L.crash&&L.crash.soxl<0?L.crash.me/L.crash.soxl:null;
+const crashCaut=L=>{const k=crashRatio(L);
+  return k!=null&&k>=CRASH_MIN?['SOXL 급락일에 함께 빠짐','최근 3년 SOXL이 크게 빠진 '+L.crash.n+'일 동안 SOXL 평균 '+L.crash.soxl+'%에 이 종목은 평균 '+L.crash.me+'%였습니다. 평소 상관과 별개로, 급락 때는 같은 베팅처럼 움직입니다.']:null;};
+/* 달력 일수를 읽기 쉬운 기간으로 */
+const fmtDur=d=>d>=365?Math.floor(d/365)+'년'+(Math.floor(d%365/30)?' '+Math.floor(d%365/30)+'개월':''):d>=60?Math.round(d/30)+'개월':d+'일';
+/* 변동성만으로 1년에 깎이는 추정치 (%) — 하루 평균 수익률 0 가정 */
+const dragOf=sig=>(1-Math.exp(-0.5*(sig/100)**2*252))*100;
 function cautions(r,L,live,cus){
   const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
   const c=[];
@@ -559,6 +584,7 @@ function cautions(r,L,live,cus){
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
     if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
     if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 변동성 값을 그대로 믿기 어렵습니다.']);
+    if(crashCaut(L)) c.push(crashCaut(L));
     return c;
   }
   if(!mdd&&!(L&&L.mddCalc!=null&&L.bars>=750)) c.push(['최대낙폭 미검증','상장 이력이 짧아 실측 낙폭이 없습니다. 낙폭이 작다는 뜻이 아니라 모른다는 뜻입니다.']);
@@ -566,6 +592,7 @@ function cautions(r,L,live,cus){
   if(warns.includes('액면병합')) c.push(['액면병합 이력','병합 전후 주가가 이어지지 않아 장기 차트가 왜곡됩니다. 수정주가 기준인지 확인하세요.']);
   if(warns.includes('미회복')) c.push(['미회복','큰 하락 뒤 아직 이전 수준을 되찾지 못했습니다. 스위치법은 돌아오는 자산을 전제합니다.']);
   if(tk!=='SOXL'&&corrOf(r,L)==='높음') c.push(['SOXL 상관 높음','반도체가 꺾이는 날 함께 꺾입니다. 분산이 아니라 같은 베팅의 증량입니다.']);
+  if(crashCaut(L)) c.push(crashCaut(L));
   if(warns.includes('종목 집중')) c.push(['소수 종목 쏠림','상위 몇 종목이 지수 전체를 좌우합니다.']);
   if(warns.includes('ETN 구조')) c.push(['ETN 구조','펀드가 아니라 발행사 채권입니다. 발행사 신용위험과 조기상환 가능성이 있습니다.']);
   if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
@@ -852,6 +879,7 @@ function render(){
         ${L.chg!=null?`<span class="${sgn(L.chg)}">${L.chg>0?'+':''}${L.chg}%</span>`:''}
         ${L.rsi!=null?`<span class="${rsiC}">RSI ${L.rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
+        ${crashCaut(L)?'<span class="w">급락 동반</span>':''}
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
         <div class="k">최소 시드</div>`:'<div class="nopx">주가 입력</div>')
@@ -937,6 +965,24 @@ function render(){
           ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
             <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
         </div>
+
+        ${L&&L.riskBars?`<div class="sec"><span>급락 위험</span><i></i></div>
+        <div class="spec">
+          <div><div class="sk">급락일 평균 손실</div><div class="sv">${L.es1!=null
+            ?`<span class="u">${L.es1}%</span> <span class="q">하루</span><br><span class="u">${L.es5!=null?L.es5+'%':'—'}</span> <span class="q">5일</span>`
+            :'<span class="q">표본 부족</span>'}</div></div>
+          <div><div class="sk">SOXL 급락일</div><div class="sv">${tk==='SOXL'?'<span class="q">기준 종목</span>'
+            :L.crash?`<span class="u">${L.crash.me}%</span> <span class="q">이 종목</span><br><span class="u">${L.crash.soxl}%</span> <span class="q">SOXL</span><br><span class="u">${crashRatio(L).toFixed(2)}배</span> <span class="q">${L.crash.n}일</span>`
+            :'<span class="q">표본 부족</span>'}</div></div>
+          <div><div class="sk">회복 기간</div><div class="sv">${L.uwNow>0?`<span class="q">지금</span> <span class="u">${fmtDur(L.uwNow)}</span>`:'<span class="q">지금 고점</span>'}<br>${
+            L.uwMax>0?`<span class="q">최장</span> <span class="u">${fmtDur(L.uwMax)}</span>`:'<span class="q">회복 기록 없음</span>'}</div></div>
+          <div><div class="sk">3년 낙폭</div><div class="sv"><span class="u">${L.mdd3y}%</span>${
+            L.riskBars<750?` <span class="q">${L.riskBars}일뿐</span>`:''}</div></div>
+          ${live?`<div><div class="sk">변동성 감가</div><div class="sv"><span class="u">연 −${dragOf(L.sig).toFixed(0)}%</span> <span class="q">추정</span></div></div>`:''}
+          ${L.ref?`<div><div class="sk">기초자산 대비 · 1년</div><div class="sv"><span class="u">${L.ref.gap>0?'+':''}${L.ref.gap}%p</span> <span class="q">${L.ref.lev}배 대비</span></div></div>
+          <div class="wide"><div class="sk">${L.ref.t} ${L.ref.base>0?'+':''}${L.ref.base}% × ${L.ref.lev} = ${L.ref.base>0?'+':''}${(L.ref.base*L.ref.lev).toFixed(1)}% → 실제 ${L.ref.prod>0?'+':''}${L.ref.prod}%</div></div>`:''}
+          <div class="wide"><div class="sk">최근 3년 기준${L.riskBars<750?' · 상장 '+L.riskBars+'거래일':''}${L.esN?' · 하위 5% '+L.esN+'일':''}</div></div>
+        </div>`:''}
 
         ${cus?'':`<div class="sec"><span>움직이는 조건</span><i></i></div>
         <div class="ud"><i class="u">▲</i><span>${up}</span></div>
