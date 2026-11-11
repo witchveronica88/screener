@@ -1061,10 +1061,11 @@ function deskCard(c){
 function deskUvix(u){
   if(!u)return '';
   const cy=u.cycle, m=u.month;
-  let h=`<div class="dcard"><div class="dhead"><span class="tk">UVIX</span><span class="lev">변동성 2배 · 전용 규칙</span>`+
+  let h=`<div class="dcard"><div class="dhead"><span class="tk">UVIX</span><span class="lev">변동성 2배 · 종가 기준</span>`+
     `<span class="dpx">$${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span></span></div>`;
   h+=`<div class="dbadge">사이클: ${cy.stage}${cy.day?` · ${cy.day}일차`:''}</div><div class="dline">${cy.note}</div>`;
   if(u.vxxLow)h+=`<div class="dchips"><span>VXX 동반 신저가</span></div>`;
+  if(u.jump)h+=drow('주의','<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있어 사이클 판정을 믿기 어렵습니다.</span>');
   h+=drow('신저가 사이클',cy.day
     ?lines([`시작 ${md(cy.start)} · 진행 중 최저 종가 $${cy.low} <small>(${md(cy.lowDate)})</small> · 현재 ${sg(cy.fromLow)}`,
         `종가 $${cy.target} 이상이면 사이클 완료(+10%)`+(cy.hiHit?' <small>· 장중 고가는 +10% 도달</small>':'')])
@@ -1111,7 +1112,7 @@ function secScore(p){
 }
 function secEvents(p){
   const D=DESK, E=D.events&&D.events[p]; if(!E)return '';
-  return dsec('e','최근 신호 기록',E.map(e=>{const old=DLOG.find(x=>x.d===e.d), kept=old&&old.items[p]?old.items[p].label:'기록 시작 전';
+  return dsec('e','최근 신호 기록',`<div class="dstamp" style="padding:0">과거 가격은 현재 분할·병합 보정 기준이라 당시 화면의 가격과 다를 수 있습니다.</div>`+E.map(e=>{const old=DLOG.find(x=>x.d===e.d), kept=old&&old.items[p]?old.items[p].label:'기록 시작 전';
     const tail=`<small>당시 표시 판정: ${kept} · ${old?old.rule:D.rule+' 재계산'}</small>`;
     if(e.type!=='up')return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines([
       (e.lowDate?`2차 저점 ${md(e.lowDate)} → 확인 ${md(e.d)} · `:'')+`당시 종가 $${e.sigClose} → 현재 ${sg(e.mv)} · 경과 ${e.age}거래일`,tail]));
@@ -1121,6 +1122,23 @@ function secEvents(p){
       ` · ${e.age<3?`신규 ${e.age+1}거래일차`:`경과 ${e.age}거래일`}`);
     L.push(tail);
     return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines(L));}).join(''));
+}
+function secRules(){
+  const D=DESK, li=a=>lines(a.map(x=>`· ${x}`));
+  return dsec('r','이 상황판의 기준',
+    drow('원문(블로그)에서 온 것',li(['SCR 3단: Stochastic Fast %K(5) · CCI(20) · RSI(14), 확정된 종가로만 판정',
+      'UVIX: 저점 대비 +10% 이상 반등한 뒤 다시 사상 신저가를 깨면 새 카운트 시작. 그 뒤 신저가가 또 나와도 1일차는 그대로']))+
+    drow('운영 설정 (원문에 확정된 규칙이 아님)',li(['회복 인정 기간: 준비 후 10거래일',
+      '신호 취소: 기준자산 <b>종가</b>가 관찰 저점 종가 아래로 내려갈 때',
+      `목표 +${D.target}%: 과거 신호 결과를 셀 때 쓰는 회수 목표`,
+      'UVIX 신저가와 +10% 반등은 <b>종가</b> 기준 (장중 저가·고가는 참고). 이 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님',
+      '신규 신호 강조 3거래일 · 주봉·월봉 약세 기준(CCI 0 · RSI 50)']))+
+    drow('과거 자료로 고친 것',li(['v2.1 주봉·월봉 하향 이탈은 ⚠️ 경계가 아니라 조심할 점으로만 표시',
+      'v2.2 초기 반등형은 🟢가 아니라 🟡 (과거 +10% 도달: 확인형 67% · 초기 반등형 48%)']))+
+    drow('가격 · 검증',li(['가격 출처: 야후 파이낸스 정규장 일봉. 다른 곳과 몇 센트 다를 수 있음',
+      '모든 가격은 <b>현재 분할·병합 보정 기준</b>. 예: SOXX 2025년 4월 저점 $51.62는 당시 가격으로 약 $154.86 (2026-11-05 3:1 분할)',
+      '지표 계산: 2026-11-10 SOXX·QQQ 값을 별도로 재계산해 일치 확인. 트레이딩뷰 화면과 직접 대조한 것은 아님',
+      '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 판정을 멈춤'])));
 }
 function secLog(){
   let d=DLOG.length?DLOG.slice(-10).reverse().map(x=>drow(`${md(x.d)} <small>${x.rule}</small>`,
@@ -1187,7 +1205,7 @@ function deskSum(){
     srow('선물 시장',m.fut?(m.fut.back?'가까운 달이 더 비쌈 — 단기 불안이 아직 남아 있다는 뜻':'먼 달이 더 비쌈 — 평소 모습'):'자료를 확인하지 못함')+
     (m.couple?srow('참고',m.couple==='바닥 소진 관찰'?'주가와 VIX가 같이 내림 — 하락이 지쳐 가는 모습일 수 있음':'주가와 VIX가 같이 오름 — 고점 근처일 수 있어 조심'):'')+
     `<div class="more">자세히 ›</div></div>`;
-  return h+secLog();
+  return h+secRules()+secLog();
 }
 const DOPEN={};
 function renderDesk(){
@@ -1205,7 +1223,7 @@ function renderDesk(){
     :deskCard(c)+secTable([c.base,c.prod])+secScore(c.prod)+secEvents(c.prod);
   el.innerHTML=`<div class="tabs" style="padding:0 0 12px">${T.map(t=>`<button class="tab${t[0]===DTAB?' on':''}" data-dt="${t[0]}">${t[1]}</button>`).join('')}</div>`+
     `<div class="dstamp">가격 기준 거래일 <b>${md(DESK.asof)}</b> (미국 확정 종가) · 화면 갱신 ${ut}</div>`+body+
-    `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산<br>`+
+    `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산 · 가격은 야후 일봉, 현재 분할·병합 보정 기준<br>`+
     `신호 판정과 무효화는 기준자산(SOXX·QQQ)으로만 계산하고, SOXL·TQQQ 가격은 참고로 함께 표시합니다.</div>`;
 }
 let DTAB='SUM';

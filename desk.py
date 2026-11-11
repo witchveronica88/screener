@@ -284,6 +284,11 @@ def judge(base, prod, bars, n=None):
     if len(B) < 60 or not P or P[-1]['d'] != asof or not V or V[-1]['d'] != asof:
         return {'asof': asof, 'state': 'wait', 'label': '⏳ 데이터 대기·판정 불가',
                 'line': '최신 확정 거래일 데이터를 확인 중입니다.'}
+    # 분할·병합 직후 보정이 덜 된 자료로 잘못 판정하지 않게 막는다
+    if (abs(B[-1]['c'] / B[-2]['c'] - 1) > 0.25
+            or any(not (b['l'] <= b['c'] <= b['h']) for b in B[-5:])):
+        return {'asof': asof, 'state': 'wait', 'label': '⏳ 데이터 대기·판정 불가',
+                'line': '기준자산 가격이 하루 만에 크게 달라졌습니다. 분할·병합 보정이 끝났는지 확인 중입니다.'}
     I = indicators(B)
     sigs, setup = scr_signals(B, I)
     vx = vix_state(V)
@@ -487,7 +492,8 @@ def uvix_card(U, X):
                 cyc = None; doneToday = True
         lo = min(lo, c[i])
     last = len(U) - 1
-    r = {'asof': U[-1]['d'], 'close': round(c[-1], 2), 'chg': pct(c[-1], c[-2]), 'lastDone': lastDone}
+    r = {'asof': U[-1]['d'], 'close': round(c[-1], 2), 'chg': pct(c[-1], c[-2]), 'lastDone': lastDone,
+         'jump': not 0.4 < c[-1] / c[-2] < 3}       # 역병합 보정이 덜 됐을 수 있는 급변
     if cyc:
         day = last - cyc['start'] + 1
         stage = ('초기 (1~3거래일)' if day <= 3 else '관찰 구간 (4~12거래일)' if day <= 12
