@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.1)
+"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.2)
 
 v2.1: 주봉·월봉 3단 하향 이탈은 ⚠️ 경계로 올리지 않고 남은 위험으로만 표시한다.
       과거 신호에서 그 조건의 목표 도달률이 전체와 차이가 없었다(SOXL 60% vs 65%, TQQQ 67% vs 59%).
+v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아니라 🟡 매수 관찰로 둔다.
+      신호일 VIX 상태별 +10% 도달 — 확인형 50/75건(67%), 초기 반등형 15/31건(48%)
+      (SOXL·TQQQ·UPRO·TNA·TECL 합계). VIX가 확인형으로 바뀌면 신규 3거래일 안에서 🟢로 올라간다.
 
 기준자산(SOXX·QQQ)의 확정 일봉으로 SCR 3단 신호를 판정하고, VIX 완화/악화,
 주봉·월봉 상위 추세, UVIX 사이클을 합쳐 '현재 판단' 카드를 만든다.
@@ -10,7 +13,7 @@ v2.1: 주봉·월봉 3단 하향 이탈은 ⚠️ 경계로 올리지 않고 남
 """
 import urllib.request, urllib.parse, csv, io, json, time, datetime, sys
 
-RULE = 'Rule v2.1'
+RULE = 'Rule v2.2'
 UA = {'User-Agent': 'Mozilla/5.0'}
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
 SYMS = ['SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX']
@@ -344,9 +347,13 @@ def judge(base, prod, bars, n=None):
             st, lb = 'warn', '⚠️ 신규 진입 경계'
             ln = '단기 반등 신호가 있으나 시장 변동성 위험이 커 신규 진입은 경계가 필요합니다.'
             ln += ' (원인: ' + vx['why'] + ')'
-        elif vx['st'] in ('confirm', 'fast'):
+        elif vx['st'] == 'fast':
+            st, lb = 'watch', '🟡 매수 관찰 · 초기 반등형(확인 대기)'
+            R['type'] = '초기 반등형'
+            ln = '과매도 회복과 함께 변동성 초기 진정 조짐이 나타났지만 아직 확인 전입니다. (VIX 완화 확인까지 대기)'
+        elif vx['st'] == 'confirm':
             st = 'buy'
-            typ = '확인형' if vx['st'] == 'confirm' else '초기 반등형'
+            typ = '확인형'
             R['type'] = typ
             lb = '🟢 매수 검토 우세 · ' + ('기술적 반등형(' + typ + ')' if weak else typ)
             ln = ('과매도에서 회복 중이며 변동성 완화도 이동평균선 아래에서 확인되었습니다. (분할 진입 검토 우세)'
@@ -447,7 +454,7 @@ def next_states(base, t, vx):
         out.append(f"무효화: 기준자산({base}) 종가가 관찰 저점(${sg['low']})을 하회하면 '신호 무효화(저점 이탈)'")
     if t['state'] in ('buy', 'watch') and sg and sg['new'] and sg['valid']:
         if t.get('type') != '확인형':
-            out.append(f"승격: VIX가 2거래일 연속 하락하며 5일선({vx['m5']}) 아래에 안착하면 '확인형'")
+            out.append(f"승격: VIX가 2거래일 연속 하락하며 5일선({vx['m5']}) 아래에 안착하면 '🟢 매수 검토 우세 · 확인형'")
         out.append("경계: VIX가 하루 +10% 이상 급등하거나 2거래일 연속 상승하며 5일선을 넘으면 '⚠️ 신규 진입 경계'")
         if t.get('weak'):
             out.append("강화: 주봉 확정 CCI(20) 0선 · RSI(14) 50선을 회복하면 '기술적 반등형' 경고 해제")
