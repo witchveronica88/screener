@@ -452,26 +452,52 @@ def risks(t, vxf):
     return out or ['특이 위험 없음']
 
 
+def easy_state(t):
+    """판정을 쉬운 말로 — (제목, 한 줄 설명)"""
+    st = t['state']; s = t.get('sig')
+    if st == 'wait':
+        return '⏳ 자료 확인 중', t['line']
+    if st == 'buy':
+        return ('🟢 매수 검토해 볼 만함', '많이 빠졌다가 되살아났고, 시장 불안도 가라앉았습니다.'
+                + (' 다만 큰 흐름은 아직 약세라 짧게 보는 편이 안전합니다.' if t.get('weak') else ''))
+    if st == 'warn':
+        return '⚠️ 반등 신호는 났지만 보류', '되살아나는 신호는 나왔는데 시장 불안(VIX)이 다시 커지고 있습니다.'
+    if st == 'watch':
+        if s and s['new'] and s['valid']:
+            return ('🟡 되살아났지만 더 지켜보기',
+                    '가격은 되살아났지만 시장 불안이 이제 막 꺾이는 중이라 확인이 덜 됐습니다. '
+                    '불안이 확실히 가라앉으면 매수 검토로 바뀝니다.' if t.get('type') == '초기 반등형'
+                    else '가격은 되살아났는데 시장 불안이 아직 풀리지 않았습니다.')
+        return '🟡 많이 빠짐 — 더 지켜보기', '많이 내려왔지만 되살아나는 신호는 아직 없습니다.'
+    if st == 'hot':
+        return '🟠 많이 올라 과열 — 추격 조심', '많이 올랐지만 아직 꺾이지는 않았습니다. 새로 사기에는 부담스러운 자리입니다.'
+    if st == 'sell':
+        return '🔴 과열 뒤 꺾임', '많이 오른 뒤 힘이 빠지는 신호가 나왔습니다. 새로 사는 것은 미루는 편이 낫습니다.'
+    if t.get('live'):
+        return '⚪ 뚜렷한 신호 없음', f"{s['age']}거래일 전에 나온 반등 신호가 아직 살아 있습니다. 새 신호는 없습니다."
+    return '⚪ 뚜렷한 신호 없음', '사야 할 신호도, 과열 신호도 없습니다.'
+
+
 def next_states(base, t, vx):
+    """앞으로 어떤 일이 생기면 판단이 바뀌는지 — '조건 → 결과' 쉬운 말"""
     out = []
-    sg = t.get('sig')
-    if sg and sg['valid']:
-        out.append(f"무효화: 기준자산({base}) 종가가 관찰 저점(${sg['low']})을 하회하면 '신호 무효화(저점 이탈)'")
+    sg = t.get('sig'); ind = t['ind']
+    if sg and sg['valid'] and sg['age'] <= 60:
+        out.append(f"{base} 종가가 ${sg['low']} 아래로 내려가면 → 반등 신호 취소")
     if t['state'] in ('buy', 'watch') and sg and sg['new'] and sg['valid']:
         if t.get('type') != '확인형':
-            out.append(f"승격: VIX가 2거래일 연속 하락하며 5일선({vx['m5']}) 아래에 안착하면 '🟢 매수 검토 우세 · 확인형'")
-        out.append("경계: VIX가 하루 +10% 이상 급등하거나 2거래일 연속 상승하며 5일선을 넘으면 '⚠️ 신규 진입 경계'")
+            out.append(f"VIX가 이틀 연속 내리고 5일 평균({vx['m5']}) 아래로 가면 → 🟢 매수 검토")
+        out.append('VIX가 하루에 10% 넘게 뛰거나, 이틀 연속 올라 5일 평균을 넘으면 → ⚠️ 보류')
         if t.get('weak'):
-            out.append("강화: 주봉 확정 CCI(20) 0선 · RSI(14) 50선을 회복하면 '기술적 반등형' 경고 해제")
+            out.append("주 단위 지표(CCI 0 · RSI 50)가 회복되면 → '큰 흐름 약세' 주의가 사라짐")
     if t.get('setupUp'):
-        out.append(f"회복: 남은 {t['setupUp']['left']}거래일 안에 %K 20 · CCI -100 · RSI 30을 모두 넘으면 회복 신호 "
-                   f"(현재 %K {t['ind']['k']} · CCI {t['ind']['cci']} · RSI {t['ind']['rsi']})")
+        out.append(f"남은 {t['setupUp']['left']}거래일 안에 세 지표가 모두 기준선을 넘으면 → 반등 신호 "
+                   f"(지금 %K {ind['k']} / 20 · CCI {ind['cci']} / -100 · RSI {ind['rsi']} / 30)")
     if t['state'] == 'hot':
-        out.append("이탈: %K 80 · CCI +100 · RSI 70 아래로 모두 내려오면 '🔴 매도·회수 검토 우세'")
+        out.append('세 지표가 모두 과열 기준선 아래로 내려오면 → 🔴 과열 뒤 꺾임')
     if t['state'] == 'neutral' and not t.get('setupUp'):
-        out.append("관찰 시작: 같은 날 %K ≤ 20 · CCI ≤ -100 · RSI ≤ 30이면 '🟡 매수 관찰'")
-        out.append("과열: 50일 이격도 105 이상이거나 3지표 동시 과매수면 '🟠 매도 관찰' "
-                   f"(현재 이격도 {t['ind']['disp']})")
+        out.append("세 지표가 같은 날 모두 '많이 빠짐'에 들어가면 → 🟡 지켜보기 시작")
+        out.append(f"50일 평균보다 5% 넘게 올라가면 → 🟠 과열 (지금 {ind['disp'] - 100:+.1f}%)")
     return out
 
 
@@ -572,7 +598,8 @@ def history(base, prod, bars, today, n=21):
         out.append({'d': b['d'], 'o': r2(b['o']), 'h': r2(b['h']), 'l': r2(b['l']), 'c': r2(b['c']),
                     'bu': r2(I['bu'][i]), 'bl': r2(I['bl'][i]), 'm50': r2(I['m50'][i]),
                     'k': round(kk, 1), 'cci': round(cc, 1), 'rsi': round(rs, 1), 'disp': round(I['disp'][i], 1),
-                    'state': t['state'], 'label': t['label'], 'change': change_reason(y, t), 'marks': marks})
+                    'state': t['state'], 'label': t['label'], 'change': change_reason(y, t),
+                    'title': easy_state(t)[0], 'easy': plain_reason(y, t), 'marks': marks})
     return out
 
 
@@ -656,19 +683,19 @@ def scorecard(rows):
     f = lambda fn: [x for x in rows if fn(x)]
     gp = lambda lo, hi: f(lambda x: x['gap'] is not None and lo <= x['gap'] < hi)
     return [stats('전체', rows),
-            stats('엄격 동시 회복', f(lambda x: x['strict']), '회복 방식'),
-            stats('순차 회복', f(lambda x: not x['strict'])),
-            stats('VIX 확인형', f(lambda x: x['vix'] == 'confirm'), '신호일 VIX 상태'),
-            stats('VIX 초기 반등형', f(lambda x: x['vix'] == 'fast')),
-            stats('VIX 중립', f(lambda x: x['vix'] == 'neutral')),
-            stats('VIX 악화', f(lambda x: x['vix'] == 'worse')),
-            stats('하락 출발', gp(-999, 0), '익일 시가 갭 (추격 정도)'),
-            stats('0~2% 상승', gp(0, 2)), stats('2~5% 상승', gp(2, 5)), stats('5% 이상 상승', gp(5, 999)),
-            stats('상위 추세 양호', f(lambda x: not x['weak'] and not x['serious']), '신호일 주봉·월봉 상태'),
-            stats('상위 추세 약세', f(lambda x: x['weak'] and not x['serious'])),
-            stats('주봉·월봉 3단 하향 이탈', f(lambda x: x['serious'])),
-            stats('RSI 다이버전스 동반', f(lambda x: x['div']), '다이버전스'),
-            stats('다이버전스 없음', f(lambda x: not x['div']))]
+            stats('세 지표가 같은 날 한꺼번에 회복', f(lambda x: x['strict']), '되살아난 방식'),
+            stats('세 지표가 며칠에 걸쳐 차례로 회복', f(lambda x: not x['strict'])),
+            stats('시장 불안이 가라앉은 뒤', f(lambda x: x['vix'] == 'confirm'), '신호가 난 날의 시장 불안(VIX)'),
+            stats('시장 불안이 막 꺾일 때', f(lambda x: x['vix'] == 'fast')),
+            stats('시장 불안 보통', f(lambda x: x['vix'] == 'neutral')),
+            stats('시장 불안이 커질 때', f(lambda x: x['vix'] == 'worse')),
+            stats('내려서 시작', gp(-999, 0), '신호 다음 날 시작 가격 (전날 종가 대비)'),
+            stats('0~2% 올라 시작', gp(0, 2)), stats('2~5% 올라 시작', gp(2, 5)), stats('5% 넘게 올라 시작', gp(5, 999)),
+            stats('큰 흐름 양호', f(lambda x: not x['weak'] and not x['serious']), '신호가 난 날의 큰 흐름 (주·월 단위)'),
+            stats('큰 흐름 약세', f(lambda x: x['weak'] and not x['serious'])),
+            stats('주·월 단위로 과열 뒤 꺾인 상태', f(lambda x: x['serious'])),
+            stats('바닥 힌트 있음', f(lambda x: x['div']), '바닥 힌트 (다이버전스: 가격은 더 빠졌는데 힘은 덜 빠짐)'),
+            stats('바닥 힌트 없음', f(lambda x: not x['div']))]
 
 
 def event_log(base, prod, rows, sigs, divs, B, P, pidx, n=10):
@@ -709,15 +736,14 @@ def summary_row(sym, B, inv=None):
           '하단 근처' if pos <= 20 else '중간')
     def tr(nm, u):
         if not u:
-            return f'{nm} 이력 부족'
-        t = f"{nm} {'3단 하향 이탈' if u['brk'] else '약세' if u['weak'] else '양호'} (CCI {u['cci']} · RSI {u['rsi']})"
-        if u['prev']:
-            t += f" · 진행 중 CCI {u['prev']['cci']} · RSI {u['prev']['rsi']}"
+            return f'{nm} 흐름: 자료 부족'
+        t = f"{nm} 흐름: <b>{'과열 뒤 꺾인 상태' if u['brk'] else '약세' if u['weak'] else '양호'}</b> <small>(CCI {u['cci']} · RSI {u['rsi']}"
+        t += (f" / 아직 안 끝난 이번 {nm[0]} 값 CCI {u['prev']['cci']} · RSI {u['prev']['rsi']})</small>" if u['prev'] else ')</small>')
         return t
     return {'sym': sym, 'close': round(c, 2), 'chg': pct(c, B[-2]['c']), 'k': round(I['k'][-1], 1),
             'd': round(I['d'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1),
             'disp': round(I['disp'][-1], 1), 'bb': f'{bb} ({pos:.0f}%)',
-            'wk': tr('주봉', upper_trend(B, 'w')), 'mo': tr('월봉', upper_trend(B, 'm')), 'inv': inv}
+            'wk': tr('주 단위', upper_trend(B, 'w')), 'mo': tr('월 단위', upper_trend(B, 'm')), 'inv': inv}
 
 
 def save_log(out):
@@ -743,7 +769,7 @@ VIX_EASY = {'worse': '커짐', 'confirm': '가라앉음', 'fast': '막 꺾이는
 def plain_reason(y, t):
     """요약 탭용 — 어제와 무엇이 달라졌는지 쉬운 말로"""
     if y['state'] == 'wait' or t['state'] == 'wait':
-        return '어제와 비교할 자료가 부족합니다.'
+        return {'head': '어제와 비교할 자료가 부족합니다', 'why': []}
     why = []
     ys, ts = y.get('sig'), t.get('sig')
     fresh = ts and (not ys or ys['date'] != ts['date'])
@@ -770,7 +796,7 @@ def plain_reason(y, t):
     if y.get('weak') != t.get('weak'):
         why.append('큰 흐름(주·월 단위) 약세가 ' + ('시작됐습니다' if t.get('weak') else '풀렸습니다'))
     head = '어제와 같은 판단' if y['label'] == t['label'] else '어제와 판단이 달라짐'
-    return head + (' — ' + ' · '.join(why) if why else ' — 달라진 조건 없음')
+    return {'head': head, 'why': why or ['달라진 조건은 없습니다']}
 
 
 def plain_risks(t, vxf):
@@ -799,9 +825,14 @@ def past_like(t, rows):
 
 
 def main():
+    from zoneinfo import ZoneInfo
+    ny = datetime.datetime.now(ZoneInfo('America/New_York'))
     bars = {}
     for s in SYMS:
         bars[s] = fetch(s)
+        # 장이 아직 안 끝난 오늘 봉은 확정 종가가 아니므로 뺀다 (장중에 수동 실행한 경우)
+        if bars[s] and bars[s][-1]['d'] == ny.date().isoformat() and (ny.hour, ny.minute) < (16, 15):
+            bars[s].pop()
         print(f'{s}: {len(bars[s])}봉' + (f" ~ {bars[s][-1]['d']}" if bars[s] else ''))
         time.sleep(0.4)
     need = ['SOXX', 'QQQ', '^VIX', 'SPY']
@@ -834,6 +865,7 @@ def main():
         if t['state'] != 'wait':
             t['change'] = change_reason(y, t)
             t['easy'] = plain_reason(y, t)
+            t['easyTitle'], t['easySub'] = easy_state(t)
             t['easyRisks'] = plain_risks(t, vxf)
             t['risks'] = risks(t, vxf)
             t['next'] = next_states(base, t, vx)
@@ -846,9 +878,9 @@ def main():
     for c in cards:
         sg = c.get('sig')
         if sg and sg['valid'] and sg['age'] <= 60:
-            inv[c['base']] = f"관찰 저점 ${sg['low']}까지 -{sg['dist']}%"
+            inv[c['base']] = f"${sg['low']} (지금보다 {sg['dist']}% 아래)"
             if 'pLow' in sg:
-                inv[c['prod']] = f"저점일 종가 ${sg['pLow']}까지 -{sg['pDist']}%"
+                inv[c['prod']] = f"취소될 때 약 ${sg['pLow']} (지금보다 {sg['pDist']}% 아래)"
     for prod, base in PAIRS:
         if bars[prod]:
             rows, sigs, divs, B, P, pidx = backtest(base, prod, bars)

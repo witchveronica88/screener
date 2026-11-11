@@ -263,6 +263,8 @@ input,select,button{font-family:inherit}
 .dchart .mk-x{stroke:var(--dn);stroke-width:2;fill:none}
 .dchart .mk-dl{fill:var(--s1);stroke:var(--on);stroke-width:1.5}.dchart .mk-dc{fill:var(--on)}
 .rb-buy{fill:var(--up)}.rb-sell{fill:var(--dn)}.rb-warn{fill:var(--warn)}
+.rbc-buy{background:var(--up)}.rbc-sell{background:var(--dn)}.rbc-warn{background:var(--warn)}
+.rbc-watch{background:var(--st-watch)}.rbc-hot{background:var(--st-hot)}.rbc-neutral{background:var(--s3)}
 .rb-watch{fill:var(--st-watch)}.rb-hot{fill:var(--st-hot)}.rb-neutral{fill:var(--s3)}
 .dday{background:var(--s2);border-radius:9px;padding:10px 12px;margin-top:10px;font-size:var(--fs-s);
       color:var(--ink2);line-height:1.7}
@@ -320,6 +322,25 @@ input,select,button{font-family:inherit}
 .fbar i{display:block;background:var(--onDim);border-radius:5px 5px 0 0;margin-top:2px}
 .fbar div.cur i{background:var(--on)}
 .fbar span{font-family:var(--mono);color:var(--ink)}
+.dul{list-style:disc;padding-left:1.2em}
+.dul li{font-size:var(--fs-m);color:var(--ink);line-height:1.6;margin-top:5px}
+.dul li::marker{color:var(--ink3)}
+.dul small{font-size:var(--fs-s);color:var(--ink3)}
+.dul .g{color:var(--up)}.dul .r{color:var(--dn)}.dul .w{color:var(--warn)}
+.blk{margin-top:14px;padding-top:12px;border-top:1px solid var(--s2)}
+.bt{font-size:var(--fs-s);font-weight:700;color:var(--on);margin-bottom:1px}
+.bt small{font-weight:400;color:var(--ink3);font-size:var(--fs-s)}
+.dterm{font-size:var(--fs-s);color:var(--ink3);margin-top:5px}
+.dcard{padding-bottom:15px}
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-s);color:var(--ink2);margin-top:6px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.dchart svg.ic{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px}
+.dchart .ref{stroke:var(--dn);stroke-dasharray:4 3}
+.dday .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:3px}
+.dsec .blk:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.dsec .grp{border-top:1px solid var(--bd);padding-top:12px;font-size:var(--fs-m);color:var(--ink);font-weight:700}
+.dsec .grp+.blk{border-top:none;margin-top:4px;padding-top:0}
+.dsec .dstamp{padding:0 0 8px}
 .dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -1002,195 +1023,87 @@ qx.onclick=()=>{setQ('');qi.focus();};
 
 tabs();render();
 
-/* ── 상황판 (desk.json — 하루 한 번, 확정 종가 기준) ── */
+/* ── 상황판 (desk.json — 하루 한 번, 확정 종가 기준) ──
+   글은 쉬운 말로, 항목이 둘 이상이면 불렛 목록(ul)으로 쓴다. 용어는 괄호·작은 글씨로만 덧붙인다. */
+let DLOG=[], DTAB='SUM';
+const DSEL={}, DOPEN={};
 const md=d=>{if(!d)return'';const a=d.split('-');return `${+a[1]}/${+a[2]}`;};
 const sg=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
 const sc=v=>v>0?'g':v<0?'r':'';
-const drow=(k,v)=>`<div class="drow"><div class="dk">${k}</div><div class="dv">${v}</div></div>`;
-const lines=a=>a.map(x=>`<div>${x}</div>`).join('');
-/* 최근 1개월 차트: 가격(볼린저밴드·50일선·마커) + 상태 색 띠 + SCR 3단 지표 */
-const DSEL={};
-const MK={ro:'과매도 준비',rb:'과매수 준비',us:'SCR 엄격 동시 회복',uq:'SCR 순차 회복',dn:'SCR 3단 하향 이탈',
-  x:'신호 무효화(저점 이탈)',dl:'RSI 다이버전스 2차 저점',dc:'RSI 다이버전스 확인'};
+const ul=a=>`<ul class="dul">${a.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}</ul>`;
+const blk=(t,b)=>`<div class="blk"><div class="bt">${t}</div>${b}</div>`;
+const px=(p,ch)=>`<span class="dpx">$${p} <span class="${sc(ch)}">${sg(ch)}</span></span>`;
+const dsec=(id,t,b)=>`<details class="dsec" data-s="${id}"${DOPEN[id]?' open':''}><summary>${t}</summary>${b}<div style="height:14px"></div></details>`;
+const VE={worse:'커지는 중',confirm:'가라앉음',fast:'막 꺾이는 중',neutral:'보통'};
+const SW={buy:'매수 검토',warn:'보류',watch:'지켜보기',hot:'과열',sell:'꺾임',neutral:'신호 없음',wait:'확인 중'};
+const SL={buy:'매수 검토',watch:'지켜보기',warn:'신호는 났지만 보류',hot:'과열',sell:'과열 뒤 꺾임',neutral:'신호 없음'};
+const CHIP={'볼밴 하단 지지':'평소 범위의 아래 끝에 닿았음','하방 이격 과대':'50일 평균보다 5% 넘게 아래','RSI 다이버전스 동반':'바닥 힌트 있음'};
+const MK={ro:"세 지표가 모두 '많이 빠짐'에 들어간 날",rb:"세 지표가 모두 '많이 오름'에 들어간 날",
+  us:'되살아나는 신호가 나온 날 (세 지표가 같은 날 한꺼번에 회복)',uq:'되살아나는 신호가 나온 날 (세 지표가 며칠에 걸쳐 차례로 회복)',
+  dn:'과열 뒤 꺾이는 신호가 나온 날',x:'가격이 취소선 아래로 내려가 신호가 취소된 날',
+  dl:'이날 저점이 나중에 바닥 힌트로 확인됨',dc:'바닥 힌트가 확인된 날 (가격은 더 빠졌는데 힘은 덜 빠짐)'};
+const ic=b=>`<svg class="ic" viewBox="0 0 14 14">${b}</svg>`;
+const IC={ro:ic('<circle class="mk-ro" cx="7" cy="7" r="4"/>'),rb:ic('<circle class="mk-rb" cx="7" cy="7" r="4"/>'),
+  up:ic('<path class="mk-us" d="M7 2L12.5 12L1.5 12Z"/>'),dn:ic('<path class="mk-dn" d="M7 12L12.5 2L1.5 2Z"/>'),
+  x:ic('<path class="mk-x" d="M3 3L11 11M11 3L3 11"/>'),dc:ic('<rect class="mk-dc" x="3.5" y="3.5" width="7" height="7" transform="rotate(45 7 7)"/>')};
+const whyList=e=>!e?[]:[`<b>${e.head}</b>`,...e.why];
+const liveSig=c=>c.sig&&c.sig.valid&&c.sig.age<=60?c.sig:null;
+
+/* 최근 1개월 차트: 가격 + 날짜별 상태 띠 + 세 지표. 날짜를 누르면 그날 판정 */
 function deskChart(c){
   const H=c.hist; if(!H||!H.length)return '';
-  const n=H.length, W=300, cw=W/n, X=i=>cw*(i+.5), sel=Math.min(DSEL[c.prod]??n-1,n-1);
+  const n=H.length, W=300, cw=W/n, X=i=>cw*(i+.5), sel=Math.min(DSEL[c.prod]??n-1,n-1), s=liveSig(c);
   const svg=(h,body)=>`<svg viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" style="height:${h}px">`+
     `<rect class="sel" x="${cw*sel}" y="0" width="${cw}" height="${h}"/>${body}`+
     H.map((_,i)=>`<rect class="hit" data-i="${i}" x="${cw*i}" y="0" width="${cw}" height="${h}"/>`).join('')+`</svg>`;
-  /* 가격 */
-  const PH=150, cl=Math.min(...H.map(d=>d.l)), ch=Math.max(...H.map(d=>d.h));
-  const lo=cl-(ch-cl)*.12, hi=ch+(ch-cl)*.12,   /* 축은 봉 기준 — 밴드·50일선은 넘치면 잘린다 */ Y=v=>8+(PH-22)*(1-(v-lo)/(hi-lo||1));
+  /* 가격 — 축은 봉 기준, 밴드·50일선은 넘치면 잘린다 */
+  const PH=150, cl=Math.min(...H.map(d=>d.l),s?s.low:Infinity), ch=Math.max(...H.map(d=>d.h));
+  const lo=cl-(ch-cl)*.12, hi=ch+(ch-cl)*.12, Y=v=>8+(PH-22)*(1-(v-lo)/(hi-lo||1));
   const path=k=>H.map((d,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(d[k]).toFixed(1)}`).join('');
   let g=`<path class="band" d="${path('bu')}${H.map((d,i)=>`L${X(n-1-i).toFixed(1)} ${Y(H[n-1-i].bl).toFixed(1)}`).join('')}Z"/>`+
-    `<path class="ma" vector-effect="non-scaling-stroke" d="${path('m50')}"/>`;
+    `<path class="ma" vector-effect="non-scaling-stroke" d="${path('m50')}"/>`+
+    (s?`<line class="ref" vector-effect="non-scaling-stroke" x1="0" x2="${W}" y1="${Y(s.low)}" y2="${Y(s.low)}"/>`:'');
+  const seen=new Set();
   H.forEach((d,i)=>{const u=d.c>=d.o, bw=Math.max(cw*.55,3), y1=Y(Math.max(d.o,d.c)), y2=Y(Math.min(d.o,d.c));
     g+=`<line class="${u?'cu':'cd'}" x1="${X(i)}" x2="${X(i)}" y1="${Y(d.h)}" y2="${Y(d.l)}"/>`+
        `<rect class="${u?'cu':'cd'}" x="${X(i)-bw/2}" y="${y1}" width="${bw}" height="${Math.max(y2-y1,1)}"/>`;
     let below=Y(d.l)+7, above=Y(d.h)-7;
     d.marks.forEach(m=>{const x=X(i);
-      if(m==='ro'){g+=`<circle class="mk-ro" cx="${x}" cy="${below}" r="2.5"/>`;below+=8;}
-      else if(m==='rb'){g+=`<circle class="mk-rb" cx="${x}" cy="${above}" r="2.5"/>`;above-=8;}
-      else if(m==='us'||m==='uq'){g+=`<path class="mk-${m}" d="M${x} ${below-4}L${x+4.5} ${below+4}L${x-4.5} ${below+4}Z"/>`;below+=11;}
-      else if(m==='dn'){g+=`<path class="mk-dn" d="M${x} ${above+4}L${x+4.5} ${above-4}L${x-4.5} ${above-4}Z"/>`;above-=11;}
-      else if(m==='x'){g+=`<path class="mk-x" d="M${x-4} ${above-4}L${x+4} ${above+4}M${x+4} ${above-4}L${x-4} ${above+4}"/>`;above-=11;}
-      else{g+=`<rect class="mk-${m}" x="${x-3.5}" y="${below-3.5}" width="7" height="7" transform="rotate(45 ${x} ${below})"/>`;below+=11;}
+      if(m==='ro'){seen.add('ro');g+=`<circle class="mk-ro" cx="${x}" cy="${below}" r="2.5"/>`;below+=8;}
+      else if(m==='rb'){seen.add('rb');g+=`<circle class="mk-rb" cx="${x}" cy="${above}" r="2.5"/>`;above-=8;}
+      else if(m==='us'||m==='uq'){seen.add('up');g+=`<path class="mk-us" d="M${x} ${below-4}L${x+4.5} ${below+4}L${x-4.5} ${below+4}Z"/>`;below+=11;}
+      else if(m==='dn'){seen.add('dn');g+=`<path class="mk-dn" d="M${x} ${above+4}L${x+4.5} ${above-4}L${x-4.5} ${above-4}Z"/>`;above-=11;}
+      else if(m==='x'){seen.add('x');g+=`<path class="mk-x" d="M${x-4} ${above-4}L${x+4} ${above+4}M${x+4} ${above-4}L${x-4} ${above+4}"/>`;above-=11;}
+      else if(m==='dc'){seen.add('dc');g+=`<rect class="mk-dc" x="${x-3.5}" y="${below-3.5}" width="7" height="7" transform="rotate(45 ${x} ${below})"/>`;below+=11;}
     });});
-  let h=`<div class="dchart" data-p="${c.prod}"><div class="cap"><span>${c.base} · 볼린저밴드 · 50일선</span>`+
+  let h=`<div class="dchart" data-p="${c.prod}"><div class="cap"><span>${c.base} 최근 1개월 가격</span>`+
     `<span class="mono">$${lo.toFixed(0)}~${hi.toFixed(0)}</span></div>`+svg(PH,g);
   /* 상태 색 띠 */
-  h+=`<div class="cap"><span>날짜별 상태 (누르면 그날 판정)</span><span class="mono">${md(H[0].d)}~${md(H[n-1].d)}</span></div>`+
-    svg(16,H.map((d,i)=>`<rect class="rb-${d.state}" x="${cw*i+.5}" y="1" width="${cw-1}" height="14" rx="2"/>`).join(''));
-  /* 지표 */
+  h+=`<div class="cap"><span>날짜별 판단 (누르면 그날 내용)</span><span class="mono">${md(H[0].d)}~${md(H[n-1].d)}</span></div>`+
+    svg(16,H.map((d,i)=>`<rect class="rb-${d.state}" x="${cw*i+.5}" y="1" width="${cw-1}" height="14" rx="2"/>`).join(''))+
+    `<div class="lg">${[...new Set(H.map(d=>d.state))].map(k=>`<span><i class="rbc-${k}"></i>${SL[k]||k}</span>`).join('')}</div>`;
+  /* 선택한 날 */
+  const d=H[sel], old=DLOG.find(x=>x.d===d.d), kept=old&&old.items[c.prod]?old.items[c.prod].label:null;
+  h+=`<div class="dday"><b>${md(d.d)} — ${d.title}</b>`+ul(whyList(d.easy).concat(
+    d.marks.map(m=>MK[m]),
+    [`종가 $${d.c} · %K ${d.k} · CCI ${d.cci} · RSI ${d.rsi}`,
+     kept?`그날 실제 화면에 나온 판정: ${kept} <small>(${old.rule})</small>`:'그날까지의 자료만으로 다시 계산한 판정 <small>(기록 시작 전)</small>']))+`</div>`;
+  /* 세 지표 */
   const osc=(k,nm,min,max,a,b)=>{const hh=46, y=v=>3+(hh-6)*(1-(Math.max(min,Math.min(max,v))-min)/(max-min));
     return `<div class="cap"><span>${nm}</span><span class="mono">${H[sel][k]}</span></div>`+svg(hh,
       [a,b].map(t=>`<line class="gl" vector-effect="non-scaling-stroke" x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}"/>`).join('')+
       `<path class="ln" vector-effect="non-scaling-stroke" d="${H.map((d,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${y(d[k]).toFixed(1)}`).join('')}"/>`);};
-  h+=osc('k','%K(5) · 기준선 20 / 80',0,100,20,80)+osc('cci','CCI(20) · 기준선 -100 / +100',-250,250,-100,100)+
-     osc('rsi','RSI(14) · 기준선 30 / 70',0,100,30,70);
-  const d=H[sel];
-  h+=`<div class="dday"><b>${md(d.d)} · ${d.label}</b><br>${d.change}<br>`+
-    `<span class="mono">종가 $${d.c} · %K ${d.k} · CCI ${d.cci} · RSI ${d.rsi} · 이격도 ${d.disp}</span>`+
-    (d.marks.length?`<br>표시: ${d.marks.map(m=>MK[m]).join(' · ')}`:'')+
-    `<br><small>${(o=>o&&o.items[c.prod]?(o.items[c.prod].label===d.label?`당시 표시 판정과 같음 (${o.rule})`:`당시 표시 판정: ${o.items[c.prod].label} (${o.rule})`):'그날까지의 자료만으로 다시 계산한 판정입니다 (기록 시작 전).')(DLOG.find(x=>x.d===d.d))}</small></div>`;
-  h+=`<div class="dleg">상태 띠<i style="background:var(--up)"></i>매수 검토<i style="background:var(--st-watch)"></i>매수 관찰`+
-    `<i style="background:var(--warn)"></i>진입 경계<i style="background:var(--st-hot)"></i>매도 관찰<i style="background:var(--dn)"></i>매도 검토`+
-    `<i style="background:var(--s3)"></i>중립<br>마커 ● 준비 · ▲ 회복(채움=엄격, 빈=순차) · ▼ 이탈 · ✕ 무효화 · ◆ 다이버전스(빈=저점, 채움=확인)</div>`;
+  h+=osc('k','① 빠르기 (%K)',0,100,20,80)+osc('cci','② 평균에서 벗어난 정도 (CCI)',-250,250,-100,100)+osc('rsi','③ 힘 (RSI)',0,100,30,70);
+  h+=blk('차트 보는 법',ul([
+    '<b>막대 하나</b>가 하루입니다. 초록은 오른 날, 빨강은 내린 날',
+    '<b>옅은 띠</b>는 평소 움직이는 범위(볼린저밴드), <b>회색 점선</b>은 50일 평균',
+    s?`<b>빨간 점선</b>은 신호 취소선 ($${s.low})`:null,
+    ...['ro','rb','up','dn','x','dc'].filter(k=>seen.has(k)).map(k=>IC[k]+(k==='up'?'되살아나는 신호가 나온 날':MK[k])),
+    "<b>세 지표</b>가 모두 아래 점선 밑이면 '많이 빠짐', 모두 위 점선 위면 '많이 오름'",
+    "'많이 빠짐'에서 세 지표가 모두 아래 점선 위로 올라오면 <b>되살아나는 신호</b>"]));
   return h+'</div>';
 }
-function deskCard(c){
-  const head=`<div class="dhead"><span class="tk">${c.prod}</span><span class="lev">기준자산 ${c.base}</span>`+
-    (c.ind?`<span class="dpx">$${c.ind.pclose} <span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span></span>`:'')+`</div>`;
-  let h=`<div class="dcard ${c.state}">${head}<div class="dbadge">${c.label}</div><div class="dline">${c.line}</div>`;
-  if(c.state==='wait')return h+'<div style="height:9px"></div></div>';
-  if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${b}</span>`).join('')}</div>`;
-  h+=deskChart(c);
-  h+=drow('어제 대비',c.change.replace(/^어제 대비: /,''));
-  const s=c.sig&&c.sig.age<=60?c.sig:null;
-  if(!s)h+=drow('신호 상태','최근 60거래일 안에 회복 신호 없음');
-  else if(!s.valid)h+=drow('신호 상태',`<span class="r">신호 무효화(저점 이탈)</span> ${md(s.brokeDate)} <small>· ${s.kind} ${md(s.date)} · 관찰 저점 $${s.low}</small>`);
-  else{
-    h+=drow('신호 상태',`<span class="g">유효 유지</span> · ${s.kind} ${md(s.date)} <small>(${s.new?`신규 ${s.age+1}거래일차`:`기발생 · 경과 ${s.age}거래일`})</small>`);
-    const pos=(nm,close,open,mc,mo,cur)=>`${nm} 신호 종가 $${close} → 현재 $${cur} <b class="${sc(mc)}">${sg(mc)}</b>`+
-      (open!=null?` <small>· 익일 시가 $${open} 대비 ${sg(mo)}</small>`:` <small>· 익일 시가는 다음 거래일에 확정</small>`);
-    h+=drow('진입 위치 (신호 이후 가격 이동)',lines([pos(c.base,s.sigClose,s.nextOpen,s.mvClose,s.mvOpen,c.ind.close)]
-      .concat(s.pSigClose!=null?[pos(c.prod,s.pSigClose,s.pNextOpen,s.pMvClose,s.pMvOpen,c.ind.pclose)]:[])));
-    h+=drow('무효화 거리',lines([`${c.base} 관찰 저점 $${s.low} <small>(${md(s.lowDate)} 종가)</small>까지 <b>-${s.dist.toFixed(1)}%</b> 여유`]
-      .concat(s.pLow!=null?[`${c.prod} 저점일 종가 $${s.pLow}로 돌아가면 <b>-${s.pDist.toFixed(1)}%</b> <small>· 3배 단순 환산 -${(s.dist*3).toFixed(1)}%</small>`]:[])));
-  }
-  h+=drow('남은 위험',c.risks.join(' / '));
-  if(c.next.length)h+=drow('다음 상태 조건',lines(c.next));
-  h+=drow(`지표 (${c.base} ${md(c.asof)} 종가 $${c.ind.close} ${sg(c.ind.chg)})`,
-    `<span class="mono">%K ${c.ind.k} · CCI ${c.ind.cci} · RSI ${c.ind.rsi} · 50일 이격도 ${c.ind.disp}</span>`);
-  return h+'</div>';
-}
-function deskUvix(u){
-  if(!u)return '';
-  const cy=u.cycle, m=u.month;
-  let h=`<div class="dcard"><div class="dhead"><span class="tk">UVIX</span><span class="lev">변동성 2배 · 종가 기준</span>`+
-    `<span class="dpx">$${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span></span></div>`;
-  h+=`<div class="dbadge">사이클: ${cy.stage}${cy.day?` · ${cy.day}일차`:''}</div><div class="dline">${cy.note}</div>`;
-  if(u.vxxLow)h+=`<div class="dchips"><span>VXX 동반 신저가</span></div>`;
-  if(u.jump)h+=drow('주의','<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있어 사이클 판정을 믿기 어렵습니다.</span>');
-  h+=uvixSpark(u,110);
-  h+=drow('신저가 사이클',cy.day
-    ?lines([`시작 ${md(cy.start)} · 진행 중 최저 종가 $${cy.low} <small>(${md(cy.lowDate)})</small> · 현재 ${sg(cy.fromLow)}`,
-        `종가 $${cy.target} 이상이면 사이클 완료(+10%)`+(cy.hiHit?' <small>· 장중 고가는 +10% 도달</small>':'')])
-    :lines([`사상 최저 종가 $${cy.allLow}까지 -${cy.toLow.toFixed(1)}% <small>· 그 아래로 마감하면 1일차 시작</small>`]
-        .concat(u.lastDone?[`<small>직전 사이클 완료 ${md(u.lastDone.date)} (${u.lastDone.days}거래일 만에)</small>`]:[])));
-  h+=drow('월중 급등·피크아웃',lines([`<b>${m.status}</b>`,
-    `당월 저점 종가 $${m.lowClose} <small>(${md(m.lowDate)} · 장중 저가 $${m.lowIntra})</small> 대비 현재 <b>${sg(m.rise)}</b> <small>· 월중 최고 ${sg(m.peakRise)}</small>`,
-    `일봉 SCR 과매수 ${m.ob?'<span class="w">진입</span>':'아님'} <small class="mono">· %K ${m.k} · CCI ${m.cci} · RSI ${m.rsi}</small>`]));
-  return h+'</div>';
-}
-function deskMarket(m){
-  const v=m.vix, f=m.fut;
-  const cls=v.st==='worse'?'warn':v.st==='neutral'?'':'buy';
-  let h=`<div class="dcard ${cls}"><div class="dhead"><span class="tk">시장 환경</span><span class="lev">SPY · VIX</span></div>`;
-  h+=`<div class="dbadge">VIX ${m.vixLabel}</div><div class="dline">${v.why}</div>`;
-  if(m.couple)h+=`<div class="dchips"><span>${m.couple}</span></div>`;
-  h+=vixSpark(m,110)+futBars(m);
-  h+=drow('SPY',`$${m.spy} <span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>`);
-  h+=drow('VIX 현물',`${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span> <small>· 5일선 ${v.m5} ${v.above5?'위':'아래'} · %K ${v.k}</small>`);
-  h+=drow('VIX 선물 기간구조',f
-    ?lines([`<b>${f.shape}</b>`,`근월 ${f.vx1.toFixed(2)} <small>(현물 대비 ${f.sp1>0?'+':''}${f.sp1})</small> · 차근월 ${f.vx2.toFixed(2)} <small>(근월 대비 ${f.sp2>0?'+':''}${f.sp2})</small>`])
-    :'선물 확인 미완료 — 현물 기준 부분 판정');
-  return h+'</div>';
-}
-/* 하단: 지표 요약표 · 조건별 성적표 · 이벤트 로그 · 판정 기록 */
-let DLOG=[];
-const RES={hit:'목표 도달',inv:'무효화(저점 이탈)',amb:'장중 순서 불명(미달 처리)',open:'진행 중',pre:'진입 전(익일 시가 대기)'};
-function deskTables(){return '';}
-const dsec=(id,t,b)=>`<details class="dsec" data-s="${id}"${DOPEN[id]?' open':''}><summary>${t}</summary>${b}<div style="height:12px"></div></details>`;
-function secTable(syms){
-  const rows=(DESK.table||[]).filter(r=>syms.includes(r.sym));
-  return dsec('t','지표 요약',rows.map(r=>r.na?drow(r.sym,'자료 부족'):drow(`${r.sym} <small>$${r.close} ${sg(r.chg)}</small>`,
-    lines([`<span class="mono">%K ${r.k} / %D ${r.d} · CCI ${r.cci} · RSI ${r.rsi}</span>`,
-      `<span class="mono">50일 이격도 ${r.disp} · 볼밴 ${r.bb}</span>`,r.wk,r.mo].concat(r.inv?[`무효화: ${r.inv}`]:[])))).join(''));
-}
-function secScore(p){
-  const D=DESK, S=D.score&&D.score[p]; if(!S)return '';
-  let b=`<div class="dstamp" style="padding:0">${S.from.slice(0,4)}년부터 같은 회복 신호가 나왔을 때 어떻게 됐는지 모은 것입니다. 신호 다음 거래일 시가에 ${p}를 샀다고 가정 · 목표 +${D.target}%(장중 고가) · 무효화는 기준자산 종가의 관찰 저점 하회 · 비용 후는 왕복 ${D.cost}% 차감. 건수가 적어 참고만 하세요.</div>`;
-  S.rows.forEach(r=>{if(r.g)b+=`<div class="grp">${r.g}</div>`;
-    b+=drow(`${r.cat} <small>${r.n}건</small>`,r.n?lines([
-      `목표 도달 <b>${r.hit}%</b> <small>(비용 후 ${r.hitNet}%)</small>`+(r.avgD!=null?` · 평균 ${r.avgD}일 / 중앙 ${r.medD}일`:''),
-      `추가 하락 평균 ${r.maeAvg}% / 최대 ${r.maeMax}%`,
-      `무효화 ${r.inv} · 순서 불명 ${r.amb} · 진행 중 ${r.open}`]):'해당 없음');});
-  return dsec('s','과거 신호 결과',b);
-}
-function secEvents(p){
-  const D=DESK, E=D.events&&D.events[p]; if(!E)return '';
-  return dsec('e','최근 신호 기록',`<div class="dstamp" style="padding:0">과거 가격은 현재 분할·병합 보정 기준이라 당시 화면의 가격과 다를 수 있습니다.</div>`+E.map(e=>{const old=DLOG.find(x=>x.d===e.d), kept=old&&old.items[p]?old.items[p].label:'기록 시작 전';
-    const tail=`<small>당시 표시 판정: ${kept} · ${old?old.rule:D.rule+' 재계산'}</small>`;
-    if(e.type!=='up')return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines([
-      (e.lowDate?`2차 저점 ${md(e.lowDate)} → 확인 ${md(e.d)} · `:'')+`당시 종가 $${e.sigClose} → 현재 ${sg(e.mv)} · 경과 ${e.age}거래일`,tail]));
-    const L=[`신호 종가 $${e.sigClose} · 관찰 저점 $${e.low}`+(e.entry?` · ${p} 진입가 $${e.entry} <small>(갭 ${sg(e.gap)})</small>`:'')];
-    if(e.res==='open')L.push(`현재 $${e.cur} · 평가 <b class="${sc(e.pnl)}">${sg(e.pnl)}</b> <small>(비용 후 ${sg(e.pnlNet)})</small> · 추가 하락 최대 ${e.mae}%`);
-    L.push(`<b>${RES[e.res]}</b>`+(e.resDate?` ${md(e.resDate)} · ${e.days}거래일`:'')+(e.res!=='open'&&e.mae!=null?` · 추가 하락 최대 ${e.mae}%`:'')+
-      ` · ${e.age<3?`신규 ${e.age+1}거래일차`:`경과 ${e.age}거래일`}`);
-    L.push(tail);
-    return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines(L));}).join(''));
-}
-function secRules(){
-  const D=DESK, li=a=>lines(a.map(x=>`· ${x}`));
-  return dsec('r','이 상황판의 기준',
-    drow('원문(블로그)에서 온 것',li(['SCR 3단: Stochastic Fast %K(5) · CCI(20) · RSI(14), 확정된 종가로만 판정',
-      'UVIX: 저점 대비 +10% 이상 반등한 뒤 다시 사상 신저가를 깨면 새 카운트 시작. 그 뒤 신저가가 또 나와도 1일차는 그대로']))+
-    drow('운영 설정 (원문에 확정된 규칙이 아님)',li(['회복 인정 기간: 준비 후 10거래일',
-      '신호 취소: 기준자산 <b>종가</b>가 관찰 저점 종가 아래로 내려갈 때',
-      `목표 +${D.target}%: 과거 신호 결과를 셀 때 쓰는 회수 목표`,
-      'UVIX 신저가와 +10% 반등은 <b>종가</b> 기준 (장중 저가·고가는 참고). 이 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님',
-      '신규 신호 강조 3거래일 · 주봉·월봉 약세 기준(CCI 0 · RSI 50)']))+
-    drow('과거 자료로 고친 것',li(['v2.1 주봉·월봉 하향 이탈은 ⚠️ 경계가 아니라 조심할 점으로만 표시',
-      'v2.2 초기 반등형은 🟢가 아니라 🟡 (과거 +10% 도달: 확인형 67% · 초기 반등형 48%)']))+
-    drow('가격 · 검증',li(['가격 출처: 야후 파이낸스 정규장 일봉. 다른 곳과 몇 센트 다를 수 있음',
-      '모든 가격은 <b>현재 분할·병합 보정 기준</b>. 예: SOXX 2025년 4월 저점 $51.62는 당시 가격으로 약 $154.86 (2026-11-05 3:1 분할)',
-      '지표 계산: 2026-11-10 SOXX·QQQ 값을 별도로 재계산해 일치 확인. 트레이딩뷰 화면과 직접 대조한 것은 아님',
-      '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 판정을 멈춤'])));
-}
-function secLog(){
-  let d=DLOG.length?DLOG.slice(-10).reverse().map(x=>drow(`${md(x.d)} <small>${x.rule}</small>`,
-    lines(Object.keys(x.items).map(p=>`${p}: ${x.items[p].label}`).concat([`<small>UVIX ${x.uvix||'—'} · VIX ${x.vix}</small>`])))).join('')
-    :'<div class="dstamp" style="padding:0">아직 기록이 없습니다.</div>';
-  return dsec('l','지난 판정 기록',`<div class="dstamp" style="padding:0">매일 갱신 때 화면에 표시한 판정을 그대로 남깁니다. 나중에 규칙이 바뀌어도 이 기록은 고치지 않습니다.</div>`+d);
-}
-/* 요약 탭: 맨 위 신호등 판 + 종목마다 작은 차트·막대, 글은 그 아래 */
-const VE={worse:'커지는 중',confirm:'가라앉음',fast:'막 꺾이는 중',neutral:'보통'};
-const SW={buy:'매수 검토',warn:'보류',watch:'지켜보기',hot:'과열',sell:'꺾임',neutral:'신호 없음',wait:'확인 중'};
-function easyState(c){
-  const s=c.sig;
-  if(c.state==='buy')return ['🟢 매수 검토해 볼 만함',
-    '많이 빠졌다가 되살아났고, 시장 불안도 가라앉았습니다.'+(c.weak?' 다만 큰 흐름은 아직 약세라 짧게 보는 편이 안전합니다.':'')];
-  if(c.state==='warn')return ['⚠️ 반등 신호는 났지만 보류','되살아나는 신호는 나왔는데 시장 불안(VIX)이 다시 커지고 있습니다.'];
-  if(c.state==='watch')return s&&s.new&&s.valid
-    ?['🟡 되살아났지만 더 지켜보기',c.type==='초기 반등형'?'가격은 되살아났지만 시장 불안이 이제 막 꺾이는 중이라 확인이 덜 됐습니다. 불안이 확실히 가라앉으면 매수 검토로 바뀝니다.':'가격은 되살아났는데 시장 불안이 아직 풀리지 않았습니다.']
-    :['🟡 많이 빠짐 — 더 지켜보기','많이 내려왔지만 되살아나는 신호는 아직 없습니다.'];
-  if(c.state==='hot')return ['🟠 많이 올라 과열 — 추격 조심','많이 올랐지만 아직 꺾이지는 않았습니다. 새로 사기에는 부담스러운 자리입니다.'];
-  if(c.state==='sell')return ['🔴 과열 뒤 꺾임','많이 오른 뒤 힘이 빠지는 신호가 나왔습니다. 새로 사는 것은 미루는 편이 낫습니다.'];
-  if(c.state==='wait')return ['⏳ 자료 확인 중',c.line];
-  return ['⚪ 뚜렷한 신호 없음',c.live?`${s.age}거래일 전에 나온 반등 신호가 아직 살아 있습니다. 새 신호는 없습니다.`:'사야 할 신호도, 과열 신호도 없습니다.'];
-}
-const srow=(k,v)=>`<div class="srow"><span class="sk">${k}</span>${v}</div>`;
+
 /* 작은 선 차트. ref=가로 기준선 값, l2=두 번째 선(점선), rib=상태 띠 */
 function spark(vals,h,o={}){
   const n=vals.length, W=300, all=vals.concat(o.l2||[],o.ref!=null?[o.ref]:[]);
@@ -1204,10 +1117,16 @@ function spark(vals,h,o={}){
     `<path class="p" vector-effect="non-scaling-stroke" d="${d(vals)}"/>`+
     (o.rib?o.rib.map((st,i)=>`<rect class="rb-${st}" x="${W*i/n+.5}" y="${h-7}" width="${W/n-1}" height="7" rx="1.5"/>`).join(''):'')+`</svg>`;
 }
-/* 막대: 왼쪽 끝 lo, 오른쪽 끝 hi, 0 지점 기준 좌=빨강 우=초록, 표시=cur */
+/* 막대: 왼쪽 끝 lo, 오른쪽 끝 hi, zero 왼쪽은 빨강 · 오른쪽은 초록, 검은 표시=cur */
 function gauge(lo,hi,cur,zero){
   const f=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
   return `<div class="gz"><i class="r" style="left:0;width:${f(zero)}%"></i><i class="g" style="left:${f(zero)}%;right:0"></i><b style="left:${f(cur)}%"></b></div>`;
+}
+function targetGauge(c){
+  const s=liveSig(c); if(!s||s.pLow==null)return '';
+  const ref=s.pNextOpen??s.pSigClose, lo=(s.pLow/ref-1)*100, cur=(c.ind.pclose/ref-1)*100, hi=Math.max(DESK.target,cur);
+  return `<div class="gzt">${c.prod} 지금 <b class="${sc(cur)}">${sg(cur)}</b> <small>(${s.pNextOpen!=null?'신호 다음 날 시가':'신호 날 종가'} 대비)</small></div>`+
+    gauge(Math.min(lo,cur),hi,cur,0)+`<div class="gzl"><span>신호 취소 ${sg(lo)}</span><span>목표 +${DESK.target}%</span></div>`;
 }
 function rsiGauge(c){
   return `<div class="gzt">지금 위치 <b>RSI ${c.ind.rsi}</b></div>`+
@@ -1216,66 +1135,190 @@ function rsiGauge(c){
 }
 function futBars(m){
   const f=m.fut; if(!f)return '';
-  const a=[['현물',m.vix.c,1],['근월',f.vx1,0],['차근월',f.vx2,0]], mn=Math.min(...a.map(x=>x[1])), hi=Math.max(...a.map(x=>x[1])), lo=mn-Math.max(hi-mn,.01);   /* 가장 낮은 막대가 절반 높이 */
+  const a=[['지금(현물)',m.vix.c,1],['가까운 달',f.vx1,0],['그다음 달',f.vx2,0]];
+  const mn=Math.min(...a.map(x=>x[1])), hi=Math.max(...a.map(x=>x[1])), lo=mn-Math.max(hi-mn,.01);   /* 가장 낮은 막대가 절반 높이 */
   return `<div class="fbar">${a.map(x=>`<div class="${x[2]?'cur':''}"><span>${x[1].toFixed(1)}</span><i style="height:${(8+38*(x[1]-lo)/(hi-lo)).toFixed(0)}px"></i>${x[0]}</div>`).join('')}</div>`+
-    `<div class="spkc"><span>${f.back?'가까운 달이 더 비쌈 — 단기 불안이 남아 있음':'먼 달이 더 비쌈 — 평소 모습'}</span></div>`;
+    `<div class="spkc"><span>VIX 선물 가격 — ${f.back?'가까운 달이 더 비쌈: 단기 불안이 남아 있음':'먼 달이 더 비쌈: 평소 모습'}</span></div>`;
 }
-function uvixSpark(u,h){
-  const cy=u.cycle, ref=cy.day?cy.target:cy.allLow;
-  return spark(u.spark.map(x=>x.c),h,{ref})+`<div class="spkc"><span>1개월</span><span>점선: ${cy.day?`사이클 끝 $${cy.target}`:`사상 최저 $${cy.allLow}`}</span></div>`;
-}
-function vixSpark(m,h){
-  return spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<div class="spkc"><span>VIX 1개월</span><span>점선: 5일 평균</span></div>`;
-}
+const uvixSpark=(u,h)=>{const cy=u.cycle;
+  return spark(u.spark.map(x=>x.c),h,{ref:cy.day?cy.target:cy.allLow})+
+    `<div class="spkc"><span>UVIX 1개월</span><span>점선: ${cy.day?`사이클 끝 $${cy.target}`:`사상 최저 $${cy.allLow}`}</span></div>`;};
+const vixSpark=(m,h)=>spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<div class="spkc"><span>VIX 1개월</span><span>점선: 5일 평균</span></div>`;
+function uvixTitle(u){const cy=u.cycle, d=cy.day;
+  return cy.stage==='대기'?'새 최저가를 아직 안 깸 (대기)':cy.stage==='완료'?'저점에서 +10% 반등 — 한 사이클 끝'
+    :d<=3?`새 최저가를 깬 직후 (${d}일차)`:d<=12?`반등을 지켜볼 구간 (${d}일차)`:d<=25?`저점 행진이 길어짐 (${d}일차)`:`저점 행진이 너무 길어짐 (${d}일차)`;}
+const uvixMonth=u=>u.month.peakout?'급등한 뒤 꺾임 확인 — 주식 반등에 유리한 힌트':u.month.rise>=25?'급등 중 — 시장이 불안하다는 뜻'
+  :u.month.peakRise>=25?'급등했다가 가라앉는 중':'급등 아님';
+const vixLine=v=>v.st==='worse'?'불안이 커지는 동안에는 반등 신호가 나와도 새로 사는 것을 미룹니다.':v.st==='confirm'?'이틀 연속 내렸고 최근 5일 평균보다 낮습니다.'
+  :v.st==='fast'?'꺾이기 시작했지만 아직 확인은 덜 됐습니다.':'가라앉는 조짐도, 커지는 조짐도 없습니다.';
+const coupleLine=m=>!m.couple?null:m.couple==='바닥 소진 관찰'?'주가와 VIX가 같이 내림 — 하락이 지쳐 가는 모습일 수 있음':'주가와 VIX가 같이 오름 — 고점 근처일 수 있어 조심';
+const mktCls=v=>v.st==='worse'?'warn':v.st==='neutral'?'':'buy';
+const cardHead=c=>`<div class="dhead"><span class="tk">${c.prod}</span><span class="lev">기준 ${c.base}</span>${c.ind?px(c.ind.pclose,c.ind.pchg):''}</div>`+
+  `<div class="dbadge">${c.easyTitle||c.label}</div>`;
+const pastBlk=c=>{const p=c.past, s=liveSig(c); if(!p||!s||!s.new)return '';
+  return blk('과거 비슷한 때',ul([`${p.cat}: ${p.n}건`,`그중 <b>${p.hit}%</b>가 목표 +${DESK.target}%에 닿음`,
+    `가는 길에 평균 ${p.maeAvg}% 더 빠졌음`,'<small>건수가 적어 참고만 하세요</small>']));};
+
+/* 요약 탭: 맨 위 신호등 판 + 종목마다 작은 차트·막대, 글은 그 아래 불렛으로 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix;
-  const px=(p,ch)=>`<span class="dpx">$${p} <span class="${sc(ch)}">${sg(ch)}</span></span>`;
   const tile=(dt,cls,name,word,sub)=>`<div class="dtile" data-dt="${dt}"><div class="th"><span class="lamp ${cls}"></span><span class="tt">${name}</span></div><div class="tw">${word}</div><div class="tt">${sub}</div></div>`;
   const ucls=!u?'':u.month.rise>=25?'warn':u.cycle.day>=4&&u.cycle.day<=12?'watch':'';
   let h=`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.state,c.prod,SW[c.state],c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span>`:'')).join('')+
     (u?tile('UVIX',ucls,'UVIX',u.cycle.day?`${u.cycle.day}일차`:u.cycle.stage,`저점 대비 ${sg(u.month.rise)}`):'')+
     tile('MKT',v.st==='confirm'?'buy':v.st==='fast'?'watch':v.st,'시장 불안',VE[v.st],`VIX ${v.c}`)+`</div>`;
   h+=D.cards.map(c=>{
-    const [t,sub]=easyState(c), s=c.sig&&c.sig.valid&&c.sig.age<=60?c.sig:null;
-    let g='', b='';
+    const s=liveSig(c); let g='', b='';
     if(c.state!=='wait'){
       if(c.hist&&c.hist.length>2)g+=spark(c.hist.map(x=>x.c),64,{rib:c.hist.map(x=>x.state),ref:s?s.low:null})+
         `<div class="spkc"><span>${c.base} 1개월</span>${s?'<span>점선: 취소선</span>':''}</div>`;
-      if(s&&s.pLow!=null){
-        const ref=s.pNextOpen??s.pSigClose, lo=(s.pLow/ref-1)*100, cur=(c.ind.pclose/ref-1)*100, hi=Math.max(D.target,cur);
-        g+=`<div class="gzt">${c.prod} 지금 <b class="${sc(cur)}">${sg(cur)}</b> <small>(${s.pNextOpen!=null?'신호 다음 날 시가':'신호일 종가'} 대비)</small></div>`+
-          gauge(Math.min(lo,cur),hi,cur,0)+`<div class="gzl"><span>신호 취소 ${sg(lo)}</span><span>목표 +${D.target}%</span></div>`;
-      }
-      g+=rsiGauge(c);
-      b+=srow('어제와 비교',c.easy);
-      if(s){
-        b+=srow('신호 취소선',`${c.base} <b>$${s.low}</b> — 지금보다 <b>${s.dist.toFixed(1)}%</b> 아래. 종가가 이 밑으로 가면 신호 취소`);
-        if(c.past&&s.new)b+=srow('과거 비슷한 때',`${c.past.cat} ${c.past.n}건 중 <b>${c.past.hit}%</b>가 +${D.target}% 도달 · 가는 길에 평균 ${c.past.maeAvg}% 더 빠짐 <small>(건수가 적어 참고만)</small>`);
-      }else if(c.setupUp)b+=srow('남은 기간',`${c.setupUp.left}거래일 안에 되살아나야 신호로 인정`);
-      if(c.easyRisks&&c.easyRisks.length&&(s||c.state!=='neutral'))b+=srow('조심할 점',c.easyRisks.join(' · '));
+      g+=targetGauge(c)+rsiGauge(c);
+      b+=blk('어제와 달라진 점',ul(whyList(c.easy)));
+      if(s)b+=blk('신호 취소선',ul([`${c.base} 종가가 <b>$${s.low}</b> 아래로 가면 신호 취소`,`지금보다 <b>${s.dist.toFixed(1)}%</b> 아래`]));
+      else if(c.setupUp)b+=blk('남은 기간',ul([`${c.setupUp.left}거래일 안에 되살아나야 신호로 인정`]));
+      b+=pastBlk(c);
+      if(c.easyRisks&&c.easyRisks.length&&(s||c.state!=='neutral'))b+=blk('조심할 점',ul(c.easyRisks));
     }
-    return `<div class="dcard dsum ${c.state}" data-dt="${c.prod}"><div class="dhead"><span class="tk">${c.prod}</span>`+
-      `<span class="lev">기준 ${c.base}</span>${c.ind?px(c.ind.pclose,c.ind.pchg):''}</div>`+
-      `<div class="dbadge">${t}</div>${g}<div class="dline" style="margin-top:12px">${sub}</div>${b}<div class="more">자세히 ›</div></div>`;}).join('');
-  if(u){const cy=u.cycle, d=cy.day;
-    const t=cy.stage==='대기'?'새 최저가를 아직 안 깸 (대기)':cy.stage==='완료'?'저점에서 +10% 반등 — 한 사이클 끝'
-      :d<=3?`새 최저가를 깬 직후 (${d}일차)`:d<=12?`반등을 지켜볼 구간 (${d}일차)`:d<=25?`저점 행진이 길어짐 (${d}일차)`:`저점 행진이 너무 길어짐 (${d}일차)`;
-    const ms=u.month.peakout?'급등한 뒤 꺾임 확인 — 주식 반등에 유리한 힌트':u.month.rise>=25?'급등 중 — 시장이 불안하다는 뜻'
-      :u.month.peakRise>=25?'급등했다가 가라앉는 중':'급등 아님';
-    h+=`<div class="dcard dsum" data-dt="UVIX"><div class="dhead"><span class="tk">UVIX</span><span class="lev">시장이 불안할 때 오르는 상품</span>${px(u.close,u.chg)}</div>`+
-      `<div class="dbadge">${t}</div>${uvixSpark(u,64)}`+srow('이번 달 저점보다',`<b>${sg(u.month.rise)}</b> · ${ms}`)+
-      (d?srow('사이클 끝 조건',`종가 $${cy.target} 이상 (저점 대비 +10%)`):srow('다음 시작 조건',`종가가 사상 최저 $${cy.allLow} 아래로 내려가면 1일차`))+
-      `<div class="more">자세히 ›</div></div>`;}
-  h+=`<div class="dcard dsum ${v.st==='worse'?'warn':v.st==='neutral'?'':'buy'}" data-dt="MKT"><div class="dhead"><span class="tk">시장</span>`+
+    return `<div class="dcard dsum ${c.state}" data-dt="${c.prod}">${cardHead(c)}${g}`+
+      `<div class="dline" style="margin-top:12px">${c.easySub||c.line}</div>${b}<div class="more">자세히 ›</div></div>`;}).join('');
+  if(u)h+=`<div class="dcard dsum" data-dt="UVIX"><div class="dhead"><span class="tk">UVIX</span><span class="lev">시장이 불안할 때 오르는 상품</span>${px(u.close,u.chg)}</div>`+
+    `<div class="dbadge">${uvixTitle(u)}</div>${uvixSpark(u,64)}`+
+    blk('지금 상태',ul([`이번 달 저점보다 <b>${sg(u.month.rise)}</b>`,uvixMonth(u),
+      u.cycle.day?`종가가 $${u.cycle.target} 이상이면 사이클 끝`:`종가가 사상 최저 $${u.cycle.allLow} 아래로 가면 1일차 시작`]))+
+    `<div class="more">자세히 ›</div></div>`;
+  h+=`<div class="dcard dsum ${mktCls(v)}" data-dt="MKT"><div class="dhead"><span class="tk">시장</span>`+
     `<span class="lev">SPY ${sg(m.spyChg)}</span><span class="dpx">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div>${vixSpark(m,64)}${futBars(m)}`+
-    `<div class="dline" style="margin-top:12px">${v.st==='worse'?'불안이 커지는 동안에는 반등 신호가 나와도 새로 사는 것을 미룹니다.':v.st==='confirm'?'이틀 연속 내렸고 최근 5일 평균보다 낮습니다.':v.st==='fast'?'꺾이기 시작했지만 아직 확인은 덜 됐습니다.':'가라앉는 조짐도, 커지는 조짐도 없습니다.'}</div>`+
-    (m.fut?'':srow('선물 시장','자료를 확인하지 못함'))+
-    (m.couple?srow('참고',m.couple==='바닥 소진 관찰'?'주가와 VIX가 같이 내림 — 하락이 지쳐 가는 모습일 수 있음':'주가와 VIX가 같이 오름 — 고점 근처일 수 있어 조심'):'')+
+    blk('지금 상태',ul([vixLine(v),m.fut?null:'VIX 선물 자료를 확인하지 못함',coupleLine(m)]))+
     `<div class="more">자세히 ›</div></div>`;
   return h+secRules()+secLog();
 }
-const DOPEN={};
+
+/* 종목 탭: 자세한 카드 */
+function deskCard(c){
+  let h=`<div class="dcard ${c.state}">${cardHead(c)}<div class="dline">${c.easySub||c.line}</div>`;
+  if(c.state==='wait')return h+'</div>';
+  h+=`<div class="dterm">용어로는: ${c.label.split(' ').slice(1).join(' ')}</div>`;
+  if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${CHIP[b]||b}</span>`).join('')}</div>`;
+  h+=deskChart(c);
+  h+=blk('어제와 달라진 점',ul(whyList(c.easy)));
+  const a=c.sig, s=liveSig(c);
+  if(!a||a.age>60)h+=blk('반등 신호',ul(['최근 60거래일 안에 나온 신호가 없습니다']));
+  else if(!a.valid)h+=blk('반등 신호',ul([`<span class="r">취소됨</span> — ${md(a.brokeDate)}에 종가가 취소선($${a.low}) 아래로 내려감`,`신호가 나온 날: ${md(a.date)}`]));
+  else{
+    h+=blk('반등 신호',ul([`<span class="g">살아 있음</span> — ${md(a.date)}에 나옴`,
+      a.new?`새 신호 ${a.age+1}일째 <small>(3일째까지 새 신호로 봄)</small>`:`나온 지 ${a.age}거래일 지남`,
+      `되살아난 방식: ${a.kind[0]==='엄'?'세 지표가 같은 날 한꺼번에':'세 지표가 며칠에 걸쳐 차례로'} <small>(${a.kind})</small>`]));
+    const mv=(nm,close,open,mc,mo,cur)=>[`<b>${nm}</b>: 신호 날 $${close} → 지금 $${cur} <b class="${sc(mc)}">${sg(mc)}</b>`,
+      open!=null?`${nm} 다음 날 시가 $${open} 기준으로는 <b class="${sc(mo)}">${sg(mo)}</b>`:null];
+    h+=blk('신호 뒤 가격 이동',ul([...mv(c.base,a.sigClose,a.nextOpen,a.mvClose,a.mvOpen,c.ind.close),
+      ...(a.pSigClose!=null?mv(c.prod,a.pSigClose,a.pNextOpen,a.pMvClose,a.pMvOpen,c.ind.pclose):[]),
+      a.nextOpen==null?'<small>다음 날 시가는 다음 거래일에 나옵니다</small>':null,'<small>많이 올랐을수록 뒤늦은 추격입니다</small>']));
+    h+=targetGauge(c);
+    h+=blk('신호 취소선',ul([`${c.base} 종가가 <b>$${a.low}</b> 아래로 가면 신호 취소 <small>(${md(a.lowDate)} 종가)</small>`,
+      `지금보다 <b>${a.dist.toFixed(1)}%</b> 아래`,
+      a.pLow!=null?`그때 ${c.prod}은 약 $${a.pLow} — 지금보다 <b class="r">-${a.pDist.toFixed(1)}%</b>`:null]));
+    h+=pastBlk(c);
+  }
+  h+=blk('조심할 점',ul(c.easyRisks&&c.easyRisks.length?c.easyRisks:['특별히 없음']));
+  if(c.next&&c.next.length)h+=blk('앞으로 이렇게 되면',ul(c.next));
+  h+=blk(`지금 지표 값 <small>${c.base} ${md(c.asof)} 종가 $${c.ind.close} (${sg(c.ind.chg)})</small>`,ul([
+    `① 빠르기 %K <b>${c.ind.k}</b> <small>(20 아래 많이 빠짐 · 80 위 많이 오름)</small>`,
+    `② 벗어난 정도 CCI <b>${c.ind.cci}</b> <small>(-100 아래 · +100 위)</small>`,
+    `③ 힘 RSI <b>${c.ind.rsi}</b> <small>(30 아래 · 70 위)</small>`,
+    `50일 평균보다 <b class="${sc(c.ind.disp-100)}">${sg(c.ind.disp-100)}</b>`]));
+  return h+'</div>';
+}
+function deskUvix(u){
+  if(!u)return '';
+  const cy=u.cycle, m=u.month;
+  let h=`<div class="dcard"><div class="dhead"><span class="tk">UVIX</span><span class="lev">시장이 불안할 때 오르는 상품 (2배)</span>${px(u.close,u.chg)}</div>`+
+    `<div class="dbadge">${uvixTitle(u)}</div><div class="dline">${cy.note}</div>`;
+  if(u.vxxLow)h+=`<div class="dchips"><span>VXX도 같이 최저가를 깼음</span></div>`;
+  h+=uvixSpark(u,110);
+  if(u.jump)h+=blk('주의',ul(['<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있어 아래 내용을 믿기 어렵습니다</span>']));
+  h+=blk('신저가 사이클 <small>종가 기준</small>',ul(cy.day
+    ?[`시작한 날: ${md(cy.start)} (오늘 ${cy.day}일차)`,`그 뒤 가장 낮았던 종가: $${cy.low} (${md(cy.lowDate)})`,`지금은 그보다 ${sg(cy.fromLow)}`,
+      `종가가 $${cy.target} 이상이면 사이클 끝 (저점 대비 +10%)`,cy.hiHit?'<small>장중 고가로는 이미 +10%에 닿았음</small>':null,
+      '<small>4~12일차가 반등을 지켜볼 구간, 13일차부터는 길어지는 중</small>']
+    :[`사상 최저 종가: $${cy.allLow}`,`지금은 그보다 ${cy.toLow.toFixed(1)}% 위`,'종가가 그 아래로 내려가면 1일차 시작',
+      u.lastDone?`<small>직전 사이클은 ${md(u.lastDone.date)}에 끝남 (${u.lastDone.days}거래일 걸림)</small>`:null]));
+  h+=blk('이번 달 급등 여부',ul([`<b>${uvixMonth(u)}</b>`,
+    `이번 달 가장 낮았던 종가: $${m.lowClose} (${md(m.lowDate)})`,`지금은 그보다 <b>${sg(m.rise)}</b>`,
+    `이번 달 가장 높았을 때는 ${sg(m.peakRise)}`,`세 지표 동시 과열: ${m.ob?'<span class="w">예</span>':'아님'} <small>(%K ${m.k} · CCI ${m.cci} · RSI ${m.rsi})</small>`,
+    '<small>+25% 넘게 급등한 뒤 꺾이면 주식 반등에 유리한 힌트로 봅니다</small>']));
+  return h+'</div>';
+}
+function deskMarket(m){
+  const v=m.vix, f=m.fut;
+  let h=`<div class="dcard ${mktCls(v)}"><div class="dhead"><span class="tk">시장</span><span class="lev">SPY · VIX</span></div>`+
+    `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div><div class="dline">${vixLine(v)}</div>`;
+  h+=vixSpark(m,110)+futBars(m);
+  h+=blk('VIX <small>시장 불안 지수 — 높을수록 불안</small>',ul([`지금 <b>${v.c}</b> (전날보다 <span class="${sc(-v.chg)}">${sg(v.chg)}</span>)`,
+    `최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,`<small>판정 근거: ${v.why}</small>`]));
+  h+=blk('S&P500 <small>SPY</small>',ul([`$${m.spy} (<span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>)`,coupleLine(m)]));
+  h+=blk('VIX 선물',ul(f?[f.back?'가까운 달이 더 비쌈 — 단기 불안이 남아 있다는 뜻 <small>(백워데이션)</small>':'먼 달이 더 비쌈 — 평소 모습 <small>(콘탱고)</small>',
+    `가까운 달 ${f.vx1.toFixed(2)} <small>(지금 VIX보다 ${f.sp1>0?'+':''}${f.sp1})</small>`,
+    `그다음 달 ${f.vx2.toFixed(2)} <small>(가까운 달보다 ${f.sp2>0?'+':''}${f.sp2})</small>`]:['자료를 확인하지 못함 — VIX 현물만으로 판단']));
+  return h+'</div>';
+}
+
+/* 접는 칸: 지표 요약 · 과거 신호 결과 · 최근 신호 기록 · 기준 · 지난 판정 기록 */
+const RES={hit:'목표 +10% 도달',inv:'신호 취소 (가격이 취소선 아래로)',amb:'같은 날 목표와 취소가 겹침 (취소로 계산)',open:'진행 중',pre:'아직 진입 전 (다음 날 시가 대기)'};
+const KIND={'엄격 동시 회복':'반등 신호 <small>(세 지표 한꺼번에 회복)</small>','순차 회복':'반등 신호 <small>(세 지표 차례로 회복)</small>',
+  '엄격 동시 이탈':'과열 뒤 꺾임 신호','순차 이탈':'과열 뒤 꺾임 신호','RSI 상승 다이버전스 확인':'바닥 힌트 확인 <small>(다이버전스)</small>'};
+function secTable(syms){
+  const rows=(DESK.table||[]).filter(r=>syms.includes(r.sym));
+  return dsec('t','지표 값 자세히',rows.map(r=>r.na?blk(r.sym,ul(['자료 부족'])):blk(`${r.sym} <small>$${r.close} (${sg(r.chg)})</small>`,ul([
+    `① 빠르기 %K ${r.k} <small>(3일 평균 ${r.d})</small>`,`② 벗어난 정도 CCI ${r.cci}`,`③ 힘 RSI ${r.rsi}`,
+    `50일 평균보다 ${sg(r.disp-100)}`,`평소 범위(볼린저밴드) 안 위치: ${r.bb}`,r.wk,r.mo,r.inv?`신호 취소선: ${r.inv}`:null]))).join(''));
+}
+function secScore(p){
+  const D=DESK, S=D.score&&D.score[p]; if(!S)return '';
+  let b=ul([`${S.from.slice(0,4)}년부터 같은 반등 신호가 나왔을 때 어떻게 됐는지 모은 것`,`신호 다음 거래일 시가에 ${p}를 샀다고 가정`,
+    `목표는 +${D.target}%, 비용은 왕복 ${D.cost}%로 계산`,'건수가 적어 참고만 하세요']);
+  S.rows.forEach(r=>{if(r.g)b+=`<div class="grp blk">${r.g}</div>`;
+    b+=blk(`${r.cat} <small>${r.n}건</small>`,ul(r.n?[
+      `목표 도달: <b>${r.hit}%</b> <small>(비용 빼면 ${r.hitNet}%)</small>`,
+      r.avgD!=null?`도달까지 평균 ${r.avgD}거래일 <small>(중간값 ${r.medD}일)</small>`:null,
+      `가는 길에 더 빠진 폭: 평균 ${r.maeAvg}% · 가장 나빴을 때 ${r.maeMax}%`,
+      `신호 취소 ${r.inv}건`+(r.amb?` · 목표와 취소가 겹친 날 ${r.amb}건`:'')+(r.open?` · 진행 중 ${r.open}건`:'')]:['해당하는 신호 없음']));});
+  return dsec('s','과거 신호 결과',b);
+}
+function secEvents(p){
+  const D=DESK, E=D.events&&D.events[p]; if(!E)return '';
+  return dsec('e','최근 신호 기록',ul(['과거 가격은 현재 분할·병합 보정 기준이라 당시 화면의 가격과 다를 수 있습니다'])+E.map(e=>{
+    const old=DLOG.find(x=>x.d===e.d), kept=old&&old.items[p]?`그날 화면 판정: ${old.items[p].label} <small>(${old.rule})</small>`:null;
+    const t=`${e.d.slice(0,4)}년 ${md(e.d)} · ${KIND[e.kind]||e.kind}`;
+    if(e.type!=='up')return blk(t,ul([e.lowDate?`저점이 생긴 날 ${md(e.lowDate)}, 확인된 날 ${md(e.d)}`:null,
+      `그날 종가 $${e.sigClose} → 지금까지 <span class="${sc(e.mv)}">${sg(e.mv)}</span>`,`${e.age}거래일 지남`,kept]));
+    return blk(t,ul([`결과: <b>${RES[e.res]}</b>`+(e.resDate?` — ${md(e.resDate)}, ${e.days}거래일 만에`:''),
+      `신호 날 종가 $${e.sigClose} · 취소선 $${e.low}`,
+      e.entry?`${p}를 $${e.entry}에 샀다고 가정 <small>(전날 종가보다 ${sg(e.gap)}로 시작)</small>`:null,
+      e.res==='open'?`지금 $${e.cur} — <b class="${sc(e.pnl)}">${sg(e.pnl)}</b> <small>(비용 빼면 ${sg(e.pnlNet)})</small>`:null,
+      e.mae!=null?`가는 길에 가장 많이 빠진 폭: ${e.mae}%`:null,
+      e.age<3?`새 신호 ${e.age+1}일째`:`${e.age}거래일 지남`,kept]));}).join(''));
+}
+function secRules(){
+  const D=DESK;
+  return dsec('r','이 상황판의 기준',
+    blk('원문(블로그)에서 온 것',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14)','장이 끝나 확정된 종가로만 판단',
+      'UVIX: 저점에서 +10% 넘게 반등한 뒤 다시 사상 최저가를 깨면 1일차','그 뒤 최저가를 또 깨도 1일차는 그대로']))+
+    blk('운영 설정 <small>원문에 확정된 규칙이 아님</small>',ul(['되살아남 인정 기간: 10거래일','신호 취소: 기준자산 <b>종가</b>가 취소선 아래로 갈 때',
+      `목표 +${D.target}%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
+      'UVIX의 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님','새 신호로 보는 기간: 3거래일']))+
+    blk('과거 자료로 고친 것',ul(['v2.1: 주·월 단위로 꺾인 상태는 보류 사유가 아니라 조심할 점으로만 표시',
+      'v2.2: 시장 불안이 막 꺾일 때 나온 신호는 🟢가 아니라 🟡','<small>과거 목표 도달: 불안이 가라앉은 뒤 67% · 막 꺾일 때 48%</small>']))+
+    blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉 <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
+      '모든 가격은 <b>현재 분할·병합 보정 기준</b>','<small>예: SOXX 2025년 4월 저점 $51.62는 당시 가격으로 약 $154.86 (2026-11-05 3:1 분할)</small>',
+      '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
+      '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 판정을 멈춤'])));
+}
+function secLog(){
+  return dsec('l','지난 판정 기록',ul(['매일 갱신 때 화면에 나온 판정을 그대로 남깁니다','나중에 규칙이 바뀌어도 이 기록은 고치지 않습니다'])+
+    (DLOG.length?DLOG.slice(-10).reverse().map(x=>blk(`${md(x.d)} <small>${x.rule}</small>`,
+      ul(Object.keys(x.items).map(p=>`${p}: ${x.items[p].label}`).concat([`UVIX ${x.uvix||'—'}`,`VIX ${x.vix}`])))).join(''):blk('기록',ul(['아직 없습니다']))));
+}
 function renderDesk(){
   const el=document.getElementById('vDesk');
   if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 오전 7시) 뒤에 보입니다.</div>';return;}
@@ -1290,11 +1333,10 @@ function renderDesk(){
     :DTAB==='MKT'?deskMarket(DESK.market)+secTable(['SPY','VIX'])
     :deskCard(c)+secTable([c.base,c.prod])+secScore(c.prod)+secEvents(c.prod);
   el.innerHTML=`<div class="tabs" style="padding:0 0 12px">${T.map(t=>`<button class="tab${t[0]===DTAB?' on':''}" data-dt="${t[0]}">${t[1]}</button>`).join('')}</div>`+
-    `<div class="dstamp">가격 기준 거래일 <b>${md(DESK.asof)}</b> (미국 확정 종가) · 화면 갱신 ${ut}</div>`+body+
-    `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산 · 가격은 야후 일봉, 현재 분할·병합 보정 기준<br>`+
-    `신호 판정과 무효화는 기준자산(SOXX·QQQ)으로만 계산하고, SOXL·TQQQ 가격은 참고로 함께 표시합니다.</div>`;
+    `<div class="dstamp"><b>${md(DESK.asof)}</b> 미국 종가 기준 · ${ut} 갱신</div>`+body+
+    `<div class="dnote">${ul([`${DESK.rule} · 자동매매가 아니라 판단 참고용`,'하루 한 번, 한국 오전 7시쯤 확정 종가로 계산',
+      '신호는 기준자산(SOXX·QQQ)으로 계산하고 SOXL·TQQQ 가격은 참고로 표시','가격은 야후 일봉, 현재 분할·병합 보정 기준'])}</div>`;
 }
-let DTAB='SUM';
 document.getElementById('vDesk').onclick=e=>{
   const t=e.target.closest('[data-dt]');
   if(t){DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);return;}
