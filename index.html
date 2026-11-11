@@ -269,6 +269,19 @@ input,select,button{font-family:inherit}
 .dday b{color:var(--ink);font-size:var(--fs-m)}
 .dleg{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;margin-top:8px}
 .dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 3px 0 8px;vertical-align:-1px}
+.dsec{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:0 15px;margin-bottom:10px;
+      overflow-wrap:anywhere}
+.dsec summary{font-size:var(--fs-l);font-weight:700;padding:14px 0;cursor:pointer;list-style:none;
+              display:flex;justify-content:space-between;align-items:center}
+.dsec summary::-webkit-details-marker{display:none}
+.dsec summary::after{content:'＋';color:var(--ink3);font-weight:400}
+.dsec[open] summary::after{content:'－'}
+.dsec .drow:first-of-type{margin-top:0}
+.dsec h5{font-size:var(--fs-m);font-weight:700;margin:14px 0 2px}
+.dsec .grp{font-size:var(--fs-s);color:var(--on);font-weight:600;margin-top:12px}
+.dsec .dv{font-size:var(--fs-s)}
+.dsec .dk{color:var(--ink);font-size:var(--fs-m);font-weight:600}
+.dsec .dk small{font-weight:400;color:var(--ink3);font-size:var(--fs-s)}
 .dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -1001,7 +1014,7 @@ function deskChart(c){
   h+=`<div class="dday"><b>${md(d.d)} · ${d.label}</b><br>${d.change}<br>`+
     `<span class="mono">종가 $${d.c} · %K ${d.k} · CCI ${d.cci} · RSI ${d.rsi} · 이격도 ${d.disp}</span>`+
     (d.marks.length?`<br>표시: ${d.marks.map(m=>MK[m]).join(' · ')}`:'')+
-    `<br><small>그날까지의 자료만으로 다시 계산한 판정입니다.</small></div>`;
+    `<br><small>${(o=>o&&o.items[c.prod]?(o.items[c.prod].label===d.label?`당시 표시 판정과 같음 (${o.rule})`:`당시 표시 판정: ${o.items[c.prod].label} (${o.rule})`):'그날까지의 자료만으로 다시 계산한 판정입니다 (기록 시작 전).')(DLOG.find(x=>x.d===d.d))}</small></div>`;
   h+=`<div class="dleg">상태 띠<i style="background:var(--up)"></i>매수 검토<i style="background:var(--st-watch)"></i>매수 관찰`+
     `<i style="background:var(--warn)"></i>진입 경계<i style="background:var(--st-hot)"></i>매도 관찰<i style="background:var(--dn)"></i>매도 검토`+
     `<i style="background:var(--s3)"></i>중립<br>마커 ● 준비 · ▲ 회복(채움=엄격, 빈=순차) · ▼ 이탈 · ✕ 무효화 · ◆ 다이버전스(빈=저점, 채움=확인)</div>`;
@@ -1063,13 +1076,50 @@ function deskMarket(m){
     :'선물 확인 미완료 — 현물 기준 부분 판정');
   return h+'</div>';
 }
+/* 하단: 지표 요약표 · 조건별 성적표 · 이벤트 로그 · 판정 기록 */
+let DLOG=[];
+const RES={hit:'목표 도달',inv:'무효화(저점 이탈)',amb:'장중 순서 불명(미달 처리)',open:'진행 중',pre:'진입 전(익일 시가 대기)'};
+function deskTables(){
+  const D=DESK; if(!D.table)return '';
+  const sec=(id,t,b)=>`<details class="dsec" data-s="${id}"${DOPEN[id]?' open':''}><summary>${t}</summary>${b}<div style="height:12px"></div></details>`;
+  let a=D.table.map(r=>r.na?drow(r.sym,'자료 부족'):drow(`${r.sym} <small>$${r.close} ${sg(r.chg)}</small>`,
+    lines([`<span class="mono">%K ${r.k} / %D ${r.d} · CCI ${r.cci} · RSI ${r.rsi}</span>`,
+      `<span class="mono">50일 이격도 ${r.disp} · 볼밴 ${r.bb}</span>`,r.wk,r.mo].concat(r.inv?[`무효화: ${r.inv}`]:[])))).join('');
+  let b=`<div class="dstamp" style="padding:0">회복 신호 다음 거래일 시가에 샀다고 가정 · 목표 +${D.target}%(장중 고가) · 무효화는 기준자산 종가의 관찰 저점 하회 · 비용 후는 왕복 ${D.cost}% 차감. 과거 결과이며 앞으로를 보장하지 않습니다.</div>`;
+  for(const p in D.score){const S=D.score[p];
+    b+=`<h5>${p} <small style="font-weight:400;color:var(--ink3)">${S.from.slice(0,4)}년~</small></h5>`;
+    S.rows.forEach(r=>{if(r.g)b+=`<div class="grp">${r.g}</div>`;
+      b+=drow(`${r.cat} <small>${r.n}건</small>`,r.n?lines([
+        `목표 도달 <b>${r.hit}%</b> <small>(비용 후 ${r.hitNet}%)</small>`+(r.avgD!=null?` · 평균 ${r.avgD}일 / 중앙 ${r.medD}일`:''),
+        `추가 하락 평균 ${r.maeAvg}% / 최대 ${r.maeMax}%`,
+        `무효화 ${r.inv} · 순서 불명 ${r.amb} · 진행 중 ${r.open}`]):'해당 없음');});}
+  let c='';
+  for(const p in D.events){c+=`<h5>${p}</h5>`;
+    c+=D.events[p].map(e=>{const old=DLOG.find(x=>x.d===e.d), kept=old&&old.items[p]?old.items[p].label:'기록 시작 전';
+      const tail=`<small>당시 표시 판정: ${kept} · ${old?old.rule:D.rule+' 재계산'}</small>`;
+      if(e.type!=='up')return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines([
+        (e.lowDate?`2차 저점 ${md(e.lowDate)} → 확인 ${md(e.d)} · `:'')+`당시 종가 $${e.sigClose} → 현재 ${sg(e.mv)} · 경과 ${e.age}거래일`,tail]));
+      const L=[`신호 종가 $${e.sigClose} · 관찰 저점 $${e.low}`+(e.entry?` · ${p} 진입가 $${e.entry} <small>(갭 ${sg(e.gap)})</small>`:'')];
+      if(e.res==='open')L.push(`현재 $${e.cur} · 평가 <b class="${sc(e.pnl)}">${sg(e.pnl)}</b> <small>(비용 후 ${sg(e.pnlNet)})</small> · 추가 하락 최대 ${e.mae}%`);
+      L.push(`<b>${RES[e.res]}</b>`+(e.resDate?` ${md(e.resDate)} · ${e.days}거래일`:'')+(e.res!=='open'&&e.mae!=null?` · 추가 하락 최대 ${e.mae}%`:'')+
+        ` · ${e.age<3?`신규 ${e.age+1}거래일차`:`경과 ${e.age}거래일`}`);
+      L.push(tail);
+      return drow(`${md(e.d)} ${e.kind} <small>${e.d.slice(0,4)}</small>`,lines(L));}).join('');}
+  let d=DLOG.length?DLOG.slice(-10).reverse().map(x=>drow(`${md(x.d)} <small>${x.rule}</small>`,
+    lines(Object.keys(x.items).map(p=>`${p}: ${x.items[p].label}`).concat([`<small>UVIX ${x.uvix||'—'} · VIX ${x.vix}</small>`])))).join('')
+    :'<div class="dstamp" style="padding:0">아직 기록이 없습니다.</div>';
+  d=`<div class="dstamp" style="padding:0">매일 갱신 때 화면에 표시한 판정을 그대로 남깁니다. 나중에 규칙이 바뀌어도 이 기록은 고치지 않습니다.</div>`+d;
+  return sec('t','지표 요약표',a)+sec('s','조건별 성적표',b)+sec('e','신호 이벤트 로그',c)+sec('l','판정 기록 (당시 보존)',d);
+}
+const DOPEN={};
 function renderDesk(){
   const el=document.getElementById('vDesk');
   if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 오전 7시) 뒤에 보입니다.</div>';return;}
   const u=new Date(DESK.updated);
   const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
+  el.querySelectorAll('.dsec').forEach(x=>DOPEN[x.dataset.s]=x.open);
   el.innerHTML=`<div class="dstamp">가격 기준 거래일 <b>${md(DESK.asof)}</b> (미국 확정 종가) · 화면 갱신 ${ut}</div>`+
-    DESK.cards.map(deskCard).join('')+deskUvix(DESK.uvix)+deskMarket(DESK.market)+
+    DESK.cards.map(deskCard).join('')+deskUvix(DESK.uvix)+deskMarket(DESK.market)+deskTables()+
     `<div class="dnote">${DESK.rule} · 자동매매가 아니라 판단 참고용 · 하루 한 번(한국 오전 7시경) 확정 종가로 계산<br>`+
     `신호 판정과 무효화는 기준자산(SOXX·QQQ)으로만 계산하고, SOXL·TQQQ 가격은 참고로 함께 표시합니다.</div>`;
 }
@@ -1087,6 +1137,10 @@ syncView();
 fetch('./desk.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
   .then(j=>{DESK=j;if(st.view==='desk')renderDesk();})
+  .catch(()=>{});
+fetch('./desk_log.json?'+Date.now())
+  .then(r=>r.ok?r.json():Promise.reject(r.status))
+  .then(j=>{DLOG=j;if(st.view==='desk')renderDesk();})
   .catch(()=>{});
 
 fetch('./tickers.txt?'+Date.now())

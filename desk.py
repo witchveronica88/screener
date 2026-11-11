@@ -555,6 +555,161 @@ def history(base, prod, bars, today, n=21):
     return out
 
 
+# ───────────── 성적표 · 이벤트 로그 · 요약표 · 판정 기록 ─────────────
+COST = 0.2        # 왕복 거래비용 가정 (%)
+TARGET = 10       # 목표 수익 (%)
+
+
+def div_all(B, I):
+    rs = I['rsi']; piv = []
+    for i in range(3, len(B) - 3):
+        w = rs[i-3:i+4]
+        if None not in w and all(rs[i] < x for j, x in enumerate(w) if j != 3):
+            piv.append(i)
+    return [(a, b) for a, b in zip(piv, piv[1:])
+            if 5 <= b - a <= 60 and B[b]['l'] < B[a]['l'] and rs[b] > rs[a]]
+
+
+def simulate(s, B, P, pidx, bidx, target):
+    """신호 확정 다음 거래일 시가에 관찰 상품 진입을 가정.
+       목표: 상품 장중 고가 ≥ 진입가×target / 무효화: 기준자산 종가 < 관찰 저점
+       같은 날 둘 다면 '장중 순서 불명'(보수적으로 미달 처리)"""
+    pi = pidx.get(B[s['i']]['d'])
+    if pi is None or pi + 1 >= len(P):
+        return None
+    entry = P[pi + 1]['o']; mae = 0.0
+    for j in range(pi + 1, len(P)):
+        mae = min(mae, P[j]['l'] / entry - 1)
+        bj = bidx.get(P[j]['d'])
+        hit = P[j]['h'] >= entry * target
+        inv = bj is not None and B[bj]['c'] < s['ext']
+        if hit or inv:
+            return {'res': 'amb' if hit and inv else 'hit' if hit else 'inv', 'days': j - pi,
+                    'date': P[j]['d'], 'mae': mae * 100, 'entry': entry}
+    return {'res': 'open', 'days': len(P) - 1 - pi, 'date': None, 'mae': mae * 100, 'entry': entry}
+
+
+def backtest(base, prod, bars):
+    B, P, V = bars[base], bars[prod], bars['^VIX']
+    I = indicators(B); sigs, _ = scr_signals(B, I)
+    pidx = {b['d']: i for i, b in enumerate(P)}; bidx = {b['d']: i for i, b in enumerate(B)}
+    vidx = {b['d']: i for i, b in enumerate(V)}
+    divs = div_all(B, I)
+    rows = []
+    for s in sigs:
+        d = B[s['i']]['d']
+        if s['side'] != 'up' or d < P[0]['d']:
+            continue
+        v = vidx.get(d)
+        vs = vix_state(V[v-30:v+1])['st'] if v is not None and v >= 30 else None
+        r = simulate(s, B, P, pidx, bidx, 1 + TARGET / 100)
+        rn = simulate(s, B, P, pidx, bidx, 1 + (TARGET + COST) / 100)
+        pi = pidx.get(d)
+        rows.append({'s': s, 'd': d, 'strict': s['strict'], 'vix': vs,
+                     'div': any(b >= s['start'] - 5 and b + 3 <= s['i'] for a, b in divs),
+                     'gap': (r['entry'] / P[pi]['c'] - 1) * 100 if r else None, 'r': r, 'rn': rn})
+    return rows, sigs, divs, B, P, pidx
+
+
+def stats(cat, rows, group=None):
+    rs = [x for x in rows if x['r']]
+    n = len(rs)
+    out = {'cat': cat, 'g': group, 'n': n}
+    if not n:
+        return out
+    hit = [x for x in rs if x['r']['res'] == 'hit']
+    days = sorted(x['r']['days'] for x in hit)
+    out.update(hit=round(len(hit) / n * 100), hitNet=round(sum(x['rn']['res'] == 'hit' for x in rs) / n * 100),
+               avgD=round(sum(days) / len(days), 1) if days else None,
+               medD=(days[(len(days) - 1) // 2] + days[len(days) // 2]) / 2 if days else None,
+               maeAvg=round(sum(x['r']['mae'] for x in rs) / n, 1), maeMax=round(min(x['r']['mae'] for x in rs), 1),
+               inv=sum(x['r']['res'] == 'inv' for x in rs), amb=sum(x['r']['res'] == 'amb' for x in rs),
+               open=sum(x['r']['res'] == 'open' for x in rs))
+    return out
+
+
+def scorecard(rows):
+    f = lambda fn: [x for x in rows if fn(x)]
+    gp = lambda lo, hi: f(lambda x: x['gap'] is not None and lo <= x['gap'] < hi)
+    return [stats('전체', rows),
+            stats('엄격 동시 회복', f(lambda x: x['strict']), '회복 방식'),
+            stats('순차 회복', f(lambda x: not x['strict'])),
+            stats('VIX 확인형', f(lambda x: x['vix'] == 'confirm'), '신호일 VIX 상태'),
+            stats('VIX 초기 반등형', f(lambda x: x['vix'] == 'fast')),
+            stats('VIX 중립', f(lambda x: x['vix'] == 'neutral')),
+            stats('VIX 악화', f(lambda x: x['vix'] == 'worse')),
+            stats('하락 출발', gp(-999, 0), '익일 시가 갭 (추격 정도)'),
+            stats('0~2% 상승', gp(0, 2)), stats('2~5% 상승', gp(2, 5)), stats('5% 이상 상승', gp(5, 999)),
+            stats('RSI 다이버전스 동반', f(lambda x: x['div']), '다이버전스'),
+            stats('다이버전스 없음', f(lambda x: not x['div']))]
+
+
+def event_log(base, prod, rows, sigs, divs, B, P, pidx, n=10):
+    ev = []; last = len(B) - 1; pc = P[-1]['c']
+    for x in rows[-n:]:
+        s, r = x['s'], x['r']
+        e = {'d': x['d'], 'type': 'up', 'kind': '엄격 동시 회복' if x['strict'] else '순차 회복',
+             'age': last - s['i'], 'sigClose': round(B[s['i']]['c'], 2), 'low': round(s['ext'], 2)}
+        if r:
+            end = pc if r['res'] == 'open' else None
+            e.update(entry=round(r['entry'], 2), res=r['res'], days=r['days'], resDate=r['date'],
+                     mae=round(r['mae'], 1), gap=round(x['gap'], 1))
+            if end:
+                e.update(cur=round(pc, 2), pnl=round((pc / r['entry'] - 1) * 100, 1),
+                         pnlNet=round((pc / r['entry'] - 1) * 100 - COST, 1))
+        else:
+            e['res'] = 'pre'
+        ev.append(e)
+    for s in [s for s in sigs if s['side'] == 'dn'][-4:]:
+        ev.append({'d': B[s['i']]['d'], 'type': 'dn', 'kind': '엄격 동시 이탈' if s['strict'] else '순차 이탈',
+                   'age': last - s['i'], 'sigClose': round(B[s['i']]['c'], 2),
+                   'mv': pct(B[-1]['c'], B[s['i']]['c'])})
+    for a, b in divs[-3:]:
+        if b + 3 <= last:
+            ev.append({'d': B[b + 3]['d'], 'type': 'div', 'kind': 'RSI 상승 다이버전스 확인', 'age': last - b - 3,
+                       'lowDate': B[b]['d'], 'sigClose': round(B[b + 3]['c'], 2),
+                       'mv': pct(B[-1]['c'], B[b + 3]['c'])})
+    ev.sort(key=lambda e: e['d'], reverse=True)
+    return ev[:n]
+
+
+def summary_row(sym, B, inv=None):
+    if len(B) < 60:
+        return {'sym': sym, 'na': True}
+    I = indicators(B); c = B[-1]['c']
+    pos = (c - I['bl'][-1]) / (I['bu'][-1] - I['bl'][-1]) * 100 if I['bu'][-1] != I['bl'][-1] else 50
+    bb = ('상단 밖' if pos > 100 else '상단 근처' if pos >= 80 else '하단 밖' if pos < 0 else
+          '하단 근처' if pos <= 20 else '중간')
+    def tr(nm, u):
+        if not u:
+            return f'{nm} 이력 부족'
+        t = f"{nm} {'3단 하향 이탈' if u['brk'] else '약세' if u['weak'] else '양호'} (CCI {u['cci']} · RSI {u['rsi']})"
+        if u['prev']:
+            t += f" · 진행 중 CCI {u['prev']['cci']} · RSI {u['prev']['rsi']}"
+        return t
+    return {'sym': sym, 'close': round(c, 2), 'chg': pct(c, B[-2]['c']), 'k': round(I['k'][-1], 1),
+            'd': round(I['d'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1),
+            'disp': round(I['disp'][-1], 1), 'bb': f'{bb} ({pos:.0f}%)',
+            'wk': tr('주봉', upper_trend(B, 'w')), 'mo': tr('월봉', upper_trend(B, 'm')), 'inv': inv}
+
+
+def save_log(out):
+    """그날 실제로 표시한 판정을 보존한다. 이미 기록된 거래일은 덮어쓰지 않는다"""
+    try:
+        log = json.load(open('desk_log.json', encoding='utf-8'))
+    except Exception:
+        log = []
+    if any(x['d'] == out['asof'] for x in log):
+        return
+    log.append({'d': out['asof'], 'rule': RULE, 'saved': out['updated'],
+                'items': {c['prod']: {'label': c['label'], 'change': c.get('change', '')} for c in out['cards']},
+                'uvix': out['uvix']['cycle']['stage'] if out['uvix'] else None,
+                'vix': out['market']['vixLabel']})
+    log.sort(key=lambda x: x['d'])
+    with open('desk_log.json', 'w', encoding='utf-8') as f:
+        json.dump(log, f, ensure_ascii=False, indent=1)
+
+
 def main():
     bars = {}
     for s in SYMS:
@@ -596,13 +751,31 @@ def main():
         cards.append(t)
         print(f"{prod}({base}): {t['label']} | {t.get('change', '')}")
 
-    out = {'rule': RULE, 'asof': asof,
+    score = {}; events = {}; table = []
+    inv = {}
+    for c in cards:
+        sg = c.get('sig')
+        if sg and sg['valid'] and sg['age'] <= 60:
+            inv[c['base']] = f"관찰 저점 ${sg['low']}까지 -{sg['dist']}%"
+            if 'pLow' in sg:
+                inv[c['prod']] = f"저점일 종가 ${sg['pLow']}까지 -{sg['pDist']}%"
+    for prod, base in PAIRS:
+        if bars[prod]:
+            rows, sigs, divs, B, P, pidx = backtest(base, prod, bars)
+            score[prod] = {'from': P[0]['d'], 'rows': scorecard(rows)}
+            events[prod] = event_log(base, prod, rows, sigs, divs, B, P, pidx)
+    for s in ('SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX'):
+        table.append(summary_row(s.replace('^', ''), bars[s], inv.get(s)))
+
+    out = {'rule': RULE, 'asof': asof, 'cost': COST, 'target': TARGET,
+           'table': table, 'score': score, 'events': events,
            'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
            'cards': cards,
            'uvix': uvix_card(bars['UVIX'], bars['VXX']) if len(bars['UVIX']) > 60 else None,
            'market': market_card(bars['SPY'], bars['^VIX'], vx, vxf)}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
+    save_log(out)
     print('desk.json 저장 —', asof)
 
 
