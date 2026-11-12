@@ -1,0 +1,38 @@
+name: 재무 수집
+
+on:
+  schedule:
+    - cron: '20 23 * * 1-5'   # 월~금 23:20 UTC = 한국 화~토 08:20 (종가 수집 뒤)
+  workflow_dispatch:           # 수동 실행 버튼
+  push:                        # 종목이나 계산식을 바꾸면 바로 수집
+    branches: [main]
+    paths: [tickers.txt, fund.py]
+
+concurrency:
+  group: fund
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 재무 수집 (SEC 공시)
+        run: python3 -u fund.py
+
+      - name: 커밋
+        run: |
+          git config user.name  "github-actions"
+          git config user.email "actions@github.com"
+          git add fund.json
+          git diff --staged --quiet && exit 0
+          git commit -m "재무 갱신 $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do     # 종가 수집과 겹쳐도 푸시되게
+            git pull --rebase origin main && git push && exit 0
+            sleep 5
+          done
+          exit 1
