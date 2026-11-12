@@ -402,8 +402,10 @@ input,select,button{font-family:inherit}
       <div class="hdef">지금 쓰는 속도로 현금이 몇 달 버티는지. <code>(현금·단기투자 − 1년 내 갚을 빚) ÷ 월 현금 소진</code>. 소진 속도는 최근 4분기 평균과 최근 분기 중 더 빠른 쪽을 쓴다. 둘 다 잉여현금흐름이 0 이상이면 <b>현금 창출</b>로 적는다. 12개월 미만이면 주의에 올린다. 그 전에 증자나 차입이 필요할 수 있고, 주가가 내려온 상태의 증자는 회복을 더 멀게 만든다. 12개월은 이 화면에서 정한 기준이다.</div></div>
     <div class="hitem"><div class="hterm">주식 수 증가</div>
       <div class="hdef">최근 분기 가중평균 주식 수를 1년 전 같은 분기와 견준 값. 같은 공시 안의 숫자끼리 비교하므로 분할·병합은 이미 맞춰져 있다. 10% 넘게 늘면 주의에 올린다. 주식 수가 늘면 회사 가치가 그대로여도 주가는 예전 고점에 닿기 어렵다. 증자가 늘 나쁜 것은 아니며 조달 목적은 공시에서 직접 봐야 한다. 10%는 이 화면에서 정한 기준이다.</div></div>
+    <div class="hitem"><div class="hterm">기준일 뒤 자금조달 · 회사 전망</div>
+      <div class="hdef">기준일 뒤에 확인된 증자나 대출이 있으면 따로 적고, 현금 여유 기간은 그것까지 넣어 다시 계산한다(조달 전 값도 함께 표시). 적히지 않았다고 조달이 없었다는 뜻은 아니다. <b>회사 전망</b>은 회사가 같은 기간의 전망을 올렸는지 낮췄는지다. 낮추거나 미뤘으면 주의에 올린다. 가격이 내린 이유가 단순한 조정이 아니라 사업 전망일 수 있어서다.</div></div>
     <div class="hitem"><div class="hterm">한계</div>
-      <div class="hdef">자동으로 받지 않고, 받아 온 자료를 그때그때 넣는다. 그래서 기준일이 오래됐을 수 있다. 투자 약정, 증자 목적, 실적 전망처럼 글로 적힌 내용은 여기 없다. 기준일 뒤에 한 증자나 차입도 반영되지 않는다. 집을 사서 되파는 회사처럼 재고를 빚으로 사는 사업은 빚과 현금흐름이 크게 잡혀 실제보다 나쁘게 보인다. 자료가 없는 회사와 ETF는 미확인이다.</div></div>
+      <div class="hdef">자동으로 받지 않고, 받아 온 자료를 그때그때 넣는다. 그래서 기준일이 오래됐을 수 있다. 1년 내 갚을 빚은 차입금과 사채만 센다. 매입채무, 리스, 인수대금은 빠져 있어 0이어도 나갈 돈이 없다는 뜻은 아니다. 잉여현금흐름은 영업현금흐름에서 현금 설비투자를 뺀 값이라 회사가 발표하는 조정 수치와 다를 수 있다. 집을 사서 되파는 회사처럼 재고를 빚으로 사는 사업은 빚과 현금흐름이 크게 잡혀 실제보다 나쁘게 보인다. 자료가 없는 회사와 ETF는 미확인이다.</div></div>
   </div>
 
   <div class="hcard">
@@ -611,10 +613,16 @@ let FUND={};
 const RUNWAY_MIN=12, SHARE_MAX=10;
 const fmtM=v=>(v<0?'−':'')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.round(Math.abs(v))+'M');
 const fmtMon=m=>m>=24?Math.floor(m/12)+'년 이상':m.toFixed(m<10?1:0)+'개월';
+/* 주의 판단에 쓰는 현금 여유 기간 — 기준일 뒤 자금조달이 있으면 그것까지 넣은 값 */
+const runwayOf=F=>F.runwayAfter??F.runway;
+const GD={up:['올림','r-ok'],keep:['유지','r-none'],down:['낮춤','r-no'],delay:['미룸','r-no'],new:['새 분기 전망','r-none'],na:['판정 유보','r-none']};
+const cashLow=F=>F&&!F.na&&runwayOf(F)!=null&&runwayOf(F)<RUNWAY_MIN;
+const guideBad=F=>F&&!F.na&&F.guide&&(F.guide.dir==='down'||F.guide.dir==='delay');
 function fundCaut(tk){
   const F=FUND[tk], c=[];
   if(!F||F.na)return c;
-  if(F.runway!=null&&F.runway<RUNWAY_MIN) c.push(['현금 여유 '+fmtMon(F.runway),'쓸 수 있는 현금 '+fmtM(F.cash-F.debt)+'에 월 '+fmtM(F.burn)+'씩 쓰고 있습니다('+F.asof+' 공시 기준). 그 전에 증자나 차입이 필요할 수 있습니다.']);
+  if(cashLow(F)) c.push(['현금 여유 '+fmtMon(runwayOf(F)),'쓸 수 있는 현금 '+fmtM(F.cash-F.debt)+(F.after?'에 기준일 뒤 조달 '+fmtM(F.after.amt)+'을 더해도':'에')+' 월 '+fmtM(F.burn)+'씩 쓰는 속도면 1년을 못 버팁니다('+F.asof+' 기준). 그 전에 증자나 차입이 필요할 수 있습니다.']);
+  if(guideBad(F)) c.push(['회사 전망 '+GD[F.guide.dir][0],esc(F.guide.text)+'. 가격이 내린 이유가 사업 전망일 수 있습니다.']);
   if(F.sh!=null&&F.sh>SHARE_MAX) c.push(['주식 수 1년 +'+F.sh+'%','주식 수가 늘어 회사 가치가 그대로여도 주가는 예전 고점에 닿기 어렵습니다. 조달 목적은 공시에서 확인하세요.']);
   if((Date.now()-new Date(F.asof))/864e5>200) c.push(['재무 자료 오래됨',F.asof+' 기준 자료가 마지막입니다. 지금 상태와 다를 수 있습니다.']);
   return c;
@@ -931,7 +939,8 @@ function render(){
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
         ${L.dip&&L.dip.on?`<span class="dip">노란 점${L.dip.run>1?' '+L.dip.run+'일째':''}</span>`:''}
         ${crashCaut(L)?'<span class="w">급락 동반</span>':''}
-        ${(F=>F&&!F.na&&F.runway!=null&&F.runway<RUNWAY_MIN?'<span class="w">현금 주의</span>':'')(FUND[tk])}
+        ${cashLow(FUND[tk])?'<span class="w">현금 주의</span>':''}
+        ${guideBad(FUND[tk])?`<span class="w">전망 ${GD[FUND[tk].guide.dir][0]}</span>`:''}
         ${(F=>F&&!F.na&&F.sh!=null&&F.sh>SHARE_MAX?'<span class="w">주식 수 증가</span>':'')(FUND[tk])}
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
@@ -1038,7 +1047,8 @@ function render(){
         ${cus&&FUND[tk]?(F=>`<div class="sec"><span>재무</span><i></i></div>
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
           <div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
-            :F.runway!=null?`<span class="bg ${F.runway<RUNWAY_MIN?'r-no':F.runway<24?'r-new':'r-ok'}">${fmtMon(F.runway)}</span>`
+            :F.runway!=null?`<span class="bg ${runwayOf(F)<RUNWAY_MIN?'r-no':runwayOf(F)<24?'r-new':'r-ok'}">${fmtMon(runwayOf(F))}</span>`+
+              (F.runwayAfter!=null?`<br><span class="q">조달 전 ${fmtMon(F.runway)}</span>`:'')
             :'<span class="q">미확인</span>'}</div></div>
           <div><div class="sk">주식 수 · 1년</div><div class="sv">${F.sh!=null
             ?`<span class="bg ${F.sh>SHARE_MAX?'r-no':F.sh>3?'r-new':'r-ok'}">${F.sh>0?'+':''}${F.sh}%</span>`:'<span class="q">미확인</span>'}</div></div>
@@ -1046,6 +1056,9 @@ function render(){
             <span class="q">현금 ${fmtM(F.cash)} − 1년 내 빚 ${fmtM(F.debt)}</span></div></div>
           <div><div class="sk">잉여현금흐름</div><div class="sv">${F.fcfT!=null?`<span class="u">${fmtM(F.fcfT)}</span> <span class="q">4분기</span>`:'<span class="q">4분기 미확인</span>'}<br>${
             F.fcfQ!=null?`<span class="u">${fmtM(F.fcfQ)}</span> <span class="q">최근 분기</span>`:'<span class="q">최근 분기 미확인</span>'}</div></div>
+          ${F.after?`<div class="wide"><div class="sk">기준일 뒤 자금조달 · ${+F.after.date.slice(5,7)}/${+F.after.date.slice(8)}</div><div class="sv">${esc(F.after.text)}</div></div>`:''}
+          ${F.guide?`<div class="wide"><div class="sk">회사 전망</div><div class="sv"><span class="bg ${GD[F.guide.dir][1]}">${GD[F.guide.dir][0]}</span> <span class="q">${esc(F.guide.text)}</span></div></div>`:''}
+          ${F.note?`<div class="wide"><div class="sk">참고</div><div class="sv">${F.note.map(x=>`<span class="q">· ${esc(x)}</span>`).join('<br>')}</div></div>`:''}
           <div class="wide"><div class="sk">${F.asof} 기준${F.burn!=null?' · 월 '+fmtM(F.burn)+' 소진':''}</div></div>
         </div>`}`)(FUND[tk]):''}
 

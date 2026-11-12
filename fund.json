@@ -1,178 +1,222 @@
 {
- "updated": "2026-11-12T09:58+00:00",
+ "updated": "2026-11-12",
+ "source": "세라핀 정리 (2026-11-12까지 발표된 최신 분기)",
  "data": {
   "EOSE": {
-   "name": "EOS ENERGY ENTERPRISES, INC.",
    "asof": "2026-09-30",
    "cash": 271.2,
    "debt": 0.0,
-   "fcfT": -442.5,
-   "fcfQ": -105.1,
-   "cfAsof": "2026-09-30",
-   "sh": 32.6,
-   "shAsof": "2026-09-30",
-   "old": false,
+   "fcfT": -442.8,
+   "fcfQ": -105.2,
+   "sh": 33.2,
    "burn": 36.9,
-   "runway": 7.4
+   "runway": 7.3,
+   "guide": {
+    "dir": "keep",
+    "text": "연간 매출 $300~350M 범위는 유지하되 하단 절반을 예상"
+   }
   },
   "IREN": {
-   "name": "IREN Limited",
    "asof": "2026-09-30",
    "cash": 3522.0,
    "debt": 950.0,
-   "fcfT": -2461.6,
-   "fcfQ": -1602.0,
-   "cfAsof": "2026-09-30",
+   "fcfT": -6562.0,
+   "fcfQ": -4360.0,
    "sh": 47.2,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "burn": 534.0,
-   "runway": 4.8
-  },
-  "BOIL": {
-   "name": "PROSHARES TRUST II",
-   "na": "펀드·신탁이라 기업 재무를 적용하지 않습니다"
+   "burn": 1453.3,
+   "runway": 1.8,
+   "guide": {
+    "dir": "delay",
+    "text": "연 환산 매출 $4,000M 초과 목표를 2026년 말에서 2027년 1~2월로 미룸"
+   },
+   "note": [
+    "금융리스까지 넣으면 1년 내 갚을 돈은 $1,129M"
+   ]
   },
   "RKLB": {
-   "name": "ROCKET LAB CORP",
    "asof": "2026-09-30",
    "cash": 4608.0,
    "debt": 0.0,
    "fcfT": -325.6,
    "fcfQ": -23.9,
-   "cfAsof": "2026-09-30",
    "sh": 23.4,
-   "shAsof": "2026-09-30",
-   "old": false,
    "burn": 27.1,
-   "runway": 169.8
+   "runway": 169.8,
+   "guide": {
+    "dir": "new",
+    "text": "다음 분기 매출 $270~290M 제시"
+   }
   },
   "RIVN": {
-   "name": "Rivian Automotive, Inc. / DE",
    "asof": "2026-09-30",
    "cash": 5502.0,
    "debt": 0.0,
    "fcfT": -4192.0,
    "fcfQ": -1124.0,
-   "cfAsof": "2026-09-30",
    "sh": 18.5,
-   "shAsof": "2026-09-30",
-   "old": false,
    "burn": 374.7,
-   "runway": 14.7
+   "runway": 14.7,
+   "runwayAfter": 17.4,
+   "after": {
+    "date": "2026-10-07",
+    "amt": 1000.0,
+    "text": "폭스바겐 관련 장기대출 $1,000M 실행 (증자가 아니라 대출)"
+   },
+   "guide": {
+    "dir": "up",
+    "text": "연간 인도량 하단을 65,000대에서 67,000대로 올림. 조정 EBITDA 전망도 개선"
+   }
   },
   "IONQ": {
-   "name": "IonQ, Inc.",
    "asof": "2026-09-30",
    "cash": 997.9,
    "debt": 8.8,
-   "fcfT": -688.5,
-   "fcfQ": -331.9,
-   "cfAsof": "2026-09-30",
+   "fcfT": -684.2,
+   "fcfQ": -333.3,
    "sh": 31.9,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "burn": 110.6,
-   "runway": 8.9
+   "burn": 111.1,
+   "runway": 8.9,
+   "runwayAfter": 26.9,
+   "after": {
+    "date": "2026-10-16",
+    "amt": 2000.0,
+    "text": "증자 총액 $2,000M 완료"
+   },
+   "guide": {
+    "dir": "up",
+    "text": "연간 매출 전망을 $505~515M로 올림"
+   }
   },
   "OPEN": {
-   "name": "Opendoor Technologies Inc.",
    "asof": "2026-09-30",
    "cash": 910.0,
    "debt": 2075.0,
    "fcfT": -1742.0,
    "fcfQ": -836.0,
-   "cfAsof": "2026-09-30",
    "sh": 28.0,
-   "shAsof": "2026-09-30",
-   "old": false,
    "burn": 278.7,
-   "runway": 0.0
+   "runway": 0.0,
+   "guide": {
+    "dir": "new",
+    "text": "다음 분기 매출 전년비 최소 40% 성장, 조정 EBITDA 손실 $70~85M 예상"
+   },
+   "note": [
+    "집을 사서 되파는 사업이라 재고 변동이 큼. 최근 분기 현금흐름을 앞으로의 소진 속도로 그대로 늘려 보기 어려움"
+   ]
   },
   "JOBY": {
-   "name": "Joby Aviation, Inc.",
    "asof": "2026-09-30",
    "cash": 2197.9,
    "debt": 0.0,
    "fcfT": -784.5,
    "fcfQ": -193.4,
-   "cfAsof": "2026-09-30",
    "sh": 15.9,
-   "shAsof": "2026-09-30",
-   "old": false,
    "burn": 65.4,
-   "runway": 33.6
+   "runway": 33.6,
+   "guide": {
+    "dir": "up",
+    "text": "연간 매출 전망을 약 15% 높여 $135~140M 제시"
+   },
+   "note": [
+    "금융리스까지 넣으면 1년 내 갚을 돈은 $3.8M"
+   ]
   },
   "UUUU": {
-   "name": "ENERGY FUELS INC.",
    "asof": "2026-09-30",
-   "cash": 76.4,
+   "cash": 855.9,
    "debt": 2.2,
-   "fcfT": -54.7,
-   "fcfQ": -20.7,
-   "cfAsof": "2026-09-30",
+   "fcfT": -112.3,
+   "fcfQ": -35.3,
    "sh": 9.8,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "burn": 6.9,
-   "runway": 10.8
+   "burn": 11.8,
+   "runway": 72.6,
+   "guide": {
+    "dir": "na",
+    "text": "같은 기준의 연간 전망 변경은 확인하지 못함"
+   }
   },
   "TTD": {
-   "name": "TRADE DESK, INC.",
    "asof": "2026-09-30",
    "cash": 1649.7,
    "debt": 0.0,
-   "fcfT": 862.2,
-   "fcfQ": 157.5,
-   "cfAsof": "2026-09-30",
+   "fcfT": 847.0,
+   "fcfQ": 153.3,
    "sh": -3.8,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "self": true
+   "self": true,
+   "guide": {
+    "dir": "new",
+    "text": "다음 분기 전망 제시. 연간 전망 상향은 아님"
+   }
   },
   "DKNG": {
-   "name": "DRAFTKINGS INC.",
    "asof": "2026-09-30",
    "cash": 1100.9,
-   "debt": 0.0,
-   "fcfT": 324.1,
-   "fcfQ": -43.7,
-   "cfAsof": "2026-09-30",
-   "sh": 0.1,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "burn": 14.6,
-   "runway": 75.5
+   "debt": 13.0,
+   "fcfT": 172.9,
+   "fcfQ": -82.1,
+   "sh": 0.4,
+   "burn": 27.4,
+   "runway": 39.8,
+   "guide": {
+    "dir": "down",
+    "text": "연간 매출 $6,350~6,550M, 조정 EBITDA $175~275M로 낮춤"
+   },
+   "note": [
+    "고객 보관 현금 $557M은 쓸 수 있는 현금에서 뺌",
+    "1년 내 빚은 기간대출 정기 상환액 $13M"
+   ]
   },
   "HIMS": {
-   "name": "HIMS & HERS HEALTH, INC.",
    "asof": "2026-09-30",
    "cash": 712.2,
    "debt": 0.0,
    "fcfT": 8.2,
    "fcfQ": 26.0,
-   "cfAsof": "2026-09-30",
    "sh": 3.3,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "self": true
+   "self": true,
+   "guide": {
+    "dir": "down",
+    "text": "조정 EBITDA $257~277M로 낮춤. 매출 범위는 $3,130~3,150M로 좁힘"
+   },
+   "note": [
+    "빚은 없지만 1년 내 줘야 할 인수대금이 $565M 따로 있음 (인수대금 $478.6M + 조건부 대가 $86.6M)"
+   ]
   },
   "RBLX": {
-   "name": "Roblox Corporation",
    "asof": "2026-09-30",
    "cash": 3196.0,
    "debt": 0.0,
-   "fcfT": 1568.4,
-   "fcfQ": 367.0,
-   "cfAsof": "2026-09-30",
+   "fcfT": 1561.1,
+   "fcfQ": 364.0,
    "sh": 2.7,
-   "shAsof": "2026-09-30",
-   "old": false,
-   "self": true
+   "self": true,
+   "guide": {
+    "dir": "new",
+    "text": "다음 분기 전망 제시. 연간 상·하향은 판정하지 않음"
+   }
   },
   "AG": {
-   "name": "FIRST MAJESTIC SILVER CORP.",
-   "na": "미국식 분기 공시(us-gaap) 자료가 없습니다"
+   "asof": "2026-09-30",
+   "cash": 1070.8,
+   "debt": 54.9,
+   "fcfT": 571.3,
+   "fcfQ": 12.4,
+   "sh": 0.9,
+   "self": true,
+   "guide": {
+    "dir": "na",
+    "text": "같은 기준의 연간 전망 변경은 확인하지 못함"
+   },
+   "note": [
+    "주식성 금융자산 $177.8M은 현금에서 뺌 (넣으면 $1,248.6M)",
+    "금융리스까지 넣으면 1년 내 갚을 돈은 $71.3M"
+   ]
+  },
+  "BOIL": {
+   "na": "펀드라 기업 재무를 적용하지 않습니다"
+  },
+  "ARKK": {
+   "na": "펀드라 기업 재무를 적용하지 않습니다"
   }
  }
 }
