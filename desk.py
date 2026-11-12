@@ -440,9 +440,12 @@ def uvix_card(U, X):
         day = last - cyc['start'] + 1
         stage = ('초기 (1~3거래일)' if day <= 3 else '관찰 구간 (4~12거래일)' if day <= 12
                  else '연장 (13~25거래일)' if day <= 25 else '기간 초과 (25거래일 초과)')
-        note = {'초': '신저가 갱신 직후입니다.', '관': '핵심 관찰 구간이지만 진입이 곧 반등 확정은 아닙니다.',
-                '연': '저변동성 랠리 연장 — 무리한 비중 확대 경계.', '기': '사이클 장기화 경고.'}[stage[0]]
-        hi = max(b['h'] for b in U[cyc['lowI']:])
+        note = {'초': '4~12일차에 반등이 나오는지 지켜봅니다.',
+                '관': '반등을 지켜볼 구간입니다. 다만 이 구간에 들어왔다고 반등이 정해진 것은 아닙니다.',
+                '연': '주식시장이 조용히 오르는 동안 UVIX는 더 빠질 수 있습니다. 무리하게 늘리지 않는 편이 안전합니다.',
+                '기': '25거래일 넘게 반등 없이 길어지고 있습니다.'}[stage[0]]
+        # 저점을 찍은 날의 장중 고가는 저점보다 먼저 나온 값이라 반등으로 치지 않는다
+        hi = max((b['h'] for b in U[cyc['lowI'] + 1:]), default=0)
         r['cycle'] = {'stage': stage, 'day': day, 'start': U[cyc['start']]['d'], 'low': round(cyc['low'], 2),
                       'lowDate': U[cyc['lowI']]['d'], 'fromLow': pct(c[-1], cyc['low']),
                       'target': round(cyc['low'] * 1.10, 2), 'hiHit': hi >= cyc['low'] * 1.10, 'note': note}
@@ -858,7 +861,7 @@ def stage_of(t):
     elif last and last.get('pmv') is not None:
         stats.append((f"노란 점({md_(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
     if live:
-        stats.append(('취소선까지', f"-{s['dist']:.1f}%", 'ref'))
+        stats.append(('반등 취소까지', f"-{s['dist']:.1f}%", 'ref'))
     elif t.get('setupUp'):
         stats.append(('반등 신호 남은 기간', f"{t['setupUp']['left']}거래일", ''))
     e = t.get('easy') or {}

@@ -154,6 +154,19 @@ class Vix(unittest.TestCase):
         self.assertEqual(desk.vix_state(self.V([20] * 9))['st'], 'neutral')
 
 
+class UvixCycle(unittest.TestCase):
+    def test_low_day_high_is_not_a_rebound(self):
+        """새 최저가를 찍은 날의 장중 고가는 저점보다 먼저 나온 값 — +10% 닿음으로 치지 않는다"""
+        U = bars([50] * 40 + [60] * 5 + [45])
+        U[-1]['h'] = 55                                   # 45 × 1.1 = 49.5 넘음
+        cy = desk.uvix_card(U, [])['cycle']
+        self.assertEqual((cy['day'], cy['low']), (1, 45))
+        self.assertFalse(cy['hiHit'])
+        U2 = bars([50] * 40 + [60] * 5 + [45, 46])
+        U2[-2]['h'], U2[-1]['h'] = 55, 50                 # 다음 날 장중 50 ≥ 49.5
+        self.assertTrue(desk.uvix_card(U2, [])['cycle']['hiHit'])
+
+
 class EtfList(unittest.TestCase):
     def test_etfs_json(self):
         with open('etfs.json', encoding='utf-8') as f:
@@ -192,7 +205,7 @@ class FlowStage(unittest.TestCase):
         self.assertEqual(desk.stage_of(self.card('watch', setup={'left': 4}))['i'], 1)
         b = desk.stage_of(self.card('buy', self.sig()))
         self.assertEqual((b['i'], b['cls']), (2, 'buy'))
-        self.assertEqual(b['stats'][-1][:2], ('취소선까지', '-5.0%'))
+        self.assertEqual(b['stats'][-1][:2], ('반등 취소까지', '-5.0%'))
         self.assertEqual(desk.stage_of(self.card('warn', self.sig()))['cls'], 'warn')
         self.assertEqual(desk.stage_of(self.card('neutral', self.sig(age=10)))['i'], 2)   # 새 신호는 없지만 반등이 이어짐
         self.assertEqual(desk.stage_of(self.card('hot'))['i'], 3)

@@ -260,6 +260,7 @@ details.fold[open]>summary::after{content:'－'}
 
 .pxedit{display:flex;align-items:center;gap:8px;background:var(--s2);
         border-radius:11px;padding:7px 14px}
+.pxedit .pxl{font-size:var(--fs-s);color:var(--ink3);white-space:nowrap}
 .pxedit input{background:transparent;border:none;outline:none;color:var(--ink);
               font-family:var(--mono);font-size:var(--fs-m);width:100%}
 .pxedit input::-webkit-outer-spin-button,.pxedit input::-webkit-inner-spin-button{
@@ -483,7 +484,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>시드</h4>
     <div class="hitem" data-k="seed"><div class="hterm">최소 시드</div>
-      <div class="hdef">1회 매수금(시드 ÷ 15)으로 5주를 살 수 있는 금액. 주식은 1주 단위로 사기 때문에 이보다 작으면 못 쓰고 남는 돈이 커집니다. 더 넣어도 수익률은 같고 금액만 커집니다.<br><br>시드는 고정이라 주가가 오르면 1칸에 사는 주식 수가 줄어듭니다. 들어갈 때 1칸 주수를 한 번 더 확인합니다.</div></div>
+      <div class="hdef">1회 매수금(시드 ÷ 15)으로 5주를 살 수 있는 금액. 주식은 1주 단위로 사기 때문에 이보다 작으면 못 쓰고 남는 돈이 커집니다. 더 넣어도 수익률은 같고 금액만 커집니다.<br><br>시드는 고정이라 주가가 오르면 1회에 사는 주식 수가 줄어듭니다. 들어갈 때 1회 주식 수를 한 번 더 확인합니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">변동성 σ</div>
       <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당합니다. 매일 받아오는 종가로 다시 계산하며 1년치가 기준입니다. 60일치는 지금 국면이 평소와 다른지 보는 참고값입니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">들어가기 전 확인 4가지</div>
@@ -495,7 +496,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>타이밍을 보는 값</h4>
     <div class="hitem" data-k="chart"><div class="hterm">RSI (14)</div>
-      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 레버리지 ETF는 노란 점과 같이 <b>기초자산</b>의 RSI를 보여 준다(SOXL이면 SOXX). 스위치법 본 운용은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없습니다. 노란 점과 상황판은 예비 투자금을 언제 더 넣을지 볼 때 쓰는 참고입니다.</div></div>
+      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 레버리지 ETF는 노란 점과 같이 <b>기초자산</b>의 RSI를 보여 줍니다(SOXL이면 SOXX). 스위치법 본 운용은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없습니다. 노란 점과 상황판은 예비 투자금을 언제 더 넣을지 볼 때 쓰는 참고입니다.</div></div>
     <div class="hitem" data-k="chart"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
       <div class="hdef">두 개를 함께 두는 이유가 있습니다. <b>역대</b>는 과거 최대낙폭과 나란히 놓고 비교하는 참고값입니다. 과거 최대낙폭이 앞으로의 하락 한도는 아니므로, 둘의 차이를 남은 안전 여유로 읽으면 안 됩니다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값입니다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보입니다.</div></div>
   </div>
@@ -507,15 +508,15 @@ svg.mini{display:block}
     <div class="hitem" data-k="fund"><div class="hterm">주식 수 증가</div>
       <div class="hdef">최근 분기 가중평균 주식 수를 1년 전 같은 분기와 견준 값. 같은 공시 안의 숫자끼리 비교하므로 분할·병합은 이미 맞춰져 있습니다. 10% 넘게 늘면 주의에 올립니다. 주식 수가 늘면 회사 가치가 그대로여도 주가는 예전 고점에 닿기 어렵습니다. 증자가 늘 나쁜 것은 아니며 조달 목적은 공시에서 직접 봐야 합니다. 10%는 이 화면에서 정한 기준입니다.</div></div>
     <div class="hitem" data-k="fund"><div class="hterm">기준일 뒤 자금조달 · 회사 전망</div>
-      <div class="hdef">기준일 뒤에 확인된 증자나 대출이 있으면 따로 적고, 현금 여유 기간은 그것까지 넣어 다시 계산한다(조달 전 값도 함께 표시). 적히지 않았다고 조달이 없었다는 뜻은 아니다. <b>회사 전망</b>은 회사가 같은 기간의 전망을 올렸는지 낮췄는지입니다. 낮추거나 미뤘으면 주의에 올립니다. 가격이 내린 이유가 단순한 조정이 아니라 사업 전망일 수 있어서입니다.</div></div>
+      <div class="hdef">기준일 뒤에 확인된 증자나 대출이 있으면 따로 적고, 현금 여유 기간은 그것까지 넣어 다시 계산합니다(조달 전 값도 함께 표시). 적히지 않았다고 조달이 없었다는 뜻은 아닙니다. <b>회사 전망</b>은 회사가 같은 기간의 전망을 올렸는지 낮췄는지입니다. 낮추거나 미뤘으면 주의에 올립니다. 가격이 내린 이유가 단순한 조정이 아니라 사업 전망일 수 있어서입니다.</div></div>
     <div class="hitem" data-k="fund"><div class="hterm">한계</div>
-      <div class="hdef">자동으로 받지 않고, 받아 온 자료를 그때그때 넣습니다. 그래서 기준일이 오래됐을 수 있습니다. 1년 내 갚을 빚은 차입금과 사채만 셉니다. 매입채무, 리스, 인수대금은 빠져 있어 0이어도 나갈 돈이 없다는 뜻은 아니다. 잉여현금흐름은 영업현금흐름에서 현금 설비투자를 뺀 값이라 회사가 발표하는 조정 수치와 다를 수 있습니다. 집을 사서 되파는 회사처럼 재고를 빚으로 사는 사업은 빚과 현금흐름이 크게 잡혀 실제보다 나쁘게 보입니다. 자료가 없는 회사와 ETF는 미확인입니다.</div></div>
+      <div class="hdef">자동으로 받지 않고, 받아 온 자료를 그때그때 넣습니다. 그래서 기준일이 오래됐을 수 있습니다. 1년 내 갚을 빚은 차입금과 사채만 셉니다. 매입채무, 리스, 인수대금은 빠져 있어 0이어도 나갈 돈이 없다는 뜻은 아닙니다. 잉여현금흐름은 영업현금흐름에서 현금 설비투자를 뺀 값이라 회사가 발표하는 조정 수치와 다를 수 있습니다. 집을 사서 되파는 회사처럼 재고를 빚으로 사는 사업은 빚과 현금흐름이 크게 잡혀 실제보다 나쁘게 보입니다. 자료가 없는 회사와 ETF는 미확인입니다.</div></div>
   </div>
 
   <div class="hcard">
     <h4>노란 점</h4>
     <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 — 매수 기회 표시</div>
-      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 매수 기회 전광판과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
+      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 섹션 제목에 'SOXX 기준'처럼 적습니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
@@ -541,13 +542,13 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>종목 성격</h4>
     <div class="hitem" data-k="about"><div class="hterm">최대낙폭 — 미검증 · 추정</div>
-      <div class="hdef">과거 고점에서 저점까지의 최대 하락폭. 3년 넘게 쌓인 종가가 있으면 <b>실측</b>을 쓰고, 없으면 마스터 자료 값을 씁니다. <b>미검증</b>은 상장 이력이 짧아 실측이 없다는 뜻이고, <b>추정</b>은 실측 대신 배수별 대리값(3배 −92% · 2배 −85% · 선물 −95%)을 쓴 경우입니다.</div></div>
+      <div class="hdef">과거 고점에서 저점까지의 최대 하락폭. 3년 넘게 쌓인 종가가 있으면 <b>실측</b>을 쓰고, 없으면 기본 자료 값을 씁니다. <b>미검증</b>은 상장 이력이 짧아 실측이 없다는 뜻이고, <b>추정</b>은 실측 대신 배수별 대리값(3배 −92% · 2배 −85% · 선물 −95%)을 쓴 경우입니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">회복 여부</div>
       <div class="hdef">지금 역대 고점에 얼마나 가까이 돌아왔는지. 고점 대비 −10% 이내 <b>회복</b> · −40% 이내 <b>부분회복</b> · 그 아래 <b>미회복</b> · 3년치가 안 되면 <b>이력부족</b>. 레버리지 ETF는 오르내리는 동안 가치가 깎여 자기 고점으로는 거의 못 돌아가므로 <b>기초자산</b>(TNA라면 IWM) 가격으로 매일 판정합니다. 개별주는 자기 가격으로 봅니다. 스위치법은 돌아오는 자산을 전제하므로 변동성보다 먼저 볼 항목입니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">SOXL 상관</div>
-      <div class="hdef">최근 1년 일간 수익률로 매일 다시 계산합니다. 0.7 이상 높음 · 0.4 이상 중간 · 그 아래 낮음. 높으면 분산이 아니라 같은 베팅의 증량입니다. 반도체가 꺾이는 날 함께 꺾입니다. 계산값이 없으면 마스터 자료 값을 씁니다.</div></div>
+      <div class="hdef">최근 1년 일간 수익률로 매일 다시 계산합니다. 0.7 이상 높음 · 0.4 이상 중간 · 그 아래 낮음. 높으면 분산이 아니라 같은 베팅의 증량입니다. 반도체가 꺾이는 날 함께 꺾입니다. 계산값이 없으면 기본 자료 값을 씁니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">유동성</div>
-      <div class="hdef">최근 20일 하루 평균 거래대금(주가 × 거래량). $100M 이상 매우좋음 · $20M 좋음 · $5M 보통 · $1M 나쁨 · 그 아래 매우나쁨. 거래가 적으면 LOC 종가 체결이 밀릴 수 있습니다. 계산값이 없으면 마스터 자료 값을 씁니다.</div></div>
+      <div class="hdef">최근 20일 하루 평균 거래대금(주가 × 거래량). $100M 이상 매우좋음 · $20M 좋음 · $5M 보통 · $1M 나쁨 · 그 아래 매우나쁨. 거래가 적으면 LOC 종가 체결이 밀릴 수 있습니다. 계산값이 없으면 기본 자료 값을 씁니다.</div></div>
     <div class="hitem" data-k="about"><div class="hterm">같이 움직이는 종목</div>
       <div class="hdef">최근 1년 상관이 0.7 이상인 종목. 같이 오르고 같이 빠지니 함께 돌려도 분산이 되지 않습니다.</div></div>
     <div class="hitem" data-k="about"><div class="hterm">구성 — 집중형 · 분산형 · 동일가중</div>
@@ -557,7 +558,7 @@ svg.mini{display:block}
     <div class="hitem" data-k="caut"><div class="hterm">개별주식</div>
       <div class="hdef">1배수 개별 종목도 같은 공식으로 시드를 냅니다. 다만 지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있고, 실적 발표일에 갭이 크게 벌어집니다. 시드를 지수보다 작게 잡는 편이 안전합니다.<br><br>종가를 자동으로 받으려면 저장소의 <code>tickers.txt</code>에 티커를 한 줄씩 적습니다. 앱에서만 추가하면 주가를 직접 넣어야 하고, 변동성은 임시 가정값이 쓰입니다.</div></div>
     <div class="hitem" data-k="caut"><div class="hterm">주의</div>
-      <div class="hdef">종목마다 챙길 것을 맨 아래에 모아 둡니다. 위 항목들의 뜻과 그 함의가 여기 적히므로, 표에는 값만 두고 설명은 이쪽에서 읽으면 됩니다.</div></div>
+      <div class="hdef">종목마다 챙길 것을 이름만 짧게 보여 줍니다. 이름을 누르면 무슨 뜻이고 왜 조심해야 하는지 펼쳐집니다.</div></div>
   </div>
 
   <div class="hcard">
@@ -592,7 +593,7 @@ svg.mini{display:block}
 
 <div class="foot">
   최소 시드 = <code>주가 × 5주 × 15분할</code> · $100 단위 올림<br>
-  σ는 매일 받는 종가로 재계산 · 종목 정보 출처 레버리지 ETF 마스터
+  변동성(σ)은 매일 받는 종가로 다시 계산 · 종목 정보는 기본 자료(etfs.json)
   <br><button class="rst" id="reset">입력한 주가 · 설정 초기화</button>
 </div>
 </div>
@@ -623,7 +624,7 @@ const dragOf=sig=>(1-Math.exp(-0.5*(sig/100)**2*252))*100;
 let FUND={};
 const RUNWAY_MIN=12, SHARE_MAX=10, FUND_OLD=100;   /* 재무 자료는 분기마다 새로 받으므로 100일이 지나면 오래됨 */
 const fmtM=v=>(v<0?'−':'')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.round(Math.abs(v))+'M');
-const fmtMon=m=>m>=24?Math.floor(m/12)+'년 이상':m.toFixed(m<10?1:0)+'개월';
+const fmtMon=m=>m<=0?'없음':m>=24?Math.floor(m/12)+'년 이상':m.toFixed(m<10?1:0)+'개월';
 /* 주의 판단에 쓰는 현금 여유 기간 — 기준일 뒤 자금조달이 있으면 그것까지 넣은 값 */
 const runwayOf=F=>F.runwayAfter??F.runway;
 const GD={up:['올림','r-ok'],keep:['유지','r-none'],down:['낮춤','r-no'],delay:['미룸','r-no'],new:['새 분기 전망','r-none'],na:['판정 유보','r-none']};
@@ -647,7 +648,7 @@ function priceChart(d){
     <svg viewBox="0 0 ${W} ${H}"><path class="ln" d="${c.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('')}"/>${
       ch.dot.map(i=>`<circle class="dot" cx="${X(i).toFixed(1)}" cy="${Y(c[i]).toFixed(1)}" r="3.4"/>`).join('')}</svg>
     <div class="cap"><span>$${lo}</span><span>${m(ch.from)} ~ ${m(ch.to)}</span></div>
-    <div class="pl"><i></i>노란 점 ${ch.dot.length?ch.dot.length+'일':'없음'}${d.base?' · '+d.base+' 기준으로 판정':''}</div></div>`;
+    <div class="pl"><i></i>${ch.dot.length?'이 기간 노란 점 '+ch.dot.length+'일':'이 기간 노란 점 없음'}${d.base?' · '+d.base+' 기준으로 판정':''}</div></div>`;
 }
 /* 타이밍 지표 RSI — 레버리지 ETF는 노란 점과 같이 기초자산 값(감가로 자기 가격 지표가 왜곡되기 쉽다) */
 const rsiOf=L=>L?(L.dip&&L.dip.base?L.dip.rsi:L.rsi):null;
@@ -676,8 +677,8 @@ function cautions(r,L,live,cus){
     c.push(...fundCaut(tk));
     c.push(['개별 기업 위험','지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있습니다. 스위치법은 돌아오는 자산을 전제하므로, 지수보다 시드를 작게 잡는 편이 안전합니다.']);
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
-    if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
-    if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않아 변동성 값을 그대로 믿기 어렵습니다.']);
+    if(!live) c.push(['변동성을 모릅니다','실제 변동성 값이 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
+    if(live&&L.sigN&&L.sigN<200) c.push(['변동성 자료 '+L.sigN+'일뿐','1년치가 채워지지 않아 변동성 값을 그대로 믿기 어렵습니다.']);
     if(crashCaut(L)) c.push(crashCaut(L));
     return c;
   }
@@ -692,10 +693,10 @@ function cautions(r,L,live,cus){
   if(warns.includes('논리 반례')) c.push(['논리 반례','이론상 수혜 국면인데 실제로는 반대로 간 이력이 있습니다.']);
   const lv=lqOf(r,L);
   if(lv&&lv<=2) c.push(['유동성 '+lqName(lv),'호가가 얇아 LOC 종가 체결이 밀릴 수 있습니다. 소액으로만 운용하는 편이 낫습니다.']);
-  if(live&&L.sigN&&L.sigN<200) c.push(['σ 표본 '+L.sigN+'일','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 변동성 값을 그대로 믿기 어렵습니다.']);
+  if(live&&L.sigN&&L.sigN<200) c.push(['변동성 자료 '+L.sigN+'일뿐','1년치가 채워지지 않았습니다. 특정 국면만 반영된 값일 수 있어 변동성 값을 그대로 믿기 어렵습니다.']);
   if(!live){
-    const why = (L&&L.price) ? 'σ를 낼 만큼 종가 이력이 쌓이지 않았습니다(21일 미만).' : '종가 자동 수집에 실패했습니다.';
-    c.push(['실측 σ 없음', why+' 마스터 자료의 '+sigMaster.toFixed(1)+'%를 대신 씁니다.'+(warns.includes('변동성 미수록')?' 이 σ는 마스터에도 없는 임의 추정치라 특히 신뢰하기 어렵습니다.':'')]);
+    const why = (L&&L.price) ? '변동성을 낼 만큼 종가 이력이 쌓이지 않았습니다(21일 미만).' : '종가 자동 수집에 실패했습니다.';
+    c.push(['실제 변동성 없음', why+' 기본 자료의 '+sigMaster.toFixed(1)+'%를 대신 씁니다.'+(warns.includes('변동성 미수록')?' 이 값은 기본 자료에도 없는 임의 추정치라 특히 믿기 어렵습니다.':'')]);
   }
   return c;
 }
@@ -776,11 +777,11 @@ function critTiles(crit,r,L,live,cus,sig){
         lv=lqOf(r,L), co=L&&L.corr!=null?L.corr:null;
   return `<div class="ctg">`+
     tile(cv,'변동성',s1.toFixed(1)+'%',meter(s1,0,10,{fill:1,cls:cv[0]?'g':'r',mark:SIG_MIN}),
-      `${SIG_MIN}% 이상이면 ✓ <small>${live?'1년':cus?'가정값':'마스터'}</small>`)+
+      `하루 평균 움직임 · ${SIG_MIN}% 이상이면 ✓${live?'':` <small>(${cus?'가정값':'기본 자료 값'})</small>`}`)+
     tile(cr,'회복 여부',rv,rdd!=null?meter(rdd,-100,0,{zones:[[-100,-40,'r'],[-40,-10,'w'],[-10,0,'g']]}):'',
       recNote(L,cus)||'자료 없음')+
     tile(cl,'유동성',lv?lqName(lv):'미확인',`<div class="sg5">${[1,2,3,4,5].map(i=>`<i class="${i<=lv?(lv>=3?'g':'r'):''}"></i>`).join('')}</div>`,
-      L&&L.dv!=null?`하루 ${fmtDv(L.dv)} <small>보통 이상이면 ✓</small>`:'마스터 값')+
+      L&&L.dv!=null?`하루 거래 ${fmtDv(L.dv)} · 보통 이상이면 ✓`:'기본 자료 값')+
     tile(cc,'SOXL 상관',r[0]==='SOXL'?'기준 종목':co!=null?co.toFixed(2):(corrOf(r,L)||'—'),
       co!=null?meter(co,-0.2,1,{zones:[[0.7,1,'r']]}):'',co!=null?'0.7 넘으면 SOXL과 같이 움직임':'')+`</div>`;
 }
@@ -1036,7 +1037,7 @@ function render(){
       <div class="bs">통과 많은 순 → 많이 출렁이는 순 · 같이 움직이는 종목은 하나만</div>
       ${best.map(x=>{const w=warnTags(x.tk,x.L);return `<div class="bl" data-go="${x.tk}">
         <span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
-        <span class="bv">σ ${x.sig.toFixed(1)}% · ${x.ok}/4</span>
+        <span class="bv">변동성 ${x.sig.toFixed(1)}% · 통과 ${x.ok}/4</span>
         <span class="bm">${money(seedMin(x.p))}</span>
         <span class="bw">${w.length?w.map(t=>`<i>${t}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;}).join('')}
     </div>`:'';
@@ -1093,13 +1094,13 @@ function render(){
       const R=rungOf(need,p);
       seed=`<div class="hero one">
         <div><div class="hk">최소 시드 · 15분할</div><div class="hv">${money(need)}</div>
-          <div class="hn">1회 매수금 ${money(R.unit)} · 1칸 ${R.n0}주</div></div>
+          <div class="hn">1회 매수금 ${money(R.unit)} · 1회 ${R.n0}주</div></div>
       </div>`;
     }
     return `<div class="row${op?' open':''}" data-tk="${tk}">
       <div class="rmain">
         <div class="rl">
-          <div class="rtop"><span class="tk">${tk}</span><span class="lev">${lev}</span>
+          <div class="rtop"><span class="tk">${tk}</span>${lev==='1x'?'':`<span class="lev">${lev.replace('x','배')}</span>`}
             <span class="nm">${nm}</span></div>
           ${met}
         </div>
@@ -1109,23 +1110,21 @@ function render(){
 ${secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
 ${caut.length?secOpen('caut',`주의 ${caut.length}`,cautChips(tk,caut)):''}
 ${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름 · 노란 점',rangeBar(L)+(L.dip?priceChart(L.dip)+dipBlock(L.dip,tk):'')):''}
-${secOpen('seed',p?`시드 ${money(need)}`:'시드',(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1칸</span><b>${R.n0}주</b></div><div><span>분할</span><b>${DIV}번</b></div></div>`)(rungOf(need,p)):seed)+`
-        <div class="pxedit"><span class="mono" style="color:var(--ink3)">$</span>
+${secOpen('seed',p?`시드 ${money(need)}`:'시드',(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1회 주식 수</span><b>${R.n0}주</b></div><div><span>나눠 사기</span><b>${DIV}번</b></div></div>`)(rungOf(need,p)):seed)+`
+        <div class="pxedit"><span class="pxl">주가 $</span>
           <input type="number" step="0.01" inputmode="decimal" placeholder="직접 입력"
                  value="${p??''}" data-px="${tk}">
           ${isManual(tk)&&L?`<button class="autobtn" data-auto="${tk}">자동값</button>`
-            :L?'<span class="auto">자동</span>':'<span class="auto">수동</span>'}</div>`)}
-${cus&&FUND[tk]?(F=>secFold('fund','재무',(!F.na&&!F.self&&F.runway!=null?`<div class="dmr"><span>현금 여유 기간</span><b class="${runwayOf(F)<RUNWAY_MIN?'r':''}">${fmtMon(runwayOf(F))}</b></div>${meter(Math.min(runwayOf(F),36),0,36,{fill:1,cls:runwayOf(F)<RUNWAY_MIN?'r':'g',mark:RUNWAY_MIN})}<div class="cc">${RUNWAY_MIN}개월보다 짧으면 주의</div>`:'')+`
+            :L?'<span class="auto">매일 종가로 자동</span>':'<span class="auto">직접 넣은 값</span>'}</div>`)}
+${cus&&FUND[tk]?(F=>secFold('fund','재무',(!F.na&&!F.self&&F.runway!=null?`<div class="dmr"><span>현금 여유 기간</span><b class="${runwayOf(F)<RUNWAY_MIN?'r':''}">${fmtMon(runwayOf(F))}</b></div>${meter(Math.min(runwayOf(F),36),0,36,{fill:1,cls:runwayOf(F)<RUNWAY_MIN?'r':'g',mark:RUNWAY_MIN})}<div class="cc">${RUNWAY_MIN}개월보다 짧으면 주의${F.runwayAfter!=null?` · 조달 전 ${fmtMon(F.runway)}`:''}</div>`:'')+`
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
-          <div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
-            :F.runway!=null?`<span class="bg ${runwayOf(F)<RUNWAY_MIN?'r-no':runwayOf(F)<24?'r-new':'r-ok'}">${fmtMon(runwayOf(F))}</span>`+
-              (F.runwayAfter!=null?`<br><span class="q">조달 전 ${fmtMon(F.runway)}</span>`:'')
-            :'<span class="q">미확인</span>'}</div></div>
+          ${F.self||F.runway==null?`<div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
+            :'<span class="q">미확인</span>'}</div></div>`:''}
           <div><div class="sk">주식 수 · 1년</div><div class="sv">${F.sh!=null
             ?`<span class="bg ${F.sh>SHARE_MAX?'r-no':F.sh>3?'r-new':'r-ok'}">${F.sh>0?'+':''}${F.sh}%</span>`:'<span class="q">미확인</span>'}</div></div>
           <div><div class="sk">쓸 수 있는 현금</div><div class="sv"><span class="u">${fmtM(F.cash-F.debt)}</span><br>
             <span class="q">현금 ${fmtM(F.cash)} − 1년 내 빚 ${fmtM(F.debt)}</span></div></div>
-          <div><div class="sk">잉여현금흐름</div><div class="sv">${F.fcfT!=null?`<span class="u">${fmtM(F.fcfT)}</span> <span class="q">4분기</span>`:'<span class="q">4분기 미확인</span>'}<br>${
+          <div${F.self||F.runway==null?'':' class="wide"'}><div class="sk">잉여현금흐름</div><div class="sv">${F.fcfT!=null?`<span class="u">${fmtM(F.fcfT)}</span> <span class="q">4분기</span>`:'<span class="q">4분기 미확인</span>'}<br>${
             F.fcfQ!=null?`<span class="u">${fmtM(F.fcfQ)}</span> <span class="q">최근 분기</span>`:'<span class="q">최근 분기 미확인</span>'}</div></div>
           ${F.after?`<div class="wide"><div class="sk">기준일 뒤 자금조달 · ${+F.after.date.slice(5,7)}/${+F.after.date.slice(8)}</div><div class="sv">${esc(F.after.text)}</div></div>`:''}
           ${F.guide?`<div class="wide"><div class="sk">회사 전망</div><div class="sv"><span class="bg ${GD[F.guide.dir][1]}">${GD[F.guide.dir][0]}</span> <span class="q">${esc(F.guide.text)}</span></div></div>`:''}
@@ -1375,7 +1374,7 @@ function futBars(m){
   const a=[['지금(현물)',m.vix.c,1],['가까운 달',f.vx1,0],['그다음 달',f.vx2,0]];
   const mn=Math.min(...a.map(x=>x[1])), hi=Math.max(...a.map(x=>x[1])), lo=mn-Math.max(hi-mn,.01);   /* 가장 낮은 막대가 절반 높이 */
   return `<div class="fbar">${a.map(x=>`<div class="${x[2]?'cur':''}"><span>${x[1].toFixed(1)}</span><i style="height:${(8+38*(x[1]-lo)/(hi-lo)).toFixed(0)}px"></i>${x[0]}</div>`).join('')}</div>`+
-    `<div class="spkc"><span>VIX 선물 가격 — ${f.back?'가까운 달이 더 비쌈: 단기 불안이 남아 있음':'먼 달이 더 비쌈: 평소 모습'}</span></div>`;
+    `<div class="spkc"><span>VIX 선물 가격 — ${f.back?'가까운 달이 더 비쌈: 단기 불안이 남아 있음 <small>(백워데이션)</small>':'먼 달이 더 비쌈: 평소 모습 <small>(콘탱고)</small>'}</span></div>`;
 }
 const uvixSpark=(u,h)=>{const cy=u.cycle;
   return spark(u.spark.map(x=>x.c),h,{ref:cy.day?cy.target:cy.allLow})+
@@ -1404,9 +1403,10 @@ function dipRules(){
     '반등 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
     '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
     ...C.filter(c=>c.dip.past).map(c=>{const p=c.dip.past;
-      return `<b>${c.prod}</b> 과거 노란 점 ${p.n}번(며칠 연달아 켜지면 한 번으로 셈): 다음 날 샀다면 ${p.days}거래일 안에 +${DESK.target}%에 닿은 비율 <b>${p.hit}%</b>`+
-        (p.miss?` · 못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:'')+
-        (p.medD?` · 보통 ${p.medD}거래일`:'')+` · 가는 길에 평균 <b>${p.maeAvg}%</b>, 가장 깊게는 <b>${p.maeMax}%</b> 더 빠졌음`;}),
+      return `<b>${c.prod}</b> 과거 노란 점 ${p.n}번 <small>(며칠 연달아 켜지면 한 번으로 셈)</small> — 다음 날 샀다면`+ul([
+        `${p.days}거래일 안에 +${DESK.target}%에 닿은 비율 <b>${p.hit}%</b>`+(p.medD?` <small>(보통 ${p.medD}거래일 걸림)</small>`:''),
+        p.miss?`못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
+        `가는 길에 평균 <b>${p.maeAvg}%</b>, 가장 깊게는 <b>${p.maeMax}%</b> 더 빠졌음`]);}),
     '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
 }
@@ -1462,7 +1462,7 @@ function deskSum(){
   h+=`<div class="mrow" data-dt="MKT"><div class="mh"><i class="lamp ${mktCls(v)}"></i><b>시장 불안 ${VE[v.st]}</b>`+
     `<span class="mv">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
-      f?(f.back?'선물: 단기 불안이 남아 있음':'선물: 평소 모습'):'선물: 자료 없음',
+      f&&f.back?'VIX 선물: 단기 불안이 남아 있음':null,
       u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'VIX',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   h+=`<div class="dstamp">줄을 누르면 차트와 근거가 있는 자세한 화면으로 갑니다.</div>`;
@@ -1512,15 +1512,15 @@ function deskUvix(u){
   if(u.vxxLow)h+=`<div class="dchips"><span>VXX도 같이 최저가를 깼음</span></div>`;
   h+=uvixSpark(u,110);
   if(u.jump)h+=blk('주의',ul(['<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있어 아래 내용을 믿기 어렵습니다</span>']));
-  h+=blk('신저가 사이클 <small>종가 기준</small>',ul(cy.day
+  h+=blk('새 최저가 사이클 <small>종가 기준</small>',ul(cy.day
     ?[`시작한 날: ${md(cy.start)} (오늘 ${cy.day}일차)`,`그 뒤 가장 낮았던 종가: $${cy.low} (${md(cy.lowDate)})`,`지금은 그보다 ${sg(cy.fromLow)}`,
-      `종가가 $${cy.target} 이상이면 사이클 끝 (저점 대비 +10%)`,cy.hiHit?'<small>장중 고가로는 이미 +10%에 닿았음</small>':null,
-      '<small>4~12일차가 반등을 지켜볼 구간, 13일차부터는 길어지는 중</small>']
+      `종가가 $${cy.target} 이상이면 사이클 끝 (저점 대비 +10%)`,cy.hiHit?'<small>하루 중 가장 높을 때(장중 고가)는 이미 +10%에 닿았음</small>':null,
+      cy.day>3?'<small>4~12일차가 반등을 지켜볼 구간, 13일차부터는 길어지는 중</small>':null]
     :[`사상 최저 종가: $${cy.allLow}`,`지금은 그보다 ${cy.toLow.toFixed(1)}% 위`,'종가가 그 아래로 내려가면 1일차 시작',
       u.lastDone?`<small>직전 사이클은 ${md(u.lastDone.date)}에 끝남 (${u.lastDone.days}거래일 걸림)</small>`:null]));
   h+=blk('이번 달 급등 여부',ul([`<b>${uvixMonth(u)}</b>`,
     `이번 달 가장 낮았던 종가: $${m.lowClose} (${md(m.lowDate)})`,`지금은 그보다 <b>${sg(m.rise)}</b>`,
-    `이번 달 가장 높았을 때는 ${sg(m.peakRise)}`,`세 지표 동시 과열: ${m.ob?'<span class="w">예</span>':'아님'} <small>(%K ${m.k} · CCI ${m.cci} · RSI ${m.rsi})</small>`,
+    `이번 달 최저가에서 가장 많이 올랐을 때 ${sg(m.peakRise)}`,`세 지표 동시 과열: ${m.ob?'<span class="w">예</span>':'아님'} <small>(%K ${m.k} · CCI ${m.cci} · RSI ${m.rsi})</small>`,
     '<small>+25% 넘게 급등한 뒤 꺾이면 주식 반등에 유리한 힌트로 봅니다</small>']));
   return h+'</div>';
 }
@@ -1530,11 +1530,9 @@ function deskMarket(m){
     `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div><div class="dline">${vixLine(v)}</div>`;
   h+=vixSpark(m,110)+futBars(m);
   h+=blk('VIX <small>시장 불안 지수 — 높을수록 불안</small>',ul([`지금 <b>${v.c}</b> (전날보다 <span class="${sc(-v.chg)}">${sg(v.chg)}</span>)`,
-    `최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,`<small>판정 근거: ${v.why}</small>`]));
+    `최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`]));
   h+=blk('S&P500 <small>SPY</small>',ul([`$${m.spy} (<span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>)`,coupleLine(m)]));
-  h+=blk('VIX 선물',ul(f?[f.back?'가까운 달이 더 비쌈 — 단기 불안이 남아 있다는 뜻 <small>(백워데이션)</small>':'먼 달이 더 비쌈 — 평소 모습 <small>(콘탱고)</small>',
-    `가까운 달 ${f.vx1.toFixed(2)} <small>(지금 VIX보다 ${f.sp1>0?'+':''}${f.sp1})</small>`,
-    `그다음 달 ${f.vx2.toFixed(2)} <small>(가까운 달보다 ${f.sp2>0?'+':''}${f.sp2})</small>`]:['자료를 확인하지 못함 — VIX 현물만으로 판단']));
+  if(!f)h+=blk('VIX 선물',ul(['자료를 확인하지 못함 — VIX 현물만으로 판단']));
   return h+'</div>';
 }
 
@@ -1583,10 +1581,10 @@ function secRules(){
     blk('운영 설정 <small>원문에 확정된 규칙이 아님</small>',ul(['되살아남 인정 기간: 10거래일','신호 취소: 기준자산 <b>종가</b>가 취소선 아래로 갈 때',
       `목표 +${D.target}%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
       'UVIX의 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님','새 신호로 보는 기간: 3거래일',
-      "매수 기회 전광판: 노란 점(세 지표가 모두 '많이 빠짐')인 날 켜짐. 🟢🟡 판정과는 따로 움직임"]))+
+      "노란 점(매수 기회): 세 지표가 모두 '많이 빠짐'인 날 켜짐. 🟢🟡 판정과는 따로 움직임"]))+
     blk('과거 자료로 고친 것',ul(['v2.1: 주·월 단위로 꺾인 상태는 보류 사유가 아니라 조심할 점으로만 표시',
       'v2.2: 시장 불안이 막 꺾일 때 나온 신호는 🟢가 아니라 🟡','<small>과거 목표 도달: 불안이 가라앉은 뒤 67% · 막 꺾일 때 48%</small>',
-      'v2.3: 매수 기회 전광판과 오늘의 해석 추가 (기존 판정은 그대로)']))+
+      'v2.3: 노란 점(매수 기회)과 오늘의 해석 추가 (기존 판정은 그대로)']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉 <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '모든 가격은 <b>현재 분할·병합 보정 기준</b>','<small>예: SOXX 2025년 4월 저점 $51.62는 당시 가격으로 약 $154.86 (2026-11-05 3:1 분할)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
