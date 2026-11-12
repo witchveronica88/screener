@@ -201,15 +201,20 @@ details.fold[open]>summary::after{content:'－'}
 .pchart .cap{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-s);color:var(--ink3);font-family:var(--mono)}
 .pchart .pl{font-size:var(--fs-s);color:var(--ink3);margin-top:4px}
 .pchart .pl i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink);margin-right:5px}
-.dipbox{background:var(--s1);border:1px solid var(--st-watch);border-left-width:5px;border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
+.dipbox{background:var(--s1);border:1px solid var(--st-watch);border-left-width:5px;border-radius:13px;padding:12px 16px 4px;margin-bottom:10px}
 .dipbox .dh{font-size:var(--fs-l);font-weight:700;color:var(--ink)}
-.dipbox .bl,.best .bl{flex-wrap:wrap;row-gap:2px}
-.dipbox .bv,.best .bv{order:5;flex-basis:100%;white-space:normal}
-.dipbox .bw,.best .bw{order:6;flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px}
-.dipbox .bw i,.best .bw i{font-style:normal;font-size:var(--fs-s);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 7px}
-.dipbox .bw i.ok,.best .bw i.ok{color:var(--up)}
-.dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:8px 0 10px}
-.best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
+.dipbox .bl,.best .bl{flex-wrap:wrap;row-gap:3px;padding:8px 0}
+.bx{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px}
+.bx .bv{white-space:normal;margin-right:2px}
+.bx i{font-style:normal;font-size:var(--fs-s);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
+.bx i.ok{color:var(--up)}
+.dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:6px 0 8px;border-top:1px solid var(--s2)}
+.dnear{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 0;border-top:1px solid var(--s2);font-size:var(--fs-s);color:var(--ink3)}
+.dnear>span{flex-basis:100%}
+.dnear b{font-weight:700;color:var(--ink);background:var(--s2);border-radius:6px;padding:3px 6px;cursor:pointer;white-space:nowrap}
+.dnear b em{font-style:normal;font-weight:400;font-family:var(--mono)}
+.dnear em.up{color:var(--up)}.dnear em.dn{color:var(--dn)}
+.best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:12px 16px 4px;margin-bottom:10px}
 .bt{font-size:var(--fs-l);color:var(--on);font-weight:700}
 .bs{font-size:var(--fs-s);color:var(--ink3);margin:5px 0 4px;line-height:var(--lh)}
 .bl{display:flex;align-items:baseline;gap:8px;padding:10px 0;border-top:1px solid var(--s2);cursor:pointer}
@@ -516,7 +521,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>노란 점</h4>
     <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 — 매수 기회 표시</div>
-      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
+      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목(경고 없는 종목 먼저)과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 섹션 제목에 'SOXX 기준'처럼 적습니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
@@ -1030,16 +1035,15 @@ function render(){
       const i=document.getElementById('ctk');if(i){i.value=qt;document.getElementById('cnm').focus();}};
     bindAdd();return;}
 
+  /* 노란 점 상자·상위 3의 종목 줄: 1줄 티커·이름·최소 시드, 2줄 값과 경고 칩 */
+  const boxLine=(tk,nm,v,seed,w)=>`<div class="bl" data-go="${tk}"><span class="tk">${tk}</span><span class="nm">${nm}</span>
+        <span class="bm">${seed}</span><span class="bx"><span class="bv">${v}</span>${
+        w.length?w.map(t=>`<i>${t}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;
   /* 메인 화면 상위 3 — 전체 탭, 검색 안 할 때만 */
   const best=st.grp==='all'&&!q?bestPicks([...D,...cus]):[];
   const bestHtml=best.length?`<div class="best">
       <div class="bt">기준 통과 상위 ${best.length} ${qBtn('best')}</div>${qBox('best')}
-      <div class="bs">통과 많은 순 → 많이 출렁이는 순 · 같이 움직이는 종목은 하나만</div>
-      ${best.map(x=>{const w=warnTags(x.tk,x.L);return `<div class="bl" data-go="${x.tk}">
-        <span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
-        <span class="bv">변동성 ${x.sig.toFixed(1)}% · 통과 ${x.ok}/4</span>
-        <span class="bm">${money(seedMin(x.p))}</span>
-        <span class="bw">${w.length?w.map(t=>`<i>${t}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;}).join('')}
+      ${best.map(x=>boxLine(x.tk,x.r[1],`변동성 ${x.sig.toFixed(1)}% · 통과 ${x.ok}/4`,money(seedMin(x.p)),warnTags(x.tk,x.L))).join('')}
     </div>`:'';
 
   /* 종목 첫 화면 맨 위 — 노란 점이 켜진 종목. 없으면 최근 3거래일 안에 꺼진 종목 */
@@ -1049,15 +1053,12 @@ function render(){
     all.forEach(x=>x.w=warnTags(x.tk,LIVE[x.tk]));
     const on=all.filter(x=>x.d.on).sort((a,b)=>(a.w.length>0)-(b.w.length>0)||b.d.run-a.d.run);
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
-    const line=(x,v)=>`<div class="bl" data-go="${x.tk}"><span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
-        <span class="bv">${v}</span><span class="bm">${x.p?money(seedMin(x.p)):'—'}</span>
-        <span class="bw">${x.w.length?x.w.map(w=>`<i>${w}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;
+    const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">노란 점 켜진 종목 ${on.length} ${qBtn('dip')}</div>${qBox('dip')}
-      <div class="bs">세 지표가 모두 '많이 빠짐'인 종목 · 경고 없는 종목 먼저 · 누르면 그 종목으로 이동</div>
-      ${on.length?on.map(x=>line(x,(x.d.run>1?x.d.run+'일째':'오늘')+(x.d.past?` · 과거 ${x.d.past.n}번 중 ${x.d.past.hit}%가 +10%`:''))).join('')
+      ${on.length?on.map(x=>boxLine(x.tk,x.r[1],(x.d.run>1?x.d.run+'일째':'오늘')+(x.d.past?` · 과거 ${x.d.past.n}번 중 ${x.d.past.hit}%가 +10%`:''),x.p?money(seedMin(x.p)):'—',x.w)).join('')
         :'<div class="none">지금 켜진 종목이 없습니다.</div>'}
-      ${near.length?`<div class="bs" style="margin-top:8px">최근 3거래일 안에 꺼진 종목</div>`+
-        near.map(x=>line(x,`${x.d.last.age}거래일 전 · 그 뒤 ${(x.d.last.pmv??x.d.last.mv)>0?'+':''}${x.d.last.pmv??x.d.last.mv}%`)).join(''):''}
+      ${near.length?`<div class="dnear"><span>최근 3거래일 안에 꺼짐 · 그 뒤</span>${
+        near.map(x=>`<b data-go="${x.tk}">${x.tk} <em class="${mv(x)>0?'up':mv(x)<0?'dn':''}">${mv(x)>0?'+':''}${mv(x)}%</em></b>`).join('')}</div>`:''}
     </div>`;
   }
 
