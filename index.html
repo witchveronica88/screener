@@ -207,7 +207,6 @@ details.fold[open]>summary::after{content:'－'}
 .bx{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px}
 .bx .bv{white-space:normal;margin-right:2px}
 .bx i{font-style:normal;font-size:var(--fs-s);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
-.bx i.ok{color:var(--up)}
 .dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:6px 0 8px;border-top:1px solid var(--s2)}
 .dnear{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 0;border-top:1px solid var(--s2);font-size:var(--fs-s);color:var(--ink3)}
 .dnear>span{flex-basis:100%}
@@ -1038,7 +1037,7 @@ function render(){
   /* 노란 점 상자·상위 3의 종목 줄: 1줄 티커·이름·최소 시드, 2줄 값과 경고 칩 */
   const boxLine=(tk,nm,v,seed,w)=>`<div class="bl" data-go="${tk}"><span class="tk">${tk}</span><span class="nm">${nm}</span>
         <span class="bm">${seed}</span><span class="bx"><span class="bv">${v}</span>${
-        w.length?w.map(t=>`<i>${t}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;
+        w.map(t=>`<i>${t}</i>`).join('')}</span></div>`;
   /* 메인 화면 상위 3 — 전체 탭, 검색 안 할 때만 */
   const best=st.grp==='all'&&!q?bestPicks([...D,...cus]):[];
   const bestHtml=best.length?`<div class="best">
