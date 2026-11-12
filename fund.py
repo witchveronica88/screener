@@ -12,8 +12,10 @@ tickers.txt의 개별주에 대해 SEC 공시(XBRL companyfacts) 숫자만으로
 """
 import urllib.request, json, time, datetime, os, sys
 
-# SEC는 연락처가 들어간 User-Agent를 요구한다
-UA = {'User-Agent': 'witchveronica88-screener witchveronica88@users.noreply.github.com'}
+# SEC는 실제 연락처(이메일)가 들어간 User-Agent를 요구한다. 공개 저장소에 적지 않도록
+# 저장소 시크릿 SEC_CONTACT에서 받는다. 없으면 수집을 건너뛴다.
+CONTACT = os.environ.get('SEC_CONTACT', '').strip()
+UA = {'User-Agent': f'witchveronica88-screener {CONTACT}'}
 STALE_DAYS = 200      # 마지막 공시 기준일이 이보다 오래되면 '공시 오래됨'
 day = datetime.date.fromisoformat
 
@@ -180,6 +182,9 @@ def analyze(facts, today):
 
 
 def main():
+    if not CONTACT:
+        print('SEC_CONTACT 시크릿이 없어 재무 수집을 건너뜁니다')
+        return
     tks = tickers()
     m = get('https://www.sec.gov/files/company_tickers.json')
     if not m:

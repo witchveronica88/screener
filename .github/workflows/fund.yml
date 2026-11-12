@@ -22,12 +22,15 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: 재무 수집 (SEC 공시)
+        env:
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}   # SEC가 요구하는 연락처 이메일
         run: python3 -u fund.py
 
       - name: 커밋
         run: |
           git config user.name  "github-actions"
           git config user.email "actions@github.com"
+          [ -f fund.json ] || exit 0
           git add fund.json
           git diff --staged --quiet && exit 0
           git commit -m "재무 갱신 $(date -u +%Y-%m-%d)"
