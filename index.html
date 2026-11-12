@@ -316,6 +316,15 @@ input,select,button{font-family:inherit}
 .srow b{color:var(--ink)}.srow b.g{color:var(--up)}.srow b.r{color:var(--dn)}
 .srow small{color:var(--ink3);font-size:var(--fs-s)}
 .dsum .more{font-size:var(--fs-s);color:var(--on);margin-top:7px}
+.bill{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.bill>div{border-radius:13px;padding:13px 12px;min-width:0;cursor:pointer;background:var(--s2);border:1px solid var(--bd);color:var(--ink3)}
+.bill>div.on{background:var(--st-watch);border-color:var(--st-watch);color:var(--ink)}
+.bill .bn{font-family:var(--mono);font-size:var(--fs-s);font-weight:600}
+.bill .bw{font-size:var(--fs-xl);font-weight:700;line-height:1.2;margin:4px 0;word-break:keep-all}
+.bill .bs{font-size:var(--fs-s);line-height:1.5;margin:0;color:inherit}
+.dread{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--on);border-radius:13px;padding:13px 14px;margin-bottom:10px}
+.dread .rh{font-size:var(--fs-s);color:var(--ink3);font-family:var(--mono);font-weight:600;margin-bottom:4px}
+.dread .rt{font-size:var(--fs-l);font-weight:700;line-height:1.45;word-break:keep-all;margin-bottom:6px}
 .dboard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .dtile{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:11px 12px;cursor:pointer;min-width:0}
 .dtile .th{display:flex;align-items:center;gap:7px;margin-bottom:5px}
@@ -361,6 +370,12 @@ input,select,button{font-family:inherit}
 .dsec .grp{border-top:1px solid var(--bd);padding-top:12px;font-size:var(--fs-m);color:var(--ink);font-weight:700}
 .dsec .grp+.blk{border-top:none;margin-top:4px;padding-top:0}
 .dsec .dstamp{padding:0 0 8px}
+.dmore{margin-top:12px;border-top:1px solid var(--s2);padding-top:10px}
+.dmore summary{font-size:var(--fs-s);color:var(--on);font-weight:700;cursor:pointer;list-style:none}
+.dmore summary::-webkit-details-marker{display:none}
+.dmore summary::after{content:' ＋';font-weight:400;color:var(--ink3)}
+.dmore[open] summary::after{content:' －'}
+.dmore .blk:first-of-type{border-top:none;margin-top:4px}
 .dnote{font-size:var(--fs-s);color:var(--ink3);line-height:1.8;padding:8px 4px 0}
 </style>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -1283,46 +1298,47 @@ const pastBlk=c=>{const p=c.past, s=liveSig(c); if(!p||!s||!s.new)return '';
   return blk('과거 비슷한 때',ul([`${p.cat}: ${p.n}건`,`그중 <b>${p.hit}%</b>가 목표 +${DESK.target}%에 닿음`,
     `가는 길에 평균 ${p.maeAvg}% 더 빠졌음`,'<small>건수가 적어 참고만 하세요</small>']));};
 
-/* 노란 점(매수 기회) 설명 — 요약 탭 신호등 판 아래 접는 칸 */
-function dipRules(){
-  const C=DESK.cards.filter(c=>c.dip&&c.dip.past);
-  return dsec('b','노란 점(매수 기회)은 이렇게 켜집니다',ul([
-    "세 지표가 모두 '많이 빠짐'에 들어간 날 켜집니다. 신호등 판에 '노란 점'으로 나옵니다",
+/* 매수 기회 전광판 — 노란 점(세 지표가 모두 '많이 빠짐')인 날 켜진다. 사용자 운영 설정 */
+function billboard(){
+  const C=DESK.cards.filter(c=>c.dip); if(!C.length)return '';
+  const tile=c=>{const d=c.dip, l=d.last;
+    return `<div class="${d.on?'on':''}" data-dt="${c.prod}"><div class="bn">${c.prod} 매수 기회</div><div class="bw">${d.on?'켜짐':'꺼짐'}</div>`+
+      `<div class="bs">${d.on?(d.run>1?`노란 점 ${d.run}일째`:'오늘 노란 점')
+        :l?`마지막 노란 점 ${md(l.date)}<br>${l.age}거래일 전 · 그 뒤 ${sg(l.pmv??l.mv)}`:'최근 1년 노란 점 없음'}</div></div>`;};
+  const p=C[0].dip.past;
+  return `<div class="bill">${C.map(tile).join('')}</div>`+dsec('b','전광판은 이렇게 켜집니다',ul([
+    "<b>노란 점</b>이 찍힌 날 켜집니다. 세 지표가 모두 '많이 빠짐'에 들어간 날입니다",
     '반등 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
     '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
-    ...C.map(c=>{const p=c.dip.past;
+    ...C.filter(c=>c.dip.past).map(c=>{const p=c.dip.past;
       return `<b>${c.prod}</b> 과거 노란 점 ${p.n}번(며칠 연달아 켜지면 한 번으로 셈): 다음 날 샀다면 ${p.days}거래일 안에 +${DESK.target}%에 닿은 비율 <b>${p.hit}%</b>`+
         (p.miss?` · 못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:'')+
         (p.medD?` · 보통 ${p.medD}거래일`:'')+` · 가는 길에 평균 <b>${p.maeAvg}%</b>, 가장 깊게는 <b>${p.maeMax}%</b> 더 빠졌음`;}),
-    '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
+    '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
 }
-/* 지금 흐름 — 최근 한 달 하락과 노란 점 이후 움직임 (카드에 따로 나오는 시장 불안·취소선·큰 흐름은 빼고) */
-const flowBlk=c=>!c.dip?'':blk('지금 흐름',ul([`<b>${c.dip.head}</b>`,...c.dip.why]));
+/* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
+const readCard=c=>!c.dip?'':`<div class="dread" data-dt="${c.prod}"><div class="rh">${c.prod} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${ul(c.dip.why)}</div>`;
 
 /* 요약 탭: 맨 위 신호등 판 + 종목마다 작은 차트·막대, 글은 그 아래 불렛으로 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix;
   const tile=(dt,cls,name,word,sub)=>`<div class="dtile" data-dt="${dt}"><div class="th"><span class="lamp ${cls}"></span><span class="tt">${name}</span></div><div class="tw">${word}</div><div class="tt">${sub}</div></div>`;
   const ucls=!u?'':u.month.rise>=25?'warn':u.cycle.day>=4&&u.cycle.day<=12?'watch':'';
-  /* 종목 칸: 상태(노란 점이 켜졌으면 '노란 점') · 오늘 등락 · 노란 점 소식 */
-  const dipLine=d=>!d?'':d.on?`노란 점 ${d.run>1?d.run+'일째':'오늘'}`:d.last?`노란 점 ${md(d.last.date)} 뒤 ${sg(d.last.pmv??d.last.mv)}`:'최근 1년 노란 점 없음';
-  let h=`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.dip&&c.dip.on?'watch':c.state,c.prod,c.dip&&c.dip.on?'노란 점':SW[c.state],
-      (c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span><br>`:'')+dipLine(c.dip))).join('')+
+  let h=billboard()+D.cards.map(readCard).join('')+`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.state,c.prod,SW[c.state],c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span>`:'')).join('')+
     (u?tile('UVIX',ucls,'UVIX',u.cycle.day?`${u.cycle.day}일차`:u.cycle.stage,`이번 달 저점 대비 ${sg(u.month.rise)}`):'')+
-    tile('MKT',v.st==='confirm'?'buy':v.st==='fast'?'watch':v.st==='worse'?'warn':'','시장 불안',VE[v.st],`VIX ${v.c}`)+`</div>`+dipRules();
+    tile('MKT',v.st==='confirm'?'buy':v.st==='fast'?'watch':v.st==='worse'?'warn':'','시장 불안',VE[v.st],`VIX ${v.c}`)+`</div>`;
   h+=D.cards.map(c=>{
     const s=liveSig(c); let g='', b='';
     if(c.state!=='wait'){
       if(c.hist&&c.hist.length>2)g+=spark(c.hist.map(x=>x.c),64,{rib:c.hist.map(x=>x.state),ref:s?s.low:null})+
         `<div class="spkc"><span>${c.base} 1개월</span>${s?'<span>점선: 취소선</span>':''}</div>`;
       g+=targetGauge(c)+rsiGauge(c);
-      b+=flowBlk(c);
-      b+=blk('어제와 달라진 점',ul(whyList(c.easy)));
       if(s)b+=blk('신호 취소선',ul([`${c.base} 종가가 <b>$${s.low}</b> 아래로 가면 신호 취소`,`지금보다 <b>${s.dist.toFixed(1)}%</b> 아래`]));
       else if(c.setupUp)b+=blk('남은 기간',ul([`${c.setupUp.left}거래일 안에 되살아나야 신호로 인정`]));
-      b+=pastBlk(c);
       if(c.easyRisks&&c.easyRisks.length&&(s||c.state!=='neutral'))b+=blk('조심할 점',ul(c.easyRisks));
+      const more=blk('어제와 달라진 점',ul(whyList(c.easy)))+pastBlk(c);
+      b+=`<details class="dmore" data-s="m-${c.prod}"${DOPEN['m-'+c.prod]?' open':''}><summary>${pastBlk(c)?'어제와 달라진 점 · 과거 비슷한 때':'어제와 달라진 점'}</summary>${more}</details>`;
     }
     return `<div class="dcard dsum ${c.state}" data-dt="${c.prod}">${cardHead(c)}${g}`+
       `<div class="dline" style="margin-top:12px">${c.easySub||c.line}</div>${b}<div class="more">자세히 ›</div></div>`;}).join('');
@@ -1341,12 +1357,11 @@ function deskSum(){
 
 /* 종목 탭: 자세한 카드 */
 function deskCard(c){
-  let h=`<div class="dcard ${c.state}">${cardHead(c)}<div class="dline">${c.easySub||c.line}</div>`;
+  let h=readCard(c)+`<div class="dcard ${c.state}">${cardHead(c)}<div class="dline">${c.easySub||c.line}</div>`;
   if(c.state==='wait')return h+'</div>';
   h+=`<div class="dterm">용어로는: ${c.label.split(' ').slice(1).join(' ')}</div>`;
   if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${CHIP[b]||b}</span>`).join('')}</div>`;
   h+=deskChart(c);
-  h+=flowBlk(c);
   h+=blk('어제와 달라진 점',ul(whyList(c.easy)));
   const a=c.sig, s=liveSig(c);
   if(!a||a.age>60)h+=blk('반등 신호',ul(['최근 60거래일 안에 나온 신호가 없습니다']));
@@ -1471,7 +1486,7 @@ function secLog(){
 function renderDesk(){
   const el=document.getElementById('vDesk');
   if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 오전 7시) 뒤에 보입니다.</div>';return;}
-  el.querySelectorAll('.dsec').forEach(x=>DOPEN[x.dataset.s]=x.open);
+  el.querySelectorAll('.dsec,.dmore').forEach(x=>DOPEN[x.dataset.s]=x.open);
   const u=new Date(DESK.updated);
   const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
   const T=[['SUM','요약'],...DESK.cards.map(c=>[c.prod,c.prod]),['UVIX','UVIX'],['MKT','시장']];
@@ -1489,6 +1504,7 @@ function renderDesk(){
       '신호는 기준자산(SOXX·QQQ)으로 계산하고 SOXL·TQQQ 가격은 참고로 표시','가격은 야후 일봉, 현재 분할·병합 보정 기준'])}</div>`;
 }
 document.getElementById('vDesk').onclick=e=>{
+  if(e.target.closest('.dmore'))return;          /* 카드 안 접는 칸은 열고 닫기만 */
   const t=e.target.closest('[data-dt]');
   if(t){DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);return;}
   const r=e.target.closest('.hit');if(!r)return;

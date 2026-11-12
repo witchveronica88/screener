@@ -365,8 +365,8 @@ def risks(t, vxf):
     return out or ['특이 위험 없음']
 
 
-def easy_state(t, dip_on=False):
-    """판정을 쉬운 말로 — (제목, 한 줄 설명). dip_on: 그날 노란 점이 켜졌는지"""
+def easy_state(t):
+    """판정을 쉬운 말로 — (제목, 한 줄 설명). 매수 기회 전광판(노란 점)과는 따로 움직인다"""
     st = t['state']; s = t.get('sig')
     if st == 'wait':
         return '⏳ 자료 확인 중', t['line']
@@ -381,10 +381,6 @@ def easy_state(t, dip_on=False):
                     '가격은 되살아났지만 시장 불안이 이제 막 꺾이는 중이라 확인이 덜 됐습니다. '
                     '불안이 확실히 가라앉으면 매수 검토로 바뀝니다.' if t.get('type') == '초기 반등형'
                     else '가격은 되살아났는데 시장 불안이 아직 풀리지 않았습니다.')
-        if dip_on:
-            return ('🟡 노란 점 — 매수 기회 (바닥 확인 전)',
-                    "세 지표가 모두 '많이 빠짐'에 들어갔습니다. 싸게 살 수 있는 자리지만 바닥을 확인하기 전이라 "
-                    '더 빠질 수 있어 나눠 사는 편이 안전합니다. 확인하고 사려면 반등 신호(🟢)를 기다립니다.')
         return '🟡 많이 빠짐 — 더 지켜보기', '많이 내려왔지만 반등 신호는 아직 없습니다.'
     if st == 'hot':
         return '🟠 많이 올라 과열 — 추격 조심', '많이 올랐지만 아직 꺾이지는 않았습니다. 새로 사기에는 부담스러운 자리입니다.'
@@ -519,7 +515,7 @@ def history(base, prod, bars, today, n=21):
                     'bu': r2(I['bu'][i]), 'bl': r2(I['bl'][i]), 'm50': r2(I['m50'][i]),
                     'k': round(kk, 1), 'cci': round(cc, 1), 'rsi': round(rs, 1), 'disp': round(I['disp'][i], 1),
                     'state': t['state'], 'label': t['label'], 'change': change_reason(y, t),
-                    'title': easy_state(t, 'ro' in marks)[0], 'easy': plain_reason(y, t), 'marks': marks})
+                    'title': easy_state(t)[0], 'easy': plain_reason(y, t), 'marks': marks})
     return out
 
 
@@ -778,32 +774,43 @@ def dip_card(t, base, prod, bars):
         if spy is not None:
             why.append(f"같은 기간 시장 전체(SPY)는 {spy:+.1f}% — " +
                        ('시장 전체가 함께 빠진 하락입니다' if spy <= drop / 3 else '시장보다 이 종목군이 유독 많이 빠졌습니다'))
-    # 카드에 따로 나오는 것(시장 불안·취소선·큰 흐름)은 여기 다시 적지 않는다
     if on:
         head = f"지금은 매수 기회일 수 있습니다. {base}가 급하게 내려 세 지표가 모두 '많이 빠짐'에 들어갔습니다(노란 점)."
         why.append(f"노란 점 {run}일째입니다" if run > 1 else '오늘 노란 점이 새로 켜졌습니다')
+        why.append({'worse': '시장 불안(VIX)이 아직 커지는 중이라 더 빠질 수 있습니다. 한 번에 다 사지 않는 편이 안전합니다',
+                    'fast': '시장 불안(VIX)이 막 꺾이기 시작했습니다',
+                    'confirm': '시장 불안(VIX)은 이미 가라앉고 있습니다',
+                    'neutral': '시장 불안(VIX)은 보통 수준입니다'}[vix])
         why.append('반등 신호는 아직 없습니다. 바닥을 확인하고 사는 것이 아니라 내려오는 중에 사는 자리입니다')
-        if vix == 'worse':
-            why.append('시장 불안(VIX)이 아직 커지는 중이라 더 빠질 수 있습니다. 한 번에 다 사지 않는 편이 안전합니다')
     elif t.get('setupUp') and lastd:
-        head = f"노란 점은 {lastd['age']}거래일 전에 꺼졌고, 반등 신호는 아직 없습니다."
+        head = (f"매수 기회 구간이 이어지는 중일 수 있습니다. 노란 점은 {lastd['age']}거래일 전에 꺼졌고, "
+                '아직 반등 신호는 없습니다.')
         why.append(f"마지막 노란 점({md(lastd['date'])}) 때보다 {base} <b>{lastd['mv']:+.1f}%</b>")
+        why.append(f"{t['setupUp']['left']}거래일 안에 되살아나지 못하면 관찰이 끝납니다")
     elif st in ('buy', 'watch', 'warn') and sig and sig['valid'] and sig['new']:
         head = '급락 뒤 되살아나는 중입니다. 가장 싸게 살 수 있던 구간은 지났을 수 있습니다.'
         if lastd:
             why.append(f"마지막 노란 점({md(lastd['date'])}) 뒤로 이미 {base} <b>{lastd['mv']:+.1f}%</b>" +
                        (f" · {prod} <b>{lastd['pmv']:+.1f}%</b>" if lastd['pmv'] is not None else ''))
+        why.append({'worse': '다만 시장 불안(VIX)이 다시 커지고 있어 한 번 더 빠질 수 있습니다',
+                    'fast': '시장 불안(VIX)은 막 꺾이는 중입니다',
+                    'confirm': '시장 불안(VIX)도 가라앉았습니다',
+                    'neutral': '시장 불안(VIX)은 보통 수준입니다'}[vix])
+        why.append(f"{base} 종가가 ${sig['low']} 아래로 가면 반등 신호가 취소됩니다")
     elif st in ('hot', 'sell'):
         head = ('지금은 매수 기회가 아닙니다. 많이 오른 뒤 힘이 빠지는 자리입니다.' if st == 'sell'
                 else '지금은 매수 기회가 아닙니다. 많이 올라 과열된 자리입니다.')
+        why = ['세 지표가 모두 \'많이 오름\' 쪽에 있거나 거기서 막 내려왔습니다']
     else:
-        head = ("많이 내렸지만 아직 노란 점은 아닙니다. 세 지표가 모두 '많이 빠짐'에 들어가야 켜집니다."
+        head = ("많이 내렸지만 아직 매수 기회 신호는 아닙니다. 세 지표가 모두 '많이 빠짐'에 들어가야 노란 점이 켜집니다."
                 if drop <= -8 and back is None else '지금은 매수 기회 신호가 없습니다. 급하게 빠진 상태가 아닙니다.')
         ok = lambda v: ' ✓' if v else ''
         why.append(f"노란 점 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 벗어난 정도 {r['cci']} (-100 이하{ok(r['cci'] <= -100)})"
                    f" · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})")
         if lastd:
             why.append(f"마지막 노란 점은 {md(lastd['date'])} ({lastd['age']}거래일 전), 그 뒤 {base} {lastd['mv']:+.1f}%")
+    if t.get('weak') and st not in ('hot', 'sell'):
+        why.append('큰 흐름(주·월 단위)은 아직 약세라, 반등해도 짧게 끝날 수 있습니다')
     r['head'] = head; r['why'] = why
     return r
 
@@ -845,7 +852,7 @@ def main():
             t['change'] = change_reason(y, t)
             t['easy'] = plain_reason(y, t)
             t['dip'] = dip_card(t, base, prod, bars)
-            t['easyTitle'], t['easySub'] = easy_state(t, t['dip']['on'])
+            t['easyTitle'], t['easySub'] = easy_state(t)
             t['easyRisks'] = plain_risks(t, vxf)
             t['risks'] = risks(t, vxf)
             t['next'] = next_states(base, t, vx)
