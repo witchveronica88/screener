@@ -132,6 +132,13 @@ input,select,button{font-family:inherit}
 .crit i.y{color:var(--up)}.crit i.n{color:var(--dn)}
 .crit .ck{flex:1;font-size:var(--fs-m);color:var(--ink2)}
 .crit .cv{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3);text-align:right}
+.pchart{background:var(--s2);border-radius:11px;padding:10px 12px 8px}
+.pchart svg{display:block;width:100%;height:auto}
+.pchart .ln{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-linejoin:round}
+.pchart .dot{fill:var(--st-watch);stroke:var(--ink);stroke-width:.6}
+.pchart .cap{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-s);color:var(--ink3);font-family:var(--mono)}
+.pchart .pl{font-size:var(--fs-s);color:var(--ink3);margin-top:4px}
+.pchart .pl i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink);margin-right:5px}
 .dipbox{background:var(--s1);border:1px solid var(--st-watch);border-left-width:5px;border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
 .dipbox .dh{font-size:var(--fs-l);font-weight:700;color:var(--ink)}
 .dipbox .bl{flex-wrap:wrap;row-gap:2px}
@@ -632,6 +639,17 @@ function fundCaut(tk){
   if((Date.now()-new Date(F.asof))/864e5>200) c.push(['재무 자료 오래됨',F.asof+' 기준 자료가 마지막입니다. 지금 상태와 다를 수 있습니다.']);
   return c;
 }
+/* 종목 상세의 작은 주가 그래프 — 최근 3개월 종가 선 위에 노란 점이 찍힌 날을 표시 */
+function priceChart(d){
+  const ch=d&&d.chart; if(!ch||ch.c.length<5)return '';
+  const c=ch.c, n=c.length, W=300, H=96, lo=Math.min(...c), hi=Math.max(...c);
+  const X=i=>6+(W-12)*i/(n-1), Y=v=>8+(H-16)*(1-(v-lo)/(hi-lo||1)), m=x=>`${+x.slice(5,7)}/${+x.slice(8)}`;
+  return `<div class="pchart"><div class="cap"><span>$${hi}</span><span>최근 3개월 종가</span></div>
+    <svg viewBox="0 0 ${W} ${H}"><path class="ln" d="${c.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('')}"/>${
+      ch.dot.map(i=>`<circle class="dot" cx="${X(i).toFixed(1)}" cy="${Y(c[i]).toFixed(1)}" r="3.4"/>`).join('')}</svg>
+    <div class="cap"><span>$${lo}</span><span>${m(ch.from)} ~ ${m(ch.to)}</span></div>
+    <div class="pl"><i></i>노란 점 ${ch.dot.length?ch.dot.length+'일':'없음'}${d.base?' · '+d.base+' 기준으로 판정':''}</div></div>`;
+}
 /* 노란 점 (세 지표가 모두 '많이 빠짐') — 종목 자체 가격으로 판정. 켜진 종목 먼저, 그다음 최근에 찍힌 순 */
 const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
 const dipRank=tk=>{const d=dipOf(tk);return d.on?-d.run:d.last?d.last.age+1:9999;};
@@ -1005,6 +1023,8 @@ function render(){
         <div class="rr">${rr}</div>
       </div>
       <div class="det">
+
+        ${L&&L.dip&&L.dip.chart?`<div class="sec"><span>주가 흐름</span><i></i></div>${priceChart(L.dip)}`:''}
 
         ${L?`<div class="sec"><span>시세</span><i></i></div>${pxbar}`:''}
 
