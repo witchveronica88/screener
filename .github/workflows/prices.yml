@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 -u << 'EOF'
           import urllib.request, csv, io, json, math, time, datetime, os, sys
+          from zoneinfo import ZoneInfo
 
           BASE = """SOLT ETHU DPST RAM LABU BITX GDXU YINN RETL NAIL URAA
           JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
@@ -61,6 +62,14 @@ jobs:
           STOOQ_OFF = False   # Stooq가 연달아 실패하면 그날은 건너뛴다 (시간 초과로 수집이 몇십 분씩 늘어지는 것 방지)
           stooq_fail = 0
 
+          def confirmed(out):
+              """장이 아직 안 끝난 오늘 봉은 확정 종가가 아니므로 뺀다 (장중에 tickers.txt를 고쳐 실행된 경우).
+                 상황판(desk.py)과 같은 기준: 뉴욕 날짜가 오늘이고 16:15 전"""
+              ny = datetime.datetime.now(ZoneInfo('America/New_York'))
+              if out and out[-1][0] == ny.date().isoformat() and (ny.hour, ny.minute) < (16, 15):
+                  out = out[:-1]
+              return out
+
           def history(tk):
               """일봉 (날짜, 종가, 거래량, 수정종가) 리스트 반환 (오래된 순). Yahoo 전체 이력 → 실패 시 Stooq"""
               global STOOQ_OFF, stooq_fail
@@ -80,6 +89,7 @@ jobs:
                   ad = ((res['indicators'].get('adjclose') or [{}])[0].get('adjclose')) or cl
                   out = [(datetime.date.fromtimestamp(t).isoformat(), c, num(v), a if a is not None else c)
                          for t, c, v, a in zip(ts, cl, vo, ad) if c is not None]
+                  out = confirmed(out)
                   if out:
                       return out
               except Exception as e:
@@ -91,6 +101,7 @@ jobs:
                   rows = list(csv.DictReader(io.StringIO(txt)))
                   out = [(r['Date'], float(r['Close']), num(r.get('Volume')), float(r['Close']))
                          for r in rows if r.get('Close') not in (None, '', 'N/A')]
+                  out = confirmed(out)
                   stooq_fail = 0
                   if len(out) >= 30:
                       return out
