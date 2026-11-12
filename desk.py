@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.2)
+"""반등·과열 타이밍 상황판 — desk.json 생성 (Rule v2.3)
+
+v2.3: '매수 기회 전광판'과 '오늘의 해석'을 더했다. 기존 🟢🟡 판정은 그대로다.
+      전광판은 사용자 운영 설정이다 — 노란 점(세 지표가 모두 '많이 빠짐'인 날)을 매수 기회로 본다.
+      되살아나는 신호를 기다리는 기존 판정보다 이르게 켜지므로, 과거 노란 점 다음 날 샀을 때의
+      결과(목표 도달률·가는 길 하락)를 전광판에 같이 적는다.
 
 v2.1: 주봉·월봉 3단 하향 이탈은 ⚠️ 경계로 올리지 않고 남은 위험으로만 표시한다.
       과거 신호에서 그 조건의 목표 도달률이 전체와 차이가 없었다(SOXL 60% vs 65%, TQQQ 67% vs 59%).
@@ -13,7 +18,7 @@ v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아�
 """
 import urllib.request, urllib.parse, csv, io, json, time, datetime, sys
 
-RULE = 'Rule v2.2'
+RULE = 'Rule v2.3'
 UA = {'User-Agent': 'Mozilla/5.0'}
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
 SYMS = ['SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX']
@@ -824,6 +829,124 @@ def past_like(t, rows):
     return st if st['n'] else None
 
 
+# ───────────── 매수 기회 전광판 · 오늘의 해석 ─────────────
+DIP_DAYS = 60     # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
+
+
+def is_dip(I, i):
+    """노란 점: 세 지표가 모두 '많이 빠짐' (%K ≤ 20 · CCI ≤ -100 · RSI ≤ 30)"""
+    k, cc, rs = I['k'][i], I['cci'][i], I['rsi'][i]
+    return None not in (k, cc, rs) and k <= 20 and cc <= -100 and rs <= 30
+
+
+def dip_past(B, I, P):
+    """과거 노란 점마다 다음 거래일 시가에 관찰 상품을 샀다고 가정한 결과.
+       DIP_DAYS 안에 장중 고가가 목표에 닿았는지, 닿기 전 가장 깊은 하락은 얼마였는지"""
+    pidx = {b['d']: i for i, b in enumerate(P)}
+    rows = []; ep = 0
+    for i in range(len(B)):
+        if not is_dip(I, i):
+            continue
+        pi = pidx.get(B[i]['d'])
+        if pi is None or pi + 1 >= len(P):
+            continue
+        new = i == 0 or not is_dip(I, i - 1)
+        entry = P[pi + 1]['o']; mae = 0.0; hit = None
+        end = min(pi + DIP_DAYS, len(P) - 1)
+        for j in range(pi + 1, end + 1):
+            mae = min(mae, P[j]['l'] / entry - 1)
+            if P[j]['h'] >= entry * (1 + TARGET / 100):
+                hit = j - pi
+                break
+        if hit is None and end - pi < DIP_DAYS:
+            continue                                   # 아직 기간이 안 끝난 최근 건은 세지 않는다
+        ep += new                                      # 연속된 노란 점은 한 묶음
+        rows.append((hit, mae * 100))
+    if not rows:
+        return None
+    hits = sorted(h for h, _ in rows if h is not None)
+    return {'n': len(rows), 'ep': ep, 'from': P[0]['d'], 'days': DIP_DAYS,
+            'hit': round(len(hits) / len(rows) * 100),
+            'medD': hits[len(hits) // 2] if hits else None,
+            'maeAvg': round(sum(m for _, m in rows) / len(rows), 1),
+            'maeMax': round(min(m for _, m in rows), 1)}
+
+
+def dip_card(t, base, prod, bars):
+    """전광판 상태와 '오늘의 해석' — 왜 지금이 매수 기회인지(아닌지)를 쉬운 말로"""
+    B = bars[base]; I = indicators(B); last = len(B) - 1
+    P = [b for b in bars[prod] if b['d'] <= B[-1]['d']]
+    S = {b['d']: b['c'] for b in bars['SPY']}
+    pc = {b['d']: b['c'] for b in P}
+    on = is_dip(I, last)
+    run = 0
+    while on and run <= last and is_dip(I, last - run):
+        run += 1
+    li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
+    r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
+         'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
+    if li is not None:
+        d = B[li]['d']
+        r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),
+                     'pmv': pct(P[-1]['c'], pc[d]) if d in pc and P else None}
+    # 최근 한 달 고점에서 얼마나, 며칠 만에 빠졌나. 같은 기간 시장 전체(SPY)는 어땠나
+    w = B[-21:]
+    hi = max(range(len(w)), key=lambda i: w[i]['c'])
+    lo = min(range(hi, len(w)), key=lambda i: w[i]['c'])          # 고점 뒤 가장 낮았던 날
+    drop = pct(w[lo]['c'], w[hi]['c']); days = lo - hi
+    spy = pct(S[w[lo]['d']], S[w[hi]['d']]) if w[lo]['d'] in S and w[hi]['d'] in S else None
+    back = pct(B[-1]['c'], w[lo]['c']) if lo < len(w) - 1 else None   # 저점 뒤 되오른 폭
+    r['drop'] = {'pct': drop, 'days': days, 'from': w[hi]['d'], 'to': w[lo]['d'], 'spy': spy, 'back': back}
+    st = t['state']; lastd = r.get('last'); vix = t['vix']; sig = t.get('sig')
+    md = lambda d: f"{int(d[5:7])}/{int(d[8:10])}"
+    why = []
+    if days and drop <= -3:
+        why.append(f"{base}가 {md(w[hi]['d'])} 고점에서 {days}거래일 만에 <b>{drop}%</b> 내렸습니다" +
+                   (f" (저점 {md(w[lo]['d'])}, 그 뒤 {back:+.1f}%)" if back is not None else ''))
+        if spy is not None:
+            why.append(f"같은 기간 시장 전체(SPY)는 {spy:+.1f}% — " +
+                       ('시장 전체가 함께 빠진 하락입니다' if spy <= drop / 3 else '시장보다 이 종목군이 유독 많이 빠졌습니다'))
+    if on:
+        head = f"지금은 매수 기회일 수 있습니다. {base}가 급하게 내려 세 지표가 모두 '많이 빠짐'에 들어갔습니다(노란 점)."
+        why.append(f"노란 점 {run}일째입니다" if run > 1 else '오늘 노란 점이 새로 켜졌습니다')
+        why.append({'worse': '시장 불안(VIX)이 아직 커지는 중이라 더 빠질 수 있습니다. 한 번에 다 사지 않는 편이 안전합니다',
+                    'fast': '시장 불안(VIX)이 막 꺾이기 시작했습니다',
+                    'confirm': '시장 불안(VIX)은 이미 가라앉고 있습니다',
+                    'neutral': '시장 불안(VIX)은 보통 수준입니다'}[vix])
+        why.append('되살아나는 신호는 아직 없습니다. 바닥을 확인하고 사는 것이 아니라 내려오는 중에 사는 자리입니다')
+    elif t.get('setupUp') and lastd:
+        head = (f"매수 기회 구간이 이어지는 중일 수 있습니다. 노란 점은 {lastd['age']}거래일 전에 꺼졌고, "
+                '아직 되살아나는 신호는 없습니다.')
+        why.append(f"마지막 노란 점({md(lastd['date'])}) 때보다 {base} <b>{lastd['mv']:+.1f}%</b>")
+        why.append(f"{t['setupUp']['left']}거래일 안에 되살아나지 못하면 관찰이 끝납니다")
+    elif st in ('buy', 'watch', 'warn') and sig and sig['valid'] and sig['new']:
+        head = '급락 뒤 되살아나는 중입니다. 가장 싸게 살 수 있던 구간은 지났을 수 있습니다.'
+        if lastd:
+            why.append(f"마지막 노란 점({md(lastd['date'])}) 뒤로 이미 {base} <b>{lastd['mv']:+.1f}%</b>" +
+                       (f" · {prod} <b>{lastd['pmv']:+.1f}%</b>" if lastd['pmv'] is not None else ''))
+        why.append({'worse': '다만 시장 불안(VIX)이 다시 커지고 있어 한 번 더 빠질 수 있습니다',
+                    'fast': '시장 불안(VIX)은 막 꺾이는 중입니다',
+                    'confirm': '시장 불안(VIX)도 가라앉았습니다',
+                    'neutral': '시장 불안(VIX)은 보통 수준입니다'}[vix])
+        why.append(f"{base} 종가가 ${sig['low']} 아래로 가면 되살아나는 신호가 취소됩니다")
+    elif st in ('hot', 'sell'):
+        head = ('지금은 매수 기회가 아닙니다. 많이 오른 뒤 힘이 빠지는 자리입니다.' if st == 'sell'
+                else '지금은 매수 기회가 아닙니다. 많이 올라 과열된 자리입니다.')
+        why = ['세 지표가 모두 \'많이 오름\' 쪽에 있거나 거기서 막 내려왔습니다']
+    else:
+        head = ("많이 내렸지만 아직 매수 기회 신호는 아닙니다. 세 지표가 모두 '많이 빠짐'에 들어가야 노란 점이 켜집니다."
+                if drop <= -8 and back is None else '지금은 매수 기회 신호가 없습니다. 급하게 빠진 상태가 아닙니다.')
+        ok = lambda v: ' ✓' if v else ''
+        why.append(f"노란 점 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 벗어난 정도 {r['cci']} (-100 이하{ok(r['cci'] <= -100)})"
+                   f" · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})")
+        if lastd:
+            why.append(f"마지막 노란 점은 {md(lastd['date'])} ({lastd['age']}거래일 전), 그 뒤 {base} {lastd['mv']:+.1f}%")
+    if t.get('weak') and st not in ('hot', 'sell'):
+        why.append('큰 흐름(주·월 단위)은 아직 약세라, 반등해도 짧게 끝날 수 있습니다')
+    r['head'] = head; r['why'] = why
+    return r
+
+
 def main():
     from zoneinfo import ZoneInfo
     ny = datetime.datetime.now(ZoneInfo('America/New_York'))
@@ -870,6 +993,7 @@ def main():
             t['risks'] = risks(t, vxf)
             t['next'] = next_states(base, t, vx)
             t['hist'] = history(base, prod, bars, t)
+            t['dip'] = dip_card(t, base, prod, bars)
         cards.append(t)
         print(f"{prod}({base}): {t['label']} | {t.get('change', '')}")
 

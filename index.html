@@ -296,6 +296,15 @@ input,select,button{font-family:inherit}
 .srow b{color:var(--ink)}.srow b.g{color:var(--up)}.srow b.r{color:var(--dn)}
 .srow small{color:var(--ink3);font-size:var(--fs-s)}
 .dsum .more{font-size:var(--fs-s);color:var(--on);margin-top:7px}
+.bill{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.bill>div{border-radius:13px;padding:13px 12px;min-width:0;cursor:pointer;background:var(--s2);border:1px solid var(--bd);color:var(--ink3)}
+.bill>div.on{background:var(--st-watch);border-color:var(--st-watch);color:var(--ink)}
+.bill .bn{font-family:var(--mono);font-size:var(--fs-s);font-weight:600}
+.bill .bw{font-size:var(--fs-xl);font-weight:700;line-height:1.2;margin:4px 0;word-break:keep-all}
+.bill .bs{font-size:var(--fs-s);line-height:1.5;margin:0;color:inherit}
+.dread{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--on);border-radius:13px;padding:13px 14px;margin-bottom:10px}
+.dread .rh{font-size:var(--fs-s);color:var(--ink3);font-family:var(--mono);font-weight:600;margin-bottom:4px}
+.dread .rt{font-size:var(--fs-l);font-weight:700;line-height:1.45;word-break:keep-all;margin-bottom:6px}
 .dboard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .dtile{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:11px 12px;cursor:pointer;min-width:0}
 .dtile .th{display:flex;align-items:center;gap:7px;margin-bottom:5px}
@@ -1245,12 +1254,32 @@ const pastBlk=c=>{const p=c.past, s=liveSig(c); if(!p||!s||!s.new)return '';
   return blk('과거 비슷한 때',ul([`${p.cat}: ${p.n}건`,`그중 <b>${p.hit}%</b>가 목표 +${DESK.target}%에 닿음`,
     `가는 길에 평균 ${p.maeAvg}% 더 빠졌음`,'<small>건수가 적어 참고만 하세요</small>']));};
 
+/* 매수 기회 전광판 — 노란 점(세 지표가 모두 '많이 빠짐')인 날 켜진다. 사용자 운영 설정 */
+function billboard(){
+  const C=DESK.cards.filter(c=>c.dip); if(!C.length)return '';
+  const tile=c=>{const d=c.dip, l=d.last;
+    return `<div class="${d.on?'on':''}" data-dt="${c.prod}"><div class="bn">${c.prod} 매수 기회</div><div class="bw">${d.on?'켜짐':'꺼짐'}</div>`+
+      `<div class="bs">${d.on?(d.run>1?`노란 점 ${d.run}일째`:'오늘 노란 점')
+        :l?`마지막 노란 점 ${md(l.date)}<br>${l.age}거래일 전 · 그 뒤 ${sg(l.pmv??l.mv)}`:'최근 1년 노란 점 없음'}</div></div>`;};
+  const p=C[0].dip.past;
+  return `<div class="bill">${C.map(tile).join('')}</div>`+dsec('b','전광판은 이렇게 켜집니다',ul([
+    "<b>노란 점</b>이 찍힌 날 켜집니다. 세 지표가 모두 '많이 빠짐'에 들어간 날입니다",
+    '되살아나는 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
+    '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
+    ...C.filter(c=>c.dip.past).map(c=>{const p=c.dip.past;
+      return `<b>${c.prod}</b> 과거 노란 점 ${p.n}번(연속된 날을 묶으면 ${p.ep}번): 다음 날 샀다면 ${p.days}거래일 안에 +${DESK.target}%에 닿은 비율 <b>${p.hit}%</b>`+
+        (p.medD?` · 보통 ${p.medD}거래일`:'')+` · 가는 길에 평균 <b>${p.maeAvg}%</b>, 가장 깊게는 <b>${p.maeMax}%</b> 더 빠졌음`;}),
+    '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
+}
+/* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
+const readCard=c=>!c.dip?'':`<div class="dread" data-dt="${c.prod}"><div class="rh">${c.prod} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${ul(c.dip.why)}</div>`;
+
 /* 요약 탭: 맨 위 신호등 판 + 종목마다 작은 차트·막대, 글은 그 아래 불렛으로 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix;
   const tile=(dt,cls,name,word,sub)=>`<div class="dtile" data-dt="${dt}"><div class="th"><span class="lamp ${cls}"></span><span class="tt">${name}</span></div><div class="tw">${word}</div><div class="tt">${sub}</div></div>`;
   const ucls=!u?'':u.month.rise>=25?'warn':u.cycle.day>=4&&u.cycle.day<=12?'watch':'';
-  let h=`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.state,c.prod,SW[c.state],c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span>`:'')).join('')+
+  let h=billboard()+D.cards.map(readCard).join('')+`<div class="dboard">`+D.cards.map(c=>tile(c.prod,c.state,c.prod,SW[c.state],c.ind?`<span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span>`:'')).join('')+
     (u?tile('UVIX',ucls,'UVIX',u.cycle.day?`${u.cycle.day}일차`:u.cycle.stage,`저점 대비 ${sg(u.month.rise)}`):'')+
     tile('MKT',v.st==='confirm'?'buy':v.st==='fast'?'watch':v.st,'시장 불안',VE[v.st],`VIX ${v.c}`)+`</div>`;
   h+=D.cards.map(c=>{
@@ -1282,7 +1311,7 @@ function deskSum(){
 
 /* 종목 탭: 자세한 카드 */
 function deskCard(c){
-  let h=`<div class="dcard ${c.state}">${cardHead(c)}<div class="dline">${c.easySub||c.line}</div>`;
+  let h=readCard(c)+`<div class="dcard ${c.state}">${cardHead(c)}<div class="dline">${c.easySub||c.line}</div>`;
   if(c.state==='wait')return h+'</div>';
   h+=`<div class="dterm">용어로는: ${c.label.split(' ').slice(1).join(' ')}</div>`;
   if(c.badges&&c.badges.length)h+=`<div class="dchips">${c.badges.map(b=>`<span>${CHIP[b]||b}</span>`).join('')}</div>`;
@@ -1392,9 +1421,11 @@ function secRules(){
       'UVIX: 저점에서 +10% 넘게 반등한 뒤 다시 사상 최저가를 깨면 1일차','그 뒤 최저가를 또 깨도 1일차는 그대로']))+
     blk('운영 설정 <small>원문에 확정된 규칙이 아님</small>',ul(['되살아남 인정 기간: 10거래일','신호 취소: 기준자산 <b>종가</b>가 취소선 아래로 갈 때',
       `목표 +${D.target}%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
-      'UVIX의 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님','새 신호로 보는 기간: 3거래일']))+
+      'UVIX의 +10%는 사이클이 끝났다는 뜻이지 익절 기준이 아님','새 신호로 보는 기간: 3거래일',
+      "매수 기회 전광판: 노란 점(세 지표가 모두 '많이 빠짐')인 날 켜짐. 🟢🟡 판정과는 따로 움직임"]))+
     blk('과거 자료로 고친 것',ul(['v2.1: 주·월 단위로 꺾인 상태는 보류 사유가 아니라 조심할 점으로만 표시',
-      'v2.2: 시장 불안이 막 꺾일 때 나온 신호는 🟢가 아니라 🟡','<small>과거 목표 도달: 불안이 가라앉은 뒤 67% · 막 꺾일 때 48%</small>']))+
+      'v2.2: 시장 불안이 막 꺾일 때 나온 신호는 🟢가 아니라 🟡','<small>과거 목표 도달: 불안이 가라앉은 뒤 67% · 막 꺾일 때 48%</small>',
+      'v2.3: 매수 기회 전광판과 오늘의 해석 추가 (기존 판정은 그대로)']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉 <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '모든 가격은 <b>현재 분할·병합 보정 기준</b>','<small>예: SOXX 2025년 4월 저점 $51.62는 당시 가격으로 약 $154.86 (2026-11-05 3:1 분할)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
