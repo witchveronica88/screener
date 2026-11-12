@@ -16,10 +16,11 @@ v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아�
 주봉·월봉 상위 추세, UVIX 사이클을 합쳐 '현재 판단' 카드를 만든다.
 어제 판정은 마지막 봉을 뺀 자료로 같은 계산을 한 번 더 돌려 구한다(미래 참조 금지).
 """
-import urllib.request, urllib.parse, csv, io, json, time, datetime, sys
+import urllib.request, csv, io, json, time, datetime, sys
+from market import (UA, fetch, sma, stoch_k, cci, rsi_w, boll, indicators,   # 가격 받기 · 지표 · 노란 점은 종가 수집과 같이 쓴다
+                    is_dip, dip_past, TARGET, DIP_DAYS)
 
 RULE = 'Rule v2.3'
-UA = {'User-Agent': 'Mozilla/5.0'}
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
 SYMS = ['SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX']
 NEW_DAYS = 3      # 신규 신호 강조: 발생일 포함 3거래일 (D+0~D+2)
@@ -27,32 +28,6 @@ WINDOW = 10       # 준비 이후 순차 회복·이탈 허용 거래일
 
 
 # ───────────── 자료 받기 ─────────────
-def fetch(sym):
-    """일봉 [{d,o,h,l,c}] (오래된 순). 실패하면 빈 리스트"""
-    url = (f'https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}'
-           f'?period1=0&period2={int(time.time())}&interval=1d')
-    for attempt in range(3):
-        try:
-            req = urllib.request.Request(url, headers=UA)
-            with urllib.request.urlopen(req, timeout=25) as r:
-                j = json.load(r)
-            res = j['chart']['result'][0]
-            q = res['indicators']['quote'][0]
-            out = []
-            for t, o, h, l, c in zip(res['timestamp'], q['open'], q['high'], q['low'], q['close']):
-                if c is None:
-                    continue
-                d = datetime.datetime.fromtimestamp(t, datetime.timezone.utc).date().isoformat()
-                out.append({'d': d, 'o': o, 'h': h if h is not None else c,
-                            'l': l if l is not None else c, 'c': c})
-            if out:
-                return out
-        except Exception as e:
-            print(f'  yahoo 실패 {sym} ({attempt+1}/3): {e}')
-            time.sleep(2)
-    return []
-
-
 def fetch_vx(date):
     """Cboe 일일 정산가에서 VIX 선물 근월·차근월 (만기가 date 뒤인 월물 순). 실패하면 None"""
     try:
@@ -72,73 +47,6 @@ def fetch_vx(date):
     except Exception as e:
         print(f'  VIX 선물 실패: {e}')
     return None
-
-
-# ───────────── 지표 ─────────────
-def sma(v, n):
-    out = [None] * len(v); s = 0.0
-    for i, x in enumerate(v):
-        s += x
-        if i >= n: s -= v[i-n]
-        if i >= n-1: out[i] = s / n
-    return out
-
-
-def stoch_k(B, n=5):
-    """평활하지 않은 Fast %K"""
-    out = [None] * len(B)
-    for i in range(n-1, len(B)):
-        hh = max(b['h'] for b in B[i-n+1:i+1]); ll = min(b['l'] for b in B[i-n+1:i+1])
-        out[i] = 50.0 if hh == ll else (B[i]['c'] - ll) / (hh - ll) * 100
-    return out
-
-
-def cci(B, n=20):
-    tp = [(b['h'] + b['l'] + b['c']) / 3 for b in B]
-    out = [None] * len(B)
-    for i in range(n-1, len(B)):
-        w = tp[i-n+1:i+1]; m = sum(w) / n
-        md = sum(abs(x - m) for x in w) / n
-        out[i] = 0.0 if md == 0 else (tp[i] - m) / (0.015 * md)
-    return out
-
-
-def rsi_w(c, n=14):
-    """Wilder RSI"""
-    out = [None] * len(c)
-    if len(c) < n + 1:
-        return out
-    d = [c[i] - c[i-1] for i in range(1, len(c))]
-    g = sum(x for x in d[:n] if x > 0) / n
-    l = sum(-x for x in d[:n] if x < 0) / n
-    out[n] = 100.0 if l == 0 else 100 - 100 / (1 + g / l)
-    for i in range(n, len(d)):
-        g = (g * (n-1) + max(d[i], 0)) / n
-        l = (l * (n-1) + max(-d[i], 0)) / n
-        out[i+1] = 100.0 if l == 0 else 100 - 100 / (1 + g / l)
-    return out
-
-
-def boll(c, n=20, k=2):
-    m = sma(c, n); up = [None] * len(c); lo = [None] * len(c)
-    for i in range(n-1, len(c)):
-        w = c[i-n+1:i+1]
-        sd = (sum((x - m[i]) ** 2 for x in w) / n) ** 0.5
-        up[i] = m[i] + k * sd; lo[i] = m[i] - k * sd
-    return m, up, lo
-
-
-def indicators(B):
-    c = [b['c'] for b in B]
-    k = stoch_k(B)
-    kd = [None] * len(B)
-    for i in range(len(B)):
-        if i >= 2 and None not in k[i-2:i+1]:
-            kd[i] = sum(k[i-2:i+1]) / 3
-    m50 = sma(c, 50)
-    bm, bu, bl = boll(c)
-    return {'k': k, 'd': kd, 'cci': cci(B), 'rsi': rsi_w(c), 'bu': bu, 'bl': bl, 'm50': m50,
-            'disp': [c[i] / m50[i] * 100 if m50[i] else None for i in range(len(c))]}
 
 
 # ───────────── SCR 3단 신호 ─────────────
@@ -610,7 +518,6 @@ def history(base, prod, bars, today, n=21):
 
 # ───────────── 성적표 · 이벤트 로그 · 요약표 · 판정 기록 ─────────────
 COST = 0.2        # 왕복 거래비용 가정 (%)
-TARGET = 10       # 목표 수익 (%)
 
 
 def div_all(B, I):
@@ -830,48 +737,6 @@ def past_like(t, rows):
 
 
 # ───────────── 매수 기회 전광판 · 오늘의 해석 ─────────────
-DIP_DAYS = 60     # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
-
-
-def is_dip(I, i):
-    """노란 점: 세 지표가 모두 '많이 빠짐' (%K ≤ 20 · CCI ≤ -100 · RSI ≤ 30)"""
-    k, cc, rs = I['k'][i], I['cci'][i], I['rsi'][i]
-    return None not in (k, cc, rs) and k <= 20 and cc <= -100 and rs <= 30
-
-
-def dip_past(B, I, P):
-    """과거 노란 점마다 다음 거래일 시가에 관찰 상품을 샀다고 가정한 결과.
-       DIP_DAYS 안에 장중 고가가 목표에 닿았는지, 닿기 전 가장 깊은 하락은 얼마였는지"""
-    pidx = {b['d']: i for i, b in enumerate(P)}
-    rows = []; ep = 0
-    for i in range(len(B)):
-        if not is_dip(I, i):
-            continue
-        pi = pidx.get(B[i]['d'])
-        if pi is None or pi + 1 >= len(P):
-            continue
-        new = i == 0 or not is_dip(I, i - 1)
-        entry = P[pi + 1]['o']; mae = 0.0; hit = None
-        end = min(pi + DIP_DAYS, len(P) - 1)
-        for j in range(pi + 1, end + 1):
-            mae = min(mae, P[j]['l'] / entry - 1)
-            if P[j]['h'] >= entry * (1 + TARGET / 100):
-                hit = j - pi
-                break
-        if hit is None and end - pi < DIP_DAYS:
-            continue                                   # 아직 기간이 안 끝난 최근 건은 세지 않는다
-        ep += new                                      # 연속된 노란 점은 한 묶음
-        rows.append((hit, mae * 100))
-    if not rows:
-        return None
-    hits = sorted(h for h, _ in rows if h is not None)
-    return {'n': len(rows), 'ep': ep, 'from': P[0]['d'], 'days': DIP_DAYS,
-            'hit': round(len(hits) / len(rows) * 100),
-            'medD': hits[len(hits) // 2] if hits else None,
-            'maeAvg': round(sum(m for _, m in rows) / len(rows), 1),
-            'maeMax': round(min(m for _, m in rows), 1)}
-
-
 def dip_card(t, base, prod, bars):
     """전광판 상태와 '오늘의 해석' — 왜 지금이 매수 기회인지(아닌지)를 쉬운 말로"""
     B = bars[base]; I = indicators(B); last = len(B) - 1
@@ -948,14 +813,9 @@ def dip_card(t, base, prod, bars):
 
 
 def main():
-    from zoneinfo import ZoneInfo
-    ny = datetime.datetime.now(ZoneInfo('America/New_York'))
     bars = {}
     for s in SYMS:
-        bars[s] = fetch(s)
-        # 장이 아직 안 끝난 오늘 봉은 확정 종가가 아니므로 뺀다 (장중에 수동 실행한 경우)
-        if bars[s] and bars[s][-1]['d'] == ny.date().isoformat() and (ny.hour, ny.minute) < (16, 15):
-            bars[s].pop()
+        bars[s] = fetch(s)          # 장이 아직 안 끝난 오늘 봉은 빠져 있다
         print(f'{s}: {len(bars[s])}봉' + (f" ~ {bars[s][-1]['d']}" if bars[s] else ''))
         time.sleep(0.4)
     need = ['SOXX', 'QQQ', '^VIX', 'SPY']
