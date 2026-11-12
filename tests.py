@@ -167,6 +167,8 @@ class EtfList(unittest.TestCase):
             self.assertIsInstance(e['warns'], list)
             self.assertIsInstance(e['scen'], list)
             self.assertNotIn('미회복', e['warns'], '회복 여부는 손으로 적지 않는다')
+            for w in ('유동성 낮음', '이력 부족'):
+                self.assertNotIn(w, e['warns'], w + '은 거래대금·거래일 수로 계산한다')
             if 'base' in e:
                 self.assertIn(e['mult'], (2, 3))
         for t, x in j.get('extra', {}).items():

@@ -147,9 +147,9 @@ input,select,button{font-family:inherit}
 .dipbox .dh{font-size:var(--fs-l);font-weight:700;color:var(--ink)}
 .dipbox .bl,.best .bl{flex-wrap:wrap;row-gap:2px}
 .dipbox .bv,.best .bv{order:5;flex-basis:100%;white-space:normal}
-.dipbox .bw{order:6;flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px}
-.dipbox .bw i{font-style:normal;font-size:var(--fs-s);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 7px}
-.dipbox .bw i.ok{color:var(--up)}
+.dipbox .bw,.best .bw{order:6;flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px}
+.dipbox .bw i,.best .bw i{font-style:normal;font-size:var(--fs-s);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 7px}
+.dipbox .bw i.ok,.best .bw i.ok{color:var(--up)}
 .dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:8px 0 10px}
 .best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
 .bt{font-size:var(--fs-l);letter-spacing:.02em;color:var(--on);font-weight:700}
@@ -576,7 +576,9 @@ const rsiBy=L=>L&&L.dip&&L.dip.base?L.dip.base+' ':'';
 /* 종목에 붙는 짧은 경고. 목록 줄과 노란 점 상자가 같이 쓴다 */
 function warnTags(tk,L){
   const F=FUND[tk], cus=!KNOWN.has(tk), w=[];
+  const e=D.find(r=>r[0]===tk);
   if(L&&L.stale) w.push('종가 갱신 안 됨');
+  if(e&&e[14].includes('ETN 구조')) w.push('ETN 구조');
   if(recOf(L,cus)==='미회복') w.push('미회복');
   if(crashCaut(L)) w.push('급락 동반');
   if(cashLow(F)) w.push('현금 주의');
@@ -879,10 +881,11 @@ function render(){
   const bestHtml=best.length?`<div class="best">
       <div class="bt">기준 통과 상위 ${best.length}</div>
       <div class="bs">통과 많은 순 → 많이 출렁이는 순 · 같이 움직이는 종목은 하나만</div>
-      ${best.map(x=>`<div class="bl" data-go="${x.tk}">
+      ${best.map(x=>{const w=warnTags(x.tk,x.L);return `<div class="bl" data-go="${x.tk}">
         <span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
         <span class="bv">σ ${x.sig.toFixed(1)}% · ${x.ok}/4</span>
-        <span class="bm">${money(seedMin(x.p))}</span></div>`).join('')}
+        <span class="bm">${money(seedMin(x.p))}</span>
+        <span class="bw">${w.length?w.map(t=>`<i>${t}</i>`).join(''):'<i class="ok">경고 없음</i>'}</span></div>`;}).join('')}
     </div>`:'';
 
   /* 종목 첫 화면 맨 위 — 노란 점이 켜진 종목. 없으면 최근 3거래일 안에 꺼진 종목 */
