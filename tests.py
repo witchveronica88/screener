@@ -176,5 +176,47 @@ class EtfList(unittest.TestCase):
         self.assertEqual([e['tk'] for e in j['etfs'] if not e.get('base')], ['AIBU'])
 
 
+class FlowStage(unittest.TestCase):
+    def card(self, state, sig=None, dip=None, setup=None, weak=False, prod='SOXL'):
+        return {'prod': prod, 'base': 'SOXX', 'state': state, 'sig': sig, 'dip': dip or {'on': False},
+                'setupUp': setup, 'weak': weak, 'easy': {'head': '어제와 같은 판단', 'why': []}}
+
+    def sig(self, age=1, valid=True):
+        return {'age': age, 'new': age < 3, 'valid': valid, 'low': 100.0, 'dist': 5.0}
+
+    def test_stages(self):
+        self.assertEqual(desk.stage_of(self.card('neutral'))['i'], 0)
+        self.assertEqual(desk.stage_of(self.card('watch', dip={'on': True, 'run': 2}))['i'], 1)
+        self.assertEqual(desk.stage_of(self.card('watch', setup={'left': 4}))['i'], 1)
+        b = desk.stage_of(self.card('buy', self.sig()))
+        self.assertEqual((b['i'], b['cls']), (2, 'buy'))
+        self.assertIn('취소선 SOXX $100.0', b['lines'][0])
+        self.assertEqual(desk.stage_of(self.card('warn', self.sig()))['cls'], 'warn')
+        self.assertEqual(desk.stage_of(self.card('neutral', self.sig(age=10)))['i'], 2)   # 새 신호는 없지만 반등이 이어짐
+        self.assertEqual(desk.stage_of(self.card('hot'))['i'], 3)
+        self.assertEqual(desk.stage_of(self.card('sell'))['i'], 4)
+        self.assertIsNone(desk.stage_of(self.card('wait'))['i'])
+
+    def test_dip_shows_past_results(self):
+        past = {'n': 26, 'hit': 92, 'days': 60, 'maeAvg': -17.1}
+        g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}))
+        self.assertIn('과거 노란 점 26번', g['lines'][0])
+
+    def test_headline(self):
+        last = {'date': '2026-11-05', 'pmv': 61.6}
+        cs = [self.card('buy', self.sig(), dip={'on': False, 'last': last}, weak=True, prod=p) for p in ('SOXL', 'TQQQ')]
+        for c in cs:
+            c['stage'] = desk.stage_of(c)
+        h = desk.headline(cs, {'st': 'confirm'})
+        self.assertTrue(h.startswith('반도체(SOXL)·나스닥(TQQQ) 모두 급락 뒤 반등이 확인됐습니다.'), h)
+        # '다만 …'은 한 문장: 앞은 '…고', 마지막은 '…니다'
+        self.assertIn('다만 가장 싸게 살 수 있던 자리(11/5)는 지났고, 큰 흐름(주·월 단위)은 아직 약세입니다.', h)
+        cs[1] = self.card('neutral', prod='TQQQ'); cs[1]['stage'] = desk.stage_of(cs[1])
+        h = desk.headline(cs, {'st': 'worse'})
+        self.assertIn('반도체(SOXL)는 급락 뒤', h)
+        self.assertIn('나스닥(TQQQ)은 뚜렷한 신호가 없습니다', h)
+        self.assertIn('시장 불안(VIX)이 커지는 중', h)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -815,6 +815,89 @@ def dip_card(t, base, prod, bars):
     return r
 
 
+# ───────────── 흐름 단계 · 결론 한 문장 (요약 탭 첫 화면) ─────────────
+STAGES = ['평소', '노란 점', '반등', '과열', '꺾임']
+NAMES = {'SOXL': ('반도체(SOXL)', '는'), 'TQQQ': ('나스닥(TQQQ)', '은')}   # 결론 문장에 쓰는 이름과 조사
+
+
+def md_(d):
+    return f"{int(d[5:7])}/{int(d[8:10])}"
+
+
+def stage_of(t):
+    """흐름 단계 — 평소 → 노란 점 → 반등 → 과열 → 꺾임 중 지금 어디쯤인지.
+       노란 점(매수 기회)과 🟢🟡 판정은 각자 계산한 그대로이고, 여기서는 한 줄에 놓기만 한다.
+       반환: i(단계 번호, 자료가 없으면 None) · cls(색) · text(짧은 상태) · say(결론 문장에 쓰는 말) · lines(두세 줄)"""
+    st, s, d = t['state'], t.get('sig'), t.get('dip') or {}
+    if st == 'wait':
+        return {'i': None, 'cls': 'wait', 'text': '자료 확인 중', 'say': '자료를 확인하는 중입니다', 'lines': []}
+    live = s and s['valid'] and s['age'] <= 60
+    if st == 'hot':
+        r = (3, 'hot', '많이 올라 과열', '많이 올라 과열이라 추격은 조심할 자리입니다')
+    elif st == 'sell':
+        r = (4, 'sell', '과열 뒤 꺾임', '많이 오른 뒤 꺾였습니다')
+    elif d.get('on'):
+        r = (1, 'watch', f"노란 점 {d['run']}일째 · 바닥 확인 전",
+             '노란 점이 켜져 싸게 살 수 있는 자리지만, 바닥을 확인하기 전입니다')
+    elif st in ('buy', 'watch', 'warn') and s and s['new'] and s['valid']:
+        n = s['age'] + 1
+        r = {'buy': (2, 'buy', f'반등 {n}일째 · 확인됨', '급락 뒤 반등이 확인됐습니다'),
+             'watch': (2, 'watch', f'반등 {n}일째 · 시장 불안 확인 대기', '반등 신호는 났지만 시장 불안이 아직 덜 가라앉았습니다'),
+             'warn': (2, 'warn', f'반등 {n}일째 · 시장 불안 커져 보류', '반등 신호는 났지만 시장 불안이 다시 커져 보류입니다')}[st]
+    elif t.get('setupUp'):
+        r = (1, 'watch', '많이 빠진 뒤 반등 기다리는 중', '많이 빠진 뒤 반등을 기다리는 중입니다')
+    elif live:
+        r = (2, 'neutral', f"반등 신호 뒤 {s['age']}거래일 · 새 신호 없음", '급락 뒤 반등이 이어지는 중입니다(새 신호는 없음)')
+    else:
+        r = (0, 'neutral', '뚜렷한 신호 없음', '뚜렷한 신호가 없습니다')
+    lines = []
+    last, past = d.get('last'), d.get('past')
+    if d.get('on') and past:
+        lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['hit']}%가 {past['days']}거래일 안에 +{TARGET}% · "
+                     f"가는 길에 평균 {past['maeAvg']}% 더 빠짐")
+    elif last and last.get('pmv') is not None:
+        lines.append(f"노란 점({md_(last['date'])}) 뒤 {t['prod']} <b>{last['pmv']:+.1f}%</b>")
+    if live:
+        lines.append(f"취소선 {t['base']} ${s['low']} · 지금보다 {s['dist']:.1f}% 아래")
+    elif t.get('setupUp'):
+        lines.append(f"{t['setupUp']['left']}거래일 안에 반등 신호가 나와야 합니다")
+    e = t.get('easy') or {}
+    if e.get('head') == '어제와 판단이 달라짐' and e.get('why'):
+        lines.append('어제와 달라짐: ' + e['why'][0])
+    return {'i': r[0], 'cls': r[1], 'text': r[2], 'say': r[3], 'lines': lines}
+
+
+def headline(cards, vx):
+    """두 종목을 합친 결론 한 문장(+ 다만 …). 같은 단계면 '모두'로 묶는다"""
+    groups = {}
+    for c in cards:
+        g = c.get('stage') or stage_of(c)
+        groups.setdefault((g['i'], g['cls']), (g['say'], []))[1].append(c['prod'])
+    out = []
+    for say, prods in groups.values():
+        if len(prods) > 1:
+            subj = '·'.join(NAMES.get(p, (p, '는'))[0] for p in prods) + ' 모두'
+        else:
+            nm, j = NAMES.get(prods[0], (prods[0], '는')); subj = nm + j
+        out.append(f'{subj} {say}.')
+    # '다만 …'은 한 문장으로 잇는다 (앞 것은 '…고', 마지막은 '…니다')
+    live = [c for c in cards if c['state'] != 'wait']
+    rebound = [c for c in live if (c.get('stage') or {}).get('i') == 2]
+    dates = sorted({c['dip']['last']['date'] for c in rebound
+                    if c.get('dip') and c['dip'].get('last') and not c['dip']['on']})
+    but = []
+    if dates:
+        d = ', '.join(md_(x) for x in dates)
+        but.append((f'가장 싸게 살 수 있던 자리({d})는 지났고', f'가장 싸게 살 수 있던 자리({d})는 지났습니다'))
+    if live and all(c.get('weak') for c in live) and any((c.get('stage') or {}).get('i') in (1, 2) for c in live):
+        but.append(('큰 흐름(주·월 단위)은 아직 약세이고', '큰 흐름(주·월 단위)은 아직 약세입니다'))
+    if vx and vx['st'] == 'worse' and not any(c['state'] == 'warn' for c in live):
+        but.append(('시장 불안(VIX)이 커지는 중이고', '시장 불안(VIX)이 커지는 중입니다'))
+    if but:
+        out.append('다만 ' + ', '.join([x[0] for x in but[:-1]] + [but[-1][1]]) + '.')
+    return ' '.join(out)
+
+
 def main():
     bars = {}
     for s in SYMS:
@@ -857,6 +940,7 @@ def main():
             t['risks'] = risks(t, vxf)
             t['next'] = next_states(base, t, vx)
             t['hist'] = history(base, prod, bars, t)
+            t['stage'] = stage_of(t)
         cards.append(t)
         print(f"{prod}({base}): {t['label']} | {t.get('change', '')}")
 
@@ -884,7 +968,8 @@ def main():
            'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
            'cards': cards,
            'uvix': uvix_card(bars['UVIX'], bars['VXX']) if len(bars['UVIX']) > 60 else None,
-           'market': market_card(bars['SPY'], bars['^VIX'], vx, vxf)}
+           'market': market_card(bars['SPY'], bars['^VIX'], vx, vxf),
+           'headline': headline(cards, vx)}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     save_log(out)
