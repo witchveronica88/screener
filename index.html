@@ -410,8 +410,8 @@ input,select,button{font-family:inherit}
     <h4>노란 점</h4>
     <div class="hitem"><div class="hterm">노란 점 — 매수 기회 표시</div>
       <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 매수 기회 전광판과 같은 계산이다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일이다.</div></div>
-    <div class="hitem"><div class="hterm">상황판과 다른 점</div>
-      <div class="hdef">여기서는 <b>그 종목 자체의 가격</b>으로 판정한다. 상황판은 기초자산(SOXX·QQQ)으로 판정하므로 SOXL의 노란 점 날짜가 하루쯤 다를 수 있다.</div></div>
+    <div class="hitem"><div class="hterm">무엇으로 판정하나</div>
+      <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 섹션 제목에 'SOXX 기준'처럼 적는다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정한다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정한다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치다.</div></div>
     <div class="hitem"><div class="hterm">과거 결과</div>
       <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 센다. 종목마다 따로 계산한다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나온다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있다.</div></div>
   </div>
@@ -1019,19 +1019,19 @@ function render(){
             <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
         </div>
 
-        ${L&&L.dip?(d=>`<div class="sec"><span>노란 점</span><i></i></div>
+        ${L&&L.dip?(d=>`<div class="sec"><span>노란 점${d.base?' · '+d.base+' 기준':''}</span><i></i></div>
         <div class="spec">
           <div><div class="sk">지금</div><div class="sv">${d.on
             ?`<span class="bg r-new">켜짐</span> <span class="q">${d.run>1?d.run+'일째':'오늘'}</span>`
             :'<span class="bg r-none">꺼짐</span>'}</div></div>
           <div><div class="sk">마지막 노란 점</div><div class="sv">${d.last&&!d.on
-            ?`<span class="u">${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)}</span> <span class="q">${d.last.age}거래일 전</span><br><span class="u">${d.last.mv>0?'+':''}${d.last.mv}%</span> <span class="q">그 뒤</span>`
+            ?`<span class="u">${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)}</span> <span class="q">${d.last.age}거래일 전</span><br><span class="u">${(d.last.pmv??d.last.mv)>0?'+':''}${d.last.pmv??d.last.mv}%</span> <span class="q">그 뒤${d.base?' '+tk:''}</span>`
             :d.on?'<span class="q">지금 켜져 있음</span>':'<span class="q">최근 1년 없음</span>'}</div></div>
-          <div class="wide"><div class="sk">조건: 빠르기 ${d.k} (20 이하${d.k<=20?' ✓':''}) · 벗어난 정도 ${d.cci} (−100 이하${d.cci<=-100?' ✓':''}) · 힘 ${d.rsi} (30 이하${d.rsi<=30?' ✓':''})</div></div>
+          <div class="wide"><div class="sk">${d.base?d.base+' ':''}조건: 빠르기 ${d.k} (20 이하${d.k<=20?' ✓':''}) · 벗어난 정도 ${d.cci} (−100 이하${d.cci<=-100?' ✓':''}) · 힘 ${d.rsi} (30 이하${d.rsi<=30?' ✓':''})</div></div>
           ${d.past?`<div><div class="sk">과거 +10% 도달</div><div class="sv"><span class="u">${d.past.hit}%</span> <span class="q">${d.past.n}번 중</span>${
               d.past.medD?`<br><span class="u">${d.past.medD}거래일</span> <span class="q">보통</span>`:''}</div></div>
           <div><div class="sk">가는 길 하락</div><div class="sv"><span class="u">${d.past.maeAvg}%</span> <span class="q">평균</span><br><span class="u">${d.past.maeMax}%</span> <span class="q">최악</span></div></div>
-          <div class="wide"><div class="sk">${d.past.from.slice(0,4)}년부터 · 노란 점 다음 날 시가에 샀다고 가정 · ${d.past.days}거래일 안${d.past.n<10?' · 횟수가 적어 믿기 어려움':''}</div></div>`
+          <div class="wide"><div class="sk">${d.past.from.slice(0,4)}년부터 · 노란 점 다음 날 시가에 ${d.base?tk+' ':''}매수 가정 · ${d.past.days}거래일 안${d.past.n<10?' · 횟수가 적어 믿기 어려움':''}</div></div>`
           :'<div class="wide"><div class="sk">과거 노란 점이 없어 결과를 낼 수 없음</div></div>'}
         </div>`)(L.dip):''}
 

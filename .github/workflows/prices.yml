@@ -168,6 +168,7 @@ jobs:
               return sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None
 
           # 레버리지 상품 → (참조 ETF, 일일 배수). index.html 종목 표 D의 배수·참조ETF 열과 같게 유지한다.
+          # RAM·SOLT·BOIL은 종목 표에 참조 ETF가 없어 여기서만 기초자산을 정했다. AIBU는 맞는 1배 ETF가 없어 뺀다.
           # 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치다.
           REF = {}
           for row in """SOXL:SOXX:3 TNA:IWM:3 TMF:TLT:3 TYD:IEF:3 NAIL:ITB:3 DRN:XLRE:3 UTSL:XLU:3 NUGT:GDX:2
@@ -175,7 +176,7 @@ jobs:
           FAS:XLF:3 DPST:KRE:3 DUSL:XLI:3 TPOR:XTN:3 WANT:XLY:3 RETL:XRT:3 LABU:XBI:3 CURE:XLV:3 PILL:XPH:3
           DFEN:ITA:3 URAA:URA:2 TECL:XLK:3 WEBL:FDN:3 UBOT:BOTZ:2 QQQU:MAGS:2 YINN:FXI:3 CWEB:KWEB:2
           CHAU:ASHR:2 INDL:INDA:2 EDC:EEM:3 KORU:EWY:3 EURL:VGK:3 BRZU:EWZ:2 MEXX:EWW:3 BITX:IBIT:2
-          ETHU:ETHA:2""".split():
+          ETHU:ETHA:2 RAM:DRAM:2 SOLT:SOLZ:2 BOIL:UNG:2""".split():
               a, b, c = row.split(':')
               REF[a] = (b, int(c))
 
@@ -222,11 +223,15 @@ jobs:
               sxx = sum((x - mx) ** 2 for x in xs); syy = sum((y - my) ** 2 for y in ys)
               return mx * 100, my * 100, (sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None), n
 
-          def yellow(h):
-              """노란 점(세 지표가 모두 '많이 빠짐': %K ≤ 20 · CCI ≤ -100 · RSI ≤ 30) — 이 종목 자체 가격으로 판정.
-                 상황판 전광판과 같은 계산이지만, 상황판은 기초자산(SOXX·QQQ)으로 판정한다는 점이 다르다"""
-              B = [{'d': x[0], 'c': x[1], 'o': x[4], 'h': max(x[5], x[1]), 'l': min(x[6], x[1])} for x in h]
-              if len(B) < 30:
+          def yellow(h, hp=None, base=None):
+              """노란 점(세 지표가 모두 '많이 빠짐': %K ≤ 20 · CCI ≤ -100 · RSI ≤ 30). 상황판 전광판과 같은 계산.
+                 h: 판정에 쓰는 가격. hp가 있으면 h는 기초자산이고 hp가 실제로 사는 상품이다(상황판의 SOXX→SOXL과 같은 방식)"""
+              bar = lambda x: {'d': x[0], 'c': x[1], 'o': x[4], 'h': max(x[5], x[1]), 'l': min(x[6], x[1])}
+              B = [bar(x) for x in h]
+              if hp:
+                  B = [b for b in B if b['d'] <= hp[-1][0]]
+              P = [bar(x) for x in hp if x[0] <= B[-1]['d']] if hp and B else B
+              if len(B) < 30 or not P or P[-1]['d'] != B[-1]['d']:
                   return None
               I = desk.indicators(B); last = len(B) - 1
               on = desk.is_dip(I, last); run = 0
@@ -234,10 +239,15 @@ jobs:
                   run += 1
               li = next((i for i in range(last, max(last - 250, 0), -1) if desk.is_dip(I, i)), None)
               r = {'on': on, 'run': run, 'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1),
-                   'rsi': round(I['rsi'][-1], 1), 'past': desk.dip_past(B, I, B)}
+                   'rsi': round(I['rsi'][-1], 1), 'past': desk.dip_past(B, I, P)}
+              if base:
+                  r['base'] = base
               if li is not None:
-                  r['last'] = {'date': B[li]['d'], 'age': last - li,
-                               'mv': round((B[-1]['c'] / B[li]['c'] - 1) * 100, 1)}
+                  d = B[li]['d']
+                  r['last'] = {'date': d, 'age': last - li, 'mv': round((B[-1]['c'] / B[li]['c'] - 1) * 100, 1)}
+                  pc = next((x['c'] for x in P if x['d'] == d), None) if hp else None
+                  if pc:
+                      r['last']['pmv'] = round((P[-1]['c'] / pc - 1) * 100, 1)
               return r
 
           # 지난 수집 결과 — 이번에 실패한 종목은 이 값을 그대로 둔다
@@ -248,6 +258,7 @@ jobs:
 
           data = {}
           series = {}   # 상관 계산용 {티커: {날짜: 종가}}
+          hist = {}     # 노란 점을 기초자산으로 다시 판정할 때 쓰는 상품 일봉
           adj = {}      # 기초자산 대비 비교용 {티커: {날짜: 수정종가}} 최근 1년 남짓
           for tk in TICKERS:
               h = history(tk)
@@ -294,6 +305,7 @@ jobs:
               series[tk] = dict(zip(dates, closes))
               adj[tk] = {x[0]: x[3] for x in h[-260:]}
               rec['dip'] = yellow(h)
+              hist[tk] = h
               print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}% 거래대금 ${rec['dv']}M")
               time.sleep(0.4)
 
@@ -328,13 +340,19 @@ jobs:
                                            'corr': round(x[2], 2) if x[2] is not None else None, 'n': x[3]}
 
           # 기초자산(참조 ETF) 대비 최근 1년 수익률 — 수정종가 기준, 두 종목 모두 값이 있는 날만
-          refh = {}
+          refh = {}; refH = {}
           for tk, (ref, lev) in REF.items():
               if tk not in adj:
                   continue
               if ref not in refh:
-                  refh[ref] = {x[0]: x[3] for x in history(ref)[-260:]}
+                  refH[ref] = history(ref)
+                  refh[ref] = {x[0]: x[3] for x in refH[ref][-260:]}
                   time.sleep(0.4)
+              # 레버리지 상품의 노란 점은 기초자산으로 판정한다. 기초자산을 못 받으면 상품 자체 판정을 그대로 둔다
+              if refH[ref]:
+                  y = yellow(refH[ref], hist[tk], ref)
+                  if y:
+                      data[tk]['dip'] = y
               ds = sorted(d for d in adj[tk] if d in refh[ref])[-251:]
               if len(ds) < 60:
                   continue
