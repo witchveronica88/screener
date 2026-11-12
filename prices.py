@@ -146,6 +146,7 @@ def record(h):
         'peak': round(peak, 2),
         'dd1y': round((closes[-1]/peak1y - 1) * 100, 1),
         'peak1y': round(peak1y, 2),
+        'low1y': round(min(closes[-250:]), 2),                   # 1년 최저 종가 (1년 범위 막대)
         'mddCalc': round(maxdd(closes), 1),
         'bars': len(closes),
         'dv': round(sum(tv) / len(tv) / 1e6, 1) if tv else None,   # 하루 평균 거래대금 ($M)

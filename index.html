@@ -112,7 +112,7 @@ input,select,button{font-family:inherit}
 /* ── 상세 ── */
 .det{display:none;padding:0 16px 20px;border-top:1px solid var(--bd)}
 .row.open .det{display:block}
-.sec{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.sec{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
 .sec span{font-size:var(--fs-l);color:var(--ink);
           font-weight:700;flex-shrink:0}
 .sec i{flex:1;height:1px;background:var(--bd);display:block}
@@ -126,14 +126,64 @@ details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{content:'＋';color:var(--ink3);font-size:var(--fs-m);flex-shrink:0}
 details.fold[open]>summary::after{content:'－'}
 
-/* 시세 스탯바 */
-.px{display:flex;flex-wrap:wrap;gap:1px;background:var(--bd);border-radius:11px;overflow:hidden}
-.px>div{flex:1 1 72px;min-width:0;padding:10px 6px;text-align:center;background:var(--s2)}
-.pk{font-size:var(--fs-s);color:var(--ink3);margin-bottom:4px}
-.pv{font-family:var(--mono);font-size:var(--fs-m);color:var(--ink)}
-.ps{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3);margin-top:2px}
-.pv.g{color:var(--up)}.pv.r{color:var(--dn)}.pv.w{color:var(--warn)}
-
+/* 펼친 종목의 그림 */
+.mt{position:relative;height:8px;border-radius:4px;background:var(--s3);margin:8px 0 6px}
+.mt .mz{position:absolute;top:0;bottom:0;opacity:.45}
+.mt .mz:first-child{border-radius:4px 0 0 4px}.mt .mz:last-of-type{border-radius:0 4px 4px 0}
+.mz.g{background:var(--up)}.mz.r{background:var(--dn)}.mz.w{background:var(--warn)}.mz.y{background:var(--st-watch);opacity:.7}
+.mt .mf{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink3)}
+.mf.g{background:var(--up)}.mf.r{background:var(--dn)}
+.mt .mk{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);transform:translateX(-50%)}
+.mt b{position:absolute;top:-5px;width:6px;height:18px;border-radius:3px;background:var(--ink);transform:translateX(-50%);
+      box-shadow:0 0 0 2px var(--s1)}
+.cc{font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh)}
+.cc small{font-size:var(--fs-s);color:var(--ink3)}
+.cc b{color:var(--ink);font-weight:600}
+.ctg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cti{background:var(--s2);border-radius:12px;padding:11px 12px 10px;min-width:0}
+.cti .ch{display:flex;align-items:baseline;gap:5px;font-size:var(--fs-s);color:var(--ink2)}
+.cti .ch i{font-style:normal;font-weight:700;color:var(--ink3)}.cti .ch i.y{color:var(--up)}.cti .ch i.n{color:var(--dn)}
+.cti .ch b{margin-left:auto;font-size:var(--fs-m);font-weight:700;color:var(--ink);white-space:nowrap}
+.sg5{display:flex;gap:3px;margin:8px 0 6px}
+.sg5 i{flex:1;height:8px;border-radius:2px;background:var(--s3)}.sg5 i.g{background:var(--up)}.sg5 i.r{background:var(--dn)}
+.k.cd4{display:flex;align-items:center;justify-content:flex-end;gap:3px}
+.cd4 i{width:8px;height:8px;border-radius:50%;background:var(--s3)}.cd4 i.y{background:var(--up)}.cd4 i.n{background:var(--dn)}
+.rg{margin-bottom:12px}
+.rgl{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-s);color:var(--ink3)}
+.rgb{position:relative;height:10px;border-radius:5px;margin:6px 0 6px;
+     background:linear-gradient(90deg,var(--s3),var(--bd2))}
+.rgb b{position:absolute;top:-4px;width:6px;height:18px;border-radius:3px;background:var(--on);transform:translateX(-50%);box-shadow:0 0 0 2px var(--s1)}
+.dst{margin-top:14px;font-size:var(--fs-m);font-weight:700;color:var(--ink2)}
+.dst.on{display:inline-block;background:var(--st-watch);color:var(--ink);border-radius:8px;padding:3px 10px}
+.dst small{display:block;font-weight:400;font-size:var(--fs-s);color:var(--ink3)}
+.dst.on small{display:none}
+.dcd{background:var(--s2);border-radius:12px;padding:10px 12px;margin-top:10px}
+.d3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.d3 .dmr{margin-top:0;display:block}
+.d3 .dmr span,.d3 .dmr b{display:block;white-space:nowrap}
+.dmr{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:var(--fs-s);color:var(--ink2);margin-top:8px}
+.dmr b{font-size:var(--fs-m);color:var(--ink)}.dmr b.y{color:var(--warn)}.dmr b.r{color:var(--dn)}
+.pbt{font-size:var(--fs-s);color:var(--ink2);margin-top:14px}
+.pb{display:flex;height:26px;border-radius:7px;overflow:hidden;margin:6px 0 4px;font-size:var(--fs-s);font-weight:600;color:var(--onInk)}
+.pb span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.pb .g{background:var(--up)}.pb .r{background:var(--dn);justify-content:flex-end}
+.pbl{display:flex;gap:14px;font-size:var(--fs-s);color:var(--ink3);margin-bottom:6px}
+.pbl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.pbl i.g{background:var(--up)}.pbl i.r{background:var(--dn)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--s1);border:1px solid var(--warn);color:var(--warn);border-radius:16px;padding:5px 12px;
+      font-size:var(--fs-s);font-weight:600;cursor:pointer;line-height:var(--lh-t)}
+.chip.on{background:var(--warn);color:var(--onInk)}
+.cdesc{background:var(--s2);border-radius:11px;padding:11px 13px;margin-top:8px;font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh-l)}
+.secw>.cc:last-child{margin-top:6px}
+.sd{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.sd>div{background:var(--s2);padding:10px 12px;min-width:0}
+.sd span{display:block;font-size:var(--fs-s);color:var(--ink3)}
+.sd b{font-size:var(--fs-m)}
+.uw{display:grid;grid-template-columns:2.5em 1fr auto;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--ink3);margin-top:6px}
+.uw i{display:block;height:10px;border-radius:5px;background:var(--dn);opacity:.7;min-width:3px}
+.uw i.mx{background:var(--ink3);opacity:.5}
+.uw b{color:var(--ink);font-weight:600}
 /* 시드 히어로 */
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);
       border-radius:11px;overflow:hidden}
@@ -144,13 +194,6 @@ details.fold[open]>summary::after{content:'－'}
 .hs{font-family:var(--mono);font-size:var(--fs-s);color:var(--warn)}
 .hero.one{grid-template-columns:1fr}
 .hn{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3)}
-.crit{background:var(--s2);border-radius:11px;padding:2px 15px}
-.crit>div{display:flex;align-items:baseline;gap:10px;padding:9px 0}
-.crit>div+div{border-top:1px solid var(--bg)}
-.crit i{font-style:normal;width:14px;flex-shrink:0;font-size:var(--fs-s);color:var(--ink3)}
-.crit i.y{color:var(--up)}.crit i.n{color:var(--dn)}
-.crit .ck{flex:1 0 auto;font-size:var(--fs-m);color:var(--ink2);word-break:keep-all}
-.crit .cv{flex:0 1 55%;min-width:0;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3);text-align:right}
 .pchart{background:var(--s2);border-radius:11px;padding:10px 12px 8px}
 .pchart svg{display:block;width:100%;height:auto}
 .pchart .ln{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-linejoin:round}
@@ -204,10 +247,6 @@ details.fold[open]>summary::after{content:'－'}
       background:var(--s2);color:var(--ink2)}
 
 /* 주의 */
-.caut>div{display:flex;gap:11px;padding:10px 0}
-.caut>div+div{border-top:1px solid var(--s2)}
-.caut i{font-style:normal;color:var(--warn);flex-shrink:0;font-size:var(--fs-s);line-height:var(--lh-l)}
-.ct{font-size:var(--fs-m);color:var(--warn);margin-bottom:2px}
 .cd{font-size:var(--fs-m);color:var(--ink2);line-height:var(--lh-l)}
 
 /* 배지 */
@@ -220,7 +259,7 @@ details.fold[open]>summary::after{content:'－'}
 .r-none{background:var(--s3);color:var(--ink3)}
 
 .pxedit{display:flex;align-items:center;gap:8px;background:var(--s2);
-        border-radius:11px;padding:11px 15px}
+        border-radius:11px;padding:7px 14px}
 .pxedit input{background:transparent;border:none;outline:none;color:var(--ink);
               font-family:var(--mono);font-size:var(--fs-m);width:100%}
 .pxedit input::-webkit-outer-spin-button,.pxedit input::-webkit-inner-spin-button{
@@ -420,7 +459,7 @@ details.fold[open]>summary::after{content:'－'}
     <h4>시드</h4>
     <div class="hitem" data-k="seed"><div class="hterm">최소 시드</div>
       <div class="hdef">1회 매수금(시드 ÷ 15)으로 5주를 살 수 있는 금액. 주식은 1주 단위로 사기 때문에 이보다 작으면 못 쓰고 남는 돈이 커집니다. 더 넣어도 수익률은 같고 금액만 커집니다.<br><br>시드는 고정이라 주가가 오르면 1칸에 사는 주식 수가 줄어듭니다. 들어갈 때 1칸 주수를 한 번 더 확인합니다.</div></div>
-    <div class="hitem" data-k="crit spec"><div class="hterm">변동성 σ</div>
+    <div class="hitem" data-k="crit"><div class="hterm">변동성 σ</div>
       <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당합니다. 매일 받아오는 종가로 다시 계산하며 1년치가 기준입니다. 60일치는 지금 국면이 평소와 다른지 보는 참고값입니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">들어가기 전 확인 4가지</div>
       <div class="hdef">변동성 5% 이상 · 회복 여부 · 유동성 보통 이상 · SOXL 상관 높음 아님. <b>통과 여부만 보여 주고 목록에서 빼지 않습니다.</b> 판단은 직접 합니다.</div></div>
@@ -430,9 +469,9 @@ details.fold[open]>summary::after{content:'－'}
 
   <div class="hcard">
     <h4>타이밍을 보는 값</h4>
-    <div class="hitem" data-k="px"><div class="hterm">RSI (14)</div>
+    <div class="hitem" data-k="chart"><div class="hterm">RSI (14)</div>
       <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 레버리지 ETF는 노란 점과 같이 <b>기초자산</b>의 RSI를 보여 준다(SOXL이면 SOXX). 스위치법 본 운용은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없습니다. 노란 점과 상황판은 예비 투자금을 언제 더 넣을지 볼 때 쓰는 참고입니다.</div></div>
-    <div class="hitem" data-k="px"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
+    <div class="hitem" data-k="chart"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
       <div class="hdef">두 개를 함께 두는 이유가 있습니다. <b>역대</b>는 과거 최대낙폭과 나란히 놓고 비교하는 참고값입니다. 과거 최대낙폭이 앞으로의 하락 한도는 아니므로, 둘의 차이를 남은 안전 여유로 읽으면 안 됩니다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값입니다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보입니다.</div></div>
   </div>
 
@@ -452,9 +491,9 @@ details.fold[open]>summary::after{content:'－'}
     <h4>노란 점</h4>
     <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 — 매수 기회 표시</div>
       <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 매수 기회 전광판과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
-    <div class="hitem" data-k="dip"><div class="hterm">무엇으로 판정하나</div>
+    <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 섹션 제목에 'SOXX 기준'처럼 적습니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
-    <div class="hitem" data-k="dip"><div class="hterm">과거 결과</div>
+    <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
       <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 셉니다. 며칠 연달아 켜지면 첫날 한 번만 세고, 못 닿았으면 60거래일 뒤 종가로 손익을 적습니다. 취소선 없이 기다린 결과라 상황판의 반등 신호 결과와 비율을 그대로 견주면 안 됩니다. 종목마다 따로 계산합니다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나옵니다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있습니다.</div></div>
   </div>
 
@@ -476,19 +515,19 @@ details.fold[open]>summary::after{content:'－'}
 
   <div class="hcard">
     <h4>종목 성격</h4>
-    <div class="hitem" data-k="spec"><div class="hterm">최대낙폭 — 미검증 · 추정</div>
+    <div class="hitem" data-k="about"><div class="hterm">최대낙폭 — 미검증 · 추정</div>
       <div class="hdef">과거 고점에서 저점까지의 최대 하락폭. 3년 넘게 쌓인 종가가 있으면 <b>실측</b>을 쓰고, 없으면 마스터 자료 값을 씁니다. <b>미검증</b>은 상장 이력이 짧아 실측이 없다는 뜻이고, <b>추정</b>은 실측 대신 배수별 대리값(3배 −92% · 2배 −85% · 선물 −95%)을 쓴 경우입니다.</div></div>
-    <div class="hitem" data-k="crit spec"><div class="hterm">회복 여부</div>
+    <div class="hitem" data-k="crit"><div class="hterm">회복 여부</div>
       <div class="hdef">지금 역대 고점에 얼마나 가까이 돌아왔는지. 고점 대비 −10% 이내 <b>회복</b> · −40% 이내 <b>부분회복</b> · 그 아래 <b>미회복</b> · 3년치가 안 되면 <b>이력부족</b>. 레버리지 ETF는 오르내리는 동안 가치가 깎여 자기 고점으로는 거의 못 돌아가므로 <b>기초자산</b>(TNA라면 IWM) 가격으로 매일 판정합니다. 개별주는 자기 가격으로 봅니다. 스위치법은 돌아오는 자산을 전제하므로 변동성보다 먼저 볼 항목입니다.</div></div>
-    <div class="hitem" data-k="crit spec"><div class="hterm">SOXL 상관</div>
+    <div class="hitem" data-k="crit"><div class="hterm">SOXL 상관</div>
       <div class="hdef">최근 1년 일간 수익률로 매일 다시 계산합니다. 0.7 이상 높음 · 0.4 이상 중간 · 그 아래 낮음. 높으면 분산이 아니라 같은 베팅의 증량입니다. 반도체가 꺾이는 날 함께 꺾입니다. 계산값이 없으면 마스터 자료 값을 씁니다.</div></div>
-    <div class="hitem" data-k="crit spec"><div class="hterm">유동성</div>
+    <div class="hitem" data-k="crit"><div class="hterm">유동성</div>
       <div class="hdef">최근 20일 하루 평균 거래대금(주가 × 거래량). $100M 이상 매우좋음 · $20M 좋음 · $5M 보통 · $1M 나쁨 · 그 아래 매우나쁨. 거래가 적으면 LOC 종가 체결이 밀릴 수 있습니다. 계산값이 없으면 마스터 자료 값을 씁니다.</div></div>
-    <div class="hitem" data-k="spec"><div class="hterm">같이 움직이는 종목</div>
+    <div class="hitem" data-k="about"><div class="hterm">같이 움직이는 종목</div>
       <div class="hdef">최근 1년 상관이 0.7 이상인 종목. 같이 오르고 같이 빠지니 함께 돌려도 분산이 되지 않습니다.</div></div>
-    <div class="hitem" data-k="spec"><div class="hterm">구성 — 집중형 · 분산형 · 동일가중</div>
+    <div class="hitem" data-k="about"><div class="hterm">구성 — 집중형 · 분산형 · 동일가중</div>
       <div class="hdef">집중형은 상위 몇 종목이 지수를 좌우합니다. 분산형은 종목 수가 많아 개별 기업 리스크가 작습니다. 동일가중은 모든 종목 비중이 비슷해 상위 종목을 봐도 의미가 적고, 업종 전체의 방향이 중요합니다.</div></div>
-    <div class="hitem" data-k="spec"><div class="hterm">구성 조회</div>
+    <div class="hitem" data-k="about"><div class="hterm">구성 조회</div>
       <div class="hdef">레버리지 ETF는 스왑으로 노출을 만들어 보유 내역에 개별 종목이 나오지 않습니다. 같은 기초지수를 따르는 무레버리지 ETF의 티커를 누르면 최신 구성이 열립니다.</div></div>
     <div class="hitem" data-k="caut"><div class="hterm">개별주식</div>
       <div class="hdef">1배수 개별 종목도 같은 공식으로 시드를 냅니다. 다만 지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있고, 실적 발표일에 갭이 크게 벌어집니다. 시드를 지수보다 작게 잡는 편이 안전합니다.<br><br>종가를 자동으로 받으려면 저장소의 <code>tickers.txt</code>에 티커를 한 줄씩 적습니다. 앱에서만 추가하면 주가를 직접 넣어야 하고, 변동성은 임시 가정값이 쓰입니다.</div></div>
@@ -692,6 +731,67 @@ const HELP={};
 function helpFor(k){
   if(!(k in HELP))HELP[k]=[...document.querySelectorAll('#help .hitem')].filter(x=>(x.dataset.k||'').split(' ').includes(k)).map(x=>x.outerHTML).join('');
   return HELP[k];
+}
+
+/* ── 펼친 종목의 그림 ── */
+/* 작은 막대 — lo~hi 위에 v. zones=[[a,b,색]] 칠한 칸, fill=왼쪽부터 채우기, mark=기준선 */
+function meter(v,lo,hi,o={}){
+  const f=x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));
+  return `<div class="mt">`+(o.zones||[]).map(([a,b,c])=>`<span class="mz ${c}" style="left:${f(a)}%;width:${f(b)-f(a)}%"></span>`).join('')+
+    (o.fill?`<span class="mf ${o.cls||''}" style="width:${f(v)}%"></span>`:'')+
+    (o.mark!=null?`<span class="mk" style="left:${f(o.mark)}%"></span>`:'')+
+    (v!=null&&!o.fill?`<b style="left:${f(v)}%"></b>`:'')+`</div>`;
+}
+const okIcon=ok=>`<i class="${ok===true?'y':ok===false?'n':''}">${ok===true?'✓':ok===false?'✗':'?'}</i>`;
+/* 들어가기 전 확인 4가지 — 값과 기준선을 막대로 */
+function critTiles(crit,r,L,live,cus,sig){
+  const [cv,cr,cl,cc]=crit, tile=(c,name,val,bar,cap)=>
+    `<div class="cti"><div class="ch">${okIcon(c[0])}<span>${name}</span><b>${val}</b></div>${bar}<div class="cc">${cap}</div></div>`;
+  const s1=Math.round(sig*10)/10, rv=recOf(L,cus), rdd=cus?(L&&L.dd):(L&&L.rec?L.rec.dd:null),
+        lv=lqOf(r,L), co=L&&L.corr!=null?L.corr:null;
+  return `<div class="ctg">`+
+    tile(cv,'변동성',s1.toFixed(1)+'%',meter(s1,0,10,{fill:1,cls:cv[0]?'g':'r',mark:SIG_MIN}),
+      `${SIG_MIN}% 이상이면 ✓ <small>${live?'1년':cus?'가정값':'마스터'}</small>`)+
+    tile(cr,'회복 여부',rv,rdd!=null?meter(rdd,-100,0,{zones:[[-100,-40,'r'],[-40,-10,'w'],[-10,0,'g']]}):'',
+      recNote(L,cus)||'자료 없음')+
+    tile(cl,'유동성',lv?lqName(lv):'미확인',`<div class="sg5">${[1,2,3,4,5].map(i=>`<i class="${i<=lv?(lv>=3?'g':'r'):''}"></i>`).join('')}</div>`,
+      L&&L.dv!=null?`하루 ${fmtDv(L.dv)} <small>보통 이상이면 ✓</small>`:'마스터 값')+
+    tile(cc,'SOXL 상관',r[0]==='SOXL'?'기준 종목':co!=null?co.toFixed(2):(corrOf(r,L)||'—'),
+      co!=null?meter(co,-0.2,1,{zones:[[0.7,1,'r']]}):'',co!=null?'0.7 넘으면 SOXL과 같이 움직임':'')+`</div>`;
+}
+/* 1년 범위 — 1년 최저~최고 사이 지금 위치 */
+function rangeBar(L){
+  if(!L||L.low1y==null||L.peak1y==null)return '';
+  const lo=L.low1y, hi=L.peak1y, f=Math.max(0,Math.min(100,(L.price-lo)/(hi-lo||1)*100));
+  return `<div class="rg"><div class="rgl"><span>1년 최저 $${lo}</span><span>1년 최고 $${hi}</span></div>
+    <div class="rgb"><b style="left:${f}%"></b></div>
+    <div class="cc">지금 $${L.price} · 1년 최고보다 <b>${L.dd1y}%</b> · 역대 최고보다 ${L.dd}%</div></div>`;
+}
+/* 노란 점 — 상태, 세 지표가 '많이 빠짐' 칸(노란 칸)에 있는지, 과거 결과 */
+function dipBlock(d,tk){
+  const st=d.on?`<div class="dst on">노란 점 켜짐 · ${d.run>1?d.run+'일째':'오늘'}</div>`
+    :`<div class="dst">노란 점 꺼짐${d.last?` <small>마지막 ${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)} (${d.last.age}거래일 전) · 그 뒤 ${(d.last.pmv??d.last.mv)>0?'+':''}${d.last.pmv??d.last.mv}%</small>`:' <small>최근 1년 없음</small>'}</div>`;
+  const col=(nm,v,lo,hi,th)=>`<div><div class="dmr"><span>${nm}</span><b class="${v<=th?'y':''}">${v<=th?'✓ ':''}${Math.round(v)}</b></div>${meter(v,lo,hi,{zones:[[lo,th,'y']]})}</div>`;
+  const cond=`<div class="dcd"><div class="d3">`+col('빠르기',d.k,0,100,20)+col('벗어남',d.cci,-250,250,-100)+col('힘',d.rsi,0,100,30)+
+    `</div><div class="cc">${d.base?d.base+' 기준 · ':''}세 막대가 모두 노란 칸에 들어가면 켜집니다 <small>(%K · CCI · RSI)</small></div></div>`;
+  const p=d.past;
+  const past=!p?'<div class="cc">과거 노란 점이 없어 결과를 낼 수 없습니다</div>':
+    `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${d.base?tk+'를 ':''}샀다면 ${p.days}거래일 안에</div>
+     <div class="pb"><span class="g" style="width:${p.hit}%">${p.hit>=12?p.hit+'%':''}</span><span class="r" style="width:${100-p.hit}%">${100-p.hit>=12?(100-p.hit)+'%':''}</span></div>
+     <div class="pbl"><span><i class="g"></i>60거래일 안 +10% 닿음</span><span><i class="r"></i>못 닿음</span></div>`+
+    ul([`가는 길에 더 빠진 폭: 평균 <b>${p.maeAvg}%</b> · 최악 ${p.maeMax}%`,
+        p.miss?`못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
+        p.medD?`닿은 경우 보통 ${p.medD}거래일 걸림`:null,
+        `<small>${p.from.slice(0,4)}년부터 · 며칠 연달아 켜지면 첫날 한 번만 셈${p.n<10?' · 횟수가 적어 믿기 어려움':''}</small>`]);
+  return st+cond+past;
+}
+/* 주의 — 이름만 칩으로, 누르면 그 설명 */
+const CAUT={};
+function cautChips(tk,caut){
+  const on=CAUT[tk];
+  return `<div class="chips">${caut.map(([t],i)=>`<button class="chip${on===i?' on':''}" data-ci="${i}">${t}</button>`).join('')}</div>`+
+    caut.map(([,d],i)=>`<div class="cdesc" data-cd="${i}"${on===i?'':' hidden'}>${d}</div>`).join('')+
+    (on==null?'<div class="cc">이름을 누르면 설명이 나옵니다</div>':'');
 }
 
 /* 이 시드로 들어갔을 때 1회 매수금과 1칸 주수 */
@@ -959,19 +1059,7 @@ function render(){
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
         <div class="k">최소 시드</div>`:'<div class="nopx">주가 입력</div>')
-        +`<div class="k">기준 ${pass}/4${unk?` · 모름 ${unk}`:''}</div>`;
-
-    /* 시세 */
-    const pxbar=L?`<div class="px">
-        <div><div class="pk">종가</div><div class="pv">$${L.price}</div>
-          ${L.chg!=null?`<div class="ps ${sgn(L.chg)==='g'?'':''}" style="color:${L.chg>0?'var(--up)':L.chg<0?'var(--dn)':'var(--ink3)'}">${L.chg>0?'+':''}${L.chg}%</div>`:''}</div>
-        ${rsi!=null?`<div><div class="pk">${rsiBy(L)}RSI</div><div class="pv ${rsiC}">${rsi}</div>
-          <div class="ps">${rsi>=70?'과열':rsi<=30?'침체':'중립'}</div></div>`:''}
-        <div><div class="pk">역대 고점</div><div class="pv">${L.dd}%</div>
-          <div class="ps">$${L.peak}</div></div>
-        ${L.dd1y!=null?`<div><div class="pk">1년 고점</div><div class="pv">${L.dd1y}%</div>
-          <div class="ps">$${L.peak1y}</div></div>`:''}
-      </div>`:'';
+        +`<div class="k cd4">${crit.map(([ok])=>`<i class="${ok===true?'y':ok===false?'n':''}"></i>`).join('')} ${pass}/4</div>`;
 
     /* 시드 */
     let seed;
@@ -983,10 +1071,6 @@ function render(){
           <div class="hn">1회 매수금 ${money(R.unit)} · 1칸 ${R.n0}주</div></div>
       </div>`;
     }
-    const critHtml=`<div class="crit">${crit.map(([ok,t,v])=>
-      `<div><i class="${ok===true?'y':ok===false?'n':''}">${ok===true?'✓':ok===false?'✗':'?'}</i>
-        <span class="ck">${t}</span><span class="cv">${v}</span></div>`).join('')}</div>`;
-
     return `<div class="row${op?' open':''}" data-tk="${tk}">
       <div class="rmain">
         <div class="rl">
@@ -997,63 +1081,16 @@ function render(){
         <div class="rr">${rr}</div>
       </div>
       ${op?`<div class="det">
-${secOpen('crit',`들어가기 전 확인 ${pass}/4`,critHtml)}
-${caut.length?secOpen('caut',`주의 ${caut.length}`,`
-        <div class="caut">${caut.map(([t,d])=>
-          `<div><i>!</i><div><div class="ct">${t}</div><div class="cd">${d}</div></div></div>`).join('')}</div>`):''}
-${secOpen('seed','시드',seed+`
+${secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
+${caut.length?secOpen('caut',`주의 ${caut.length}`,cautChips(tk,caut)):''}
+${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름 · 노란 점',rangeBar(L)+(L.dip?priceChart(L.dip)+dipBlock(L.dip,tk):'')):''}
+${secOpen('seed',p?`시드 ${money(need)}`:'시드',(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1칸</span><b>${R.n0}주</b></div><div><span>분할</span><b>${DIV}번</b></div></div>`)(rungOf(need,p)):seed)+`
         <div class="pxedit"><span class="mono" style="color:var(--ink3)">$</span>
           <input type="number" step="0.01" inputmode="decimal" placeholder="직접 입력"
                  value="${p??''}" data-px="${tk}">
           ${isManual(tk)&&L?`<button class="autobtn" data-auto="${tk}">자동값</button>`
             :L?'<span class="auto">자동</span>':'<span class="auto">수동</span>'}</div>`)}
-${L&&L.dip&&L.dip.chart?secOpen('chart','주가 흐름',priceChart(L.dip)):''}
-${L&&L.dip?(d=>secOpen('dip',`노란 점${d.base?' · '+d.base+' 기준':''}`,`
-        <div class="spec">
-          <div><div class="sk">지금</div><div class="sv">${d.on
-            ?`<span class="bg r-new">켜짐</span> <span class="q">${d.run>1?d.run+'일째':'오늘'}</span>`
-            :'<span class="bg r-none">꺼짐</span>'}</div></div>
-          <div><div class="sk">마지막 노란 점</div><div class="sv">${d.last&&!d.on
-            ?`<span class="u">${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)}</span> <span class="q">${d.last.age}거래일 전</span><br><span class="u">${(d.last.pmv??d.last.mv)>0?'+':''}${d.last.pmv??d.last.mv}%</span> <span class="q">그 뒤${d.base?' '+tk:''}</span>`
-            :d.on?'<span class="q">지금 켜져 있음</span>':'<span class="q">최근 1년 없음</span>'}</div></div>
-          <div class="wide"><div class="sk">${d.base?d.base+' ':''}조건: 빠르기 ${d.k} (20 이하${d.k<=20?' ✓':''}) · 벗어난 정도 ${d.cci} (−100 이하${d.cci<=-100?' ✓':''}) · 힘 ${d.rsi} (30 이하${d.rsi<=30?' ✓':''})</div></div>
-          ${d.past?`<div><div class="sk">과거 +10% 도달</div><div class="sv"><span class="u">${d.past.hit}%</span> <span class="q">${d.past.n}번 중</span>${
-              d.past.medD?`<br><span class="u">${d.past.medD}거래일</span> <span class="q">보통</span>`:''}</div></div>
-          <div><div class="sk">가는 길 하락</div><div class="sv"><span class="u">${d.past.maeAvg}%</span> <span class="q">평균</span><br><span class="u">${d.past.maeMax}%</span> <span class="q">최악</span></div></div>
-          ${d.past.miss?`<div class="wide"><div class="sk">못 닿았을 때 · ${d.past.miss}번</div><div class="sv"><span class="u">${d.past.missAvg>0?'+':''}${d.past.missAvg}%</span> <span class="q">평균 · ${d.past.days}거래일 뒤 종가 기준</span></div></div>`:''}
-          <div class="wide"><div class="sk">${d.past.from.slice(0,4)}년부터 · 며칠 연달아 켜지면 첫날 한 번만 셈 · 그다음 날 시가에 ${d.base?tk+' ':''}매수 가정 · ${d.past.days}거래일 안${d.past.n<10?' · 횟수가 적어 믿기 어려움':''}</div></div>`
-          :'<div class="wide"><div class="sk">과거 노란 점이 없어 결과를 낼 수 없음</div></div>'}
-        </div>`))(L.dip):''}
-${L?secFold('px','시세',pxbar):''}
-${secFold('spec','성격',`
-        <div class="spec">
-          <div><div class="sk">변동성</div><div class="sv"><span class="u">${
-            live?`${L.sig60!=null?L.sig60:'—'}%</span> <span class="q">60일</span><br><span class="u">${L.sig}%</span> <span class="q">1년`
-            :cus?`${sig.toFixed(1)}%</span> <span class="q">임시 가정값`
-                :`${sig.toFixed(1)}%</span> <span class="q">마스터`}</span></div></div>
-          <div><div class="sk">최대낙폭</div><div class="sv">${
-            mddLive(L)?`<span class="u">${L.mddCalc}%</span> <span class="q">실측 ${L.bars}일</span>`
-            :mdd?`<span class="u">−${mdd.toFixed(1)}%</span> <span class="q">${mddEst?'추정':'마스터'}</span>`
-            :(L&&L.mddCalc!=null)?`<span class="u">${L.mddCalc}%</span> <span class="q">실측 ${L.bars}일</span>`
-            :'미검증'}</div></div>
-          <div><div class="sk">회복 여부</div><div class="sv">${(()=>{
-            const v=recOf(L,cus), n=recNote(L,cus);
-            return `<span class="bg ${RECCLS[v]||'r-none'}">${v}</span>`+(n?` <span class="q">${n}</span>`:'');
-          })()}</div></div>
-          <div><div class="sk">유동성</div><div class="sv">${(()=>{const lv=lqOf(r,L);
-            return lv?`<span class="bg q${lv}">${lqName(lv)}</span>`+(L&&L.dv!=null?` <span class="q">하루 ${fmtDv(L.dv)}</span>`:' <span class="q">마스터</span>')
-              :'<span class="q">미확인</span>';})()}</div></div>
-          <div><div class="sk">SOXL 상관</div><div class="sv">${corrOf(r,L)||'—'}${
-            L&&L.corr!=null?` <span class="q">${L.corr.toFixed(2)}</span>`:corr&&corr!=='—'?' <span class="q">마스터</span>':''}</div></div>
-          <div><div class="sk">${cus?'종목 정보':'구성 조회'}</div><div class="sv">${
-            cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>`
-            :ref&&ref!=='—'?`<a href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a>`
-            :'<span class="q">없음</span>'}</div></div>
-          ${cus?'':`<div class="wide"><div class="sk">구성</div><div class="sv">${cd[1]}</div></div>`}
-          ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
-            <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
-        </div>`)}
-${cus&&FUND[tk]?(F=>secFold('fund','재무',`
+${cus&&FUND[tk]?(F=>secFold('fund','재무',(!F.na&&!F.self&&F.runway!=null?`<div class="dmr"><span>현금 여유 기간</span><b class="${runwayOf(F)<RUNWAY_MIN?'r':''}">${fmtMon(runwayOf(F))}</b></div>${meter(Math.min(runwayOf(F),36),0,36,{fill:1,cls:runwayOf(F)<RUNWAY_MIN?'r':'g',mark:RUNWAY_MIN})}<div class="cc">${RUNWAY_MIN}개월보다 짧으면 주의</div>`:'')+`
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
           <div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
             :F.runway!=null?`<span class="bg ${runwayOf(F)<RUNWAY_MIN?'r-no':runwayOf(F)<24?'r-new':'r-ok'}">${fmtMon(runwayOf(F))}</span>`+
@@ -1070,16 +1107,15 @@ ${cus&&FUND[tk]?(F=>secFold('fund','재무',`
           ${F.note?`<div class="wide"><div class="sk">참고</div><div class="sv">${F.note.map(x=>`<span class="q">· ${esc(x)}</span>`).join('<br>')}</div></div>`:''}
           <div class="wide"><div class="sk">${F.asof} 기준${F.burn!=null?' · 월 '+fmtM(F.burn)+' 소진':''}</div></div>
         </div>`}`))(FUND[tk]):''}
-${L&&L.riskBars?secFold('risk','급락 위험',`
-        <div class="spec">
+${L&&L.riskBars?secFold('risk','급락 위험',
+  (L.crash&&tk!=='SOXL'?`<div class="dmr"><span>SOXL이 크게 빠진 날 함께 빠진 정도</span><b class="${crashRatio(L)>=CRASH_MIN?'r':''}">${crashRatio(L).toFixed(2)}배</b></div>${meter(crashRatio(L),0,1.5,{zones:[[CRASH_MIN,1.5,'r']]})}<div class="cc">SOXL ${L.crash.soxl}% 빠진 날 이 종목 ${L.crash.me}% · ${CRASH_MIN}배 넘으면 주의</div>`:'')+
+  (L.uwMax>0||L.uwNow>0?(m=>`<div class="dmr" style="margin-top:14px"><span>고점 회복 기간</span></div>
+    <div class="uw"><span>지금</span><i style="width:${L.uwNow/m*100}%"></i><b>${L.uwNow>0?fmtDur(L.uwNow):'고점'}</b></div>
+    <div class="uw"><span>최장</span><i class="mx" style="width:${L.uwMax/m*100}%"></i><b>${L.uwMax>0?fmtDur(L.uwMax):'기록 없음'}</b></div>`)(Math.max(L.uwNow,L.uwMax,1)):'')+`
+        <div class="spec" style="margin-top:14px">
           <div><div class="sk">급락일 평균 손실</div><div class="sv">${L.es1!=null
             ?`<span class="u">${L.es1}%</span> <span class="q">하루</span><br><span class="u">${L.es5!=null?L.es5+'%':'—'}</span> <span class="q">5일</span>`
             :'<span class="q">표본 부족</span>'}</div></div>
-          <div><div class="sk">SOXL 급락일</div><div class="sv">${tk==='SOXL'?'<span class="q">기준 종목</span>'
-            :L.crash?`<span class="u">${L.crash.me}%</span> <span class="q">이 종목</span><br><span class="u">${L.crash.soxl}%</span> <span class="q">SOXL</span><br><span class="u">${crashRatio(L).toFixed(2)}배</span> <span class="q">${L.crash.n}일</span>`
-            :'<span class="q">표본 부족</span>'}</div></div>
-          <div><div class="sk">회복 기간</div><div class="sv">${L.uwNow>0?`<span class="q">지금</span> <span class="u">${fmtDur(L.uwNow)}</span>`:'<span class="q">지금 고점</span>'}<br>${
-            L.uwMax>0?`<span class="q">최장</span> <span class="u">${fmtDur(L.uwMax)}</span>`:'<span class="q">회복 기록 없음</span>'}</div></div>
           <div><div class="sk">3년 낙폭</div><div class="sv"><span class="u">${L.mdd3y}%</span>${
             L.riskBars<750?` <span class="q">${L.riskBars}일뿐</span>`:''}</div></div>
           ${live?`<div><div class="sk">변동성 감가</div><div class="sv"><span class="u">연 −${dragOf(L.sig).toFixed(0)}%</span> <span class="q">추정</span></div></div>`:''}
@@ -1087,7 +1123,21 @@ ${L&&L.riskBars?secFold('risk','급락 위험',`
           <div class="wide"><div class="sk">${L.ref.t} ${L.ref.base>0?'+':''}${L.ref.base}% × ${L.ref.lev} = ${L.ref.base>0?'+':''}${(L.ref.base*L.ref.lev).toFixed(1)}% → 실제 ${L.ref.prod>0?'+':''}${L.ref.prod}%</div></div>`:''}
           <div class="wide"><div class="sk">최근 3년 기준${L.riskBars<750?' · 상장 '+L.riskBars+'거래일':''}${L.esN?' · 하위 5% '+L.esN+'일':''}</div></div>
         </div>`):''}
-${cus&&!cd[3].length?'':secFold('about','종목 설명',(cus?'':`
+${secFold('about','종목 설명',`
+        <div class="spec">
+          <div><div class="sk">최대낙폭</div><div class="sv">${
+            mddLive(L)?`<span class="u">${L.mddCalc}%</span> <span class="q">실측 ${L.bars}일</span>`
+            :mdd?`<span class="u">−${mdd.toFixed(1)}%</span> <span class="q">${mddEst?'추정':'마스터'}</span>`
+            :(L&&L.mddCalc!=null)?`<span class="u">${L.mddCalc}%</span> <span class="q">실측 ${L.bars}일</span>`
+            :'미검증'}</div></div>
+          <div><div class="sk">${cus?'종목 정보':'구성 조회'}</div><div class="sv">${
+            cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>`
+            :ref&&ref!=='—'?`<a href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a>`
+            :'<span class="q">없음</span>'}</div></div>
+          ${cus?'':`<div class="wide"><div class="sk">구성</div><div class="sv">${cd[1]}</div></div>`}
+          ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
+            <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
+        </div>`+(cus?'':`
         <div class="ud"><i class="u">▲</i><span>${up}</span></div>
         <div class="ud"><i class="d">▼</i><span>${dn}</span></div>
         <div class="desc">${cd[2]}</div>`)+(cd[3].length?`
@@ -1104,6 +1154,14 @@ ${cus&&(st.cust[tk]||(tok&&REPO.has(tk)))?secOpen('list','목록',`
   }
 
   el.querySelectorAll('details.fold').forEach(d=>d.ontoggle=()=>{d.open?FOLD.add(d.dataset.f):FOLD.delete(d.dataset.f);});
+  el.querySelectorAll('.chip').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const w=b.closest('.secw'), tk=b.closest('.row').dataset.tk, i=+b.dataset.ci, cur=CAUT[tk]===i?null:i;
+    CAUT[tk]=cur;
+    w.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',+x.dataset.ci===cur));
+    w.querySelectorAll('.cdesc').forEach(x=>x.hidden=+x.dataset.cd!==cur);
+    const h=w.querySelector('.secw > .cc:last-child'); if(h)h.hidden=cur!=null;
+  });
   el.querySelectorAll('.qb').forEach(b=>b.onclick=e=>{
     e.preventDefault();e.stopPropagation();
     const box=b.closest('.secw,.dipbox,.best').querySelector('.qbox'), k=b.dataset.q;
