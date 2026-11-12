@@ -387,6 +387,16 @@ input,select,button{font-family:inherit}
   </div>
 
   <div class="hcard">
+    <h4>개별주 재무</h4>
+    <div class="hitem"><div class="hterm">현금 여유 기간</div>
+      <div class="hdef">지금 쓰는 속도로 현금이 몇 달 버티는지. <code>(현금·단기투자 − 1년 내 갚을 빚) ÷ 월 현금 소진</code>. 소진 속도는 최근 4분기 평균과 최근 분기 중 더 빠른 쪽을 쓴다. 둘 다 잉여현금흐름이 0 이상이면 <b>현금 창출</b>로 적는다. 12개월 미만이면 주의에 올린다. 그 전에 증자나 차입이 필요할 수 있고, 주가가 내려온 상태의 증자는 회복을 더 멀게 만든다. 12개월은 이 화면에서 정한 기준이다.</div></div>
+    <div class="hitem"><div class="hterm">주식 수 증가</div>
+      <div class="hdef">최근 분기 가중평균 주식 수를 1년 전 같은 분기와 견준 값. 같은 공시 안의 숫자끼리 비교하므로 분할·병합은 이미 맞춰져 있다. 10% 넘게 늘면 주의에 올린다. 주식 수가 늘면 회사 가치가 그대로여도 주가는 예전 고점에 닿기 어렵다. 증자가 늘 나쁜 것은 아니며 조달 목적은 공시에서 직접 봐야 한다. 10%는 이 화면에서 정한 기준이다.</div></div>
+    <div class="hitem"><div class="hterm">한계</div>
+      <div class="hdef">미국 SEC 공시의 숫자만 쓴다. 투자 약정, 증자 목적, 실적 전망처럼 글로 적힌 내용은 보지 않는다. 공시 뒤에 한 증자나 차입은 다음 분기 공시까지 반영되지 않는다. 집을 사서 되파는 회사처럼 재고를 빚으로 사는 사업은 빚과 현금흐름이 크게 잡혀 실제보다 나쁘게 보인다. 미국식 분기 공시가 없는 회사와 ETF는 미확인이다.</div></div>
+  </div>
+
+  <div class="hcard">
     <h4>급락 위험</h4>
     <div class="hitem"><div class="hterm">급락일 평균 손실</div>
       <div class="hdef">최근 3년 수익률을 나쁜 순으로 줄 세워 하위 5%만 평균한 값. <b>하루</b>는 가장 나빴던 날들의 평균이고, <b>5일</b>은 5거래일을 이어 붙였을 때의 평균이다. 분할 매수가 무너지는 건 하루 급락보다 반등 없이 며칠 이어지는 하락이라 5일 값을 함께 둔다. 상장이 3년보다 짧으면 있는 만큼만 쓰고 일수를 적는다. 표본이 적을수록 값이 크게 흔들린다.</div></div>
@@ -575,11 +585,25 @@ const crashCaut=L=>{const k=crashRatio(L);
 const fmtDur=d=>d>=365?Math.floor(d/365)+'년'+(Math.floor(d%365/30)?' '+Math.floor(d%365/30)+'개월':''):d>=60?Math.round(d/30)+'개월':d+'일';
 /* 변동성만으로 1년에 깎이는 추정치 (%) — 하루 평균 수익률 0 가정 */
 const dragOf=sig=>(1-Math.exp(-0.5*(sig/100)**2*252))*100;
+/* 개별주 재무 (fund.json — SEC 공시 숫자) */
+let FUND={};
+const RUNWAY_MIN=12, SHARE_MAX=10;
+const fmtM=v=>(v<0?'−':'')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.round(Math.abs(v))+'M');
+const fmtMon=m=>m>=24?Math.floor(m/12)+'년 이상':m.toFixed(m<10?1:0)+'개월';
+function fundCaut(tk){
+  const F=FUND[tk], c=[];
+  if(!F||F.na)return c;
+  if(F.runway!=null&&F.runway<RUNWAY_MIN) c.push(['현금 여유 '+fmtMon(F.runway),'쓸 수 있는 현금 '+fmtM(F.cash-F.debt)+'에 월 '+fmtM(F.burn)+'씩 쓰고 있습니다('+F.asof+' 공시 기준). 그 전에 증자나 차입이 필요할 수 있습니다.']);
+  if(F.sh!=null&&F.sh>SHARE_MAX) c.push(['주식 수 1년 +'+F.sh+'%','주식 수가 늘어 회사 가치가 그대로여도 주가는 예전 고점에 닿기 어렵습니다. 조달 목적은 공시에서 확인하세요.']);
+  if(F.old) c.push(['재무 공시 오래됨',F.asof+' 기준 공시가 마지막입니다. 지금 상태와 다를 수 있습니다.']);
+  return c;
+}
 function cautions(r,L,live,cus){
   const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
   const c=[];
   if(L&&L.stale) c.push(['종가 갱신 안 됨','이번 수집에서 받아오지 못해 '+L.date+' 종가 기준 값을 그대로 보여 줍니다.']);
   if(cus){
+    c.push(...fundCaut(tk));
     c.push(['개별 기업 위험','지수와 달리 한 회사의 문제로 회복 없이 무너질 수 있습니다. 스위치법은 돌아오는 자산을 전제하므로, 지수보다 시드를 작게 잡는 편이 안전합니다.']);
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
     if(!live) c.push(['변동성을 모릅니다','실측 σ가 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
@@ -880,6 +904,8 @@ function render(){
         ${L.rsi!=null?`<span class="${rsiC}">RSI ${L.rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
         ${crashCaut(L)?'<span class="w">급락 동반</span>':''}
+        ${(F=>F&&!F.na&&F.runway!=null&&F.runway<RUNWAY_MIN?'<span class="w">현금 주의</span>':'')(FUND[tk])}
+        ${(F=>F&&!F.na&&F.sh!=null&&F.sh>SHARE_MAX?'<span class="w">주식 수 증가</span>':'')(FUND[tk])}
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
         <div class="k">최소 시드</div>`:'<div class="nopx">주가 입력</div>')
@@ -965,6 +991,20 @@ function render(){
           ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
             <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
         </div>
+
+        ${cus&&FUND[tk]?(F=>`<div class="sec"><span>재무</span><i></i></div>
+        ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
+          <div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
+            :F.runway!=null?`<span class="bg ${F.runway<RUNWAY_MIN?'r-no':F.runway<24?'r-new':'r-ok'}">${fmtMon(F.runway)}</span>`
+            :'<span class="q">미확인</span>'}</div></div>
+          <div><div class="sk">주식 수 · 1년</div><div class="sv">${F.sh!=null
+            ?`<span class="bg ${F.sh>SHARE_MAX?'r-no':F.sh>3?'r-new':'r-ok'}">${F.sh>0?'+':''}${F.sh}%</span>`:'<span class="q">미확인</span>'}</div></div>
+          <div><div class="sk">쓸 수 있는 현금</div><div class="sv"><span class="u">${fmtM(F.cash-F.debt)}</span><br>
+            <span class="q">현금 ${fmtM(F.cash)} − 1년 내 빚 ${fmtM(F.debt)}</span></div></div>
+          <div><div class="sk">잉여현금흐름</div><div class="sv">${F.fcfT!=null?`<span class="u">${fmtM(F.fcfT)}</span> <span class="q">4분기</span>`:'<span class="q">4분기 미확인</span>'}<br>${
+            F.fcfQ!=null?`<span class="u">${fmtM(F.fcfQ)}</span> <span class="q">최근 분기</span>`:'<span class="q">최근 분기 미확인</span>'}</div></div>
+          <div class="wide"><div class="sk">SEC 공시 ${F.asof} 기준${F.burn!=null?' · 월 '+fmtM(F.burn)+' 소진':''}</div></div>
+        </div>`}`)(FUND[tk]):''}
 
         ${L&&L.riskBars?`<div class="sec"><span>급락 위험</span><i></i></div>
         <div class="spec">
@@ -1409,6 +1449,11 @@ fetch('./desk_log.json?'+Date.now())
 fetch('./tickers.txt?'+Date.now())
   .then(r=>r.ok?r.text():Promise.reject(r.status))
   .then(t=>{REPO=parseTickers(t);render();})
+  .catch(()=>{});
+
+fetch('./fund.json?'+Date.now())
+  .then(r=>r.ok?r.json():Promise.reject(r.status))
+  .then(j=>{FUND=j.data||{};render();})
   .catch(()=>{});
 
 fetch('./data.json?'+Date.now())
