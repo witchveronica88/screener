@@ -1022,7 +1022,7 @@ function render(){
         </div>
         <div class="rr">${rr}</div>
       </div>
-      <div class="det">
+      ${op?`<div class="det">
 
         ${L&&L.dip&&L.dip.chart?`<div class="sec"><span>주가 흐름</span><i></i></div>${priceChart(L.dip)}`:''}
 
@@ -1137,7 +1137,7 @@ function render(){
           `<div><i>!</i><div><div class="ct">${t}</div><div class="cd">${d}</div></div></div>`).join('')}</div>`:''}
         ${cus&&(st.cust[tk]||(tok&&REPO.has(tk)))?`<div class="sec"><span>목록</span><i></i></div>
         <button class="del" data-del="${tk}">${tk} 삭제</button>`:''}
-      </div>
+      </div>`:''}
     </div>`;}).join('');
   }catch(err){
     el.innerHTML='<div class="empty">화면을 그리는 중 문제가 생겼어요.<br><span style="color:var(--dn)">'

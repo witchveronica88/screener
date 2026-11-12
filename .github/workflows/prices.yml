@@ -26,7 +26,13 @@ jobs:
           python3 -u << 'EOF'
           import urllib.request, csv, io, json, math, time, datetime, os, sys
           from zoneinfo import ZoneInfo
-          import desk   # 노란 점 판정은 상황판과 같은 계산을 쓴다
+          # 노란 점 판정은 상황판(desk.py)과 같은 계산을 쓴다.
+          # desk.py가 깨져도 종가 수집은 멈추지 않도록, 불러오지 못하면 노란 점만 건너뛴다
+          try:
+              import desk
+          except Exception as e:
+              desk = None
+              print(f'desk.py 불러오기 실패 — 이번에는 노란 점 없이 수집: {e}')
 
           BASE = """SOLT ETHU DPST RAM LABU BITX GDXU YINN RETL NAIL URAA
           JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
@@ -226,6 +232,16 @@ jobs:
               return mx * 100, my * 100, (sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None), n
 
           def yellow(h, hp=None, base=None):
+              """노란 점 계산이 실패해도 종가 수집은 계속한다"""
+              if desk is None:
+                  return None
+              try:
+                  return _yellow(h, hp, base)
+              except Exception as e:
+                  print(f'  노란 점 계산 실패: {e}')
+                  return None
+
+          def _yellow(h, hp=None, base=None):
               """노란 점(세 지표가 모두 '많이 빠짐': %K ≤ 20 · CCI ≤ -100 · RSI ≤ 30). 상황판 전광판과 같은 계산.
                  h: 판정에 쓰는 가격. hp가 있으면 h는 기초자산이고 hp가 실제로 사는 상품이다(상황판의 SOXX→SOXL과 같은 방식)"""
               bar = lambda x: {'d': x[0], 'c': x[1], 'o': x[4], 'h': max(x[5], x[1]), 'l': min(x[6], x[1])}
