@@ -768,12 +768,9 @@ def dip_card(t, base, prod, bars):
     st = t['state']; lastd = r.get('last'); vix = t['vix']; sig = t.get('sig')
     md = lambda d: f"{int(d[5:7])}/{int(d[8:10])}"
     why = []
-    if days and drop <= -3:
-        why.append(f"{base}가 {md(w[hi]['d'])} 고점에서 {days}거래일 만에 <b>{drop}%</b> 내렸습니다" +
-                   (f" (저점 {md(w[lo]['d'])}, 그 뒤 {back:+.1f}%)" if back is not None else ''))
-        if spy is not None:
-            why.append(f"같은 기간 시장 전체(SPY)는 {spy:+.1f}% — " +
-                       ('시장 전체가 함께 빠진 하락입니다' if spy <= drop / 3 else '시장보다 이 종목군이 유독 많이 빠졌습니다'))
+    if days and drop <= -3 and spy is not None:
+        # 하락 폭·시장 비교·되오른 폭은 화면이 막대로 그린다(drop). 여기에는 그 뜻만
+        r['drop']['note'] = '시장 전체가 함께 빠진 하락입니다' if spy <= drop / 3 else '시장보다 이 종목군이 유독 많이 빠졌습니다'
     if on:
         head = f"지금은 매수 기회일 수 있습니다. {base}가 급하게 내려 세 지표가 모두 '많이 빠짐'에 들어갔습니다(노란 점)."
         why.append(f"노란 점 {run}일째입니다" if run > 1 else '오늘 노란 점이 새로 켜졌습니다')
@@ -850,21 +847,24 @@ def stage_of(t):
         r = (2, 'neutral', f"반등 신호 뒤 {s['age']}거래일 · 새 신호 없음", '급락 뒤 반등이 이어지는 중입니다(새 신호는 없음)')
     else:
         r = (0, 'neutral', '뚜렷한 신호 없음', '뚜렷한 신호가 없습니다')
-    lines = []
+    # stats: 요약 줄 왼쪽에 놓는 짧은 숫자(이름, 값, 색) — 오른쪽에는 1개월 작은 그래프
+    stats, lines = [], []
     last, past = d.get('last'), d.get('past')
-    if d.get('on') and past:
-        lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['hit']}%가 {past['days']}거래일 안에 +{TARGET}% · "
-                     f"가는 길에 평균 {past['maeAvg']}% 더 빠짐")
+    if d.get('on'):
+        stats.append(('노란 점', f"{d['run']}일째", 'dot'))
+        if past:
+            lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['hit']}%가 {past['days']}거래일 안에 +{TARGET}% · "
+                         f"가는 길에 평균 {past['maeAvg']}% 더 빠짐")
     elif last and last.get('pmv') is not None:
-        lines.append(f"노란 점({md_(last['date'])}) 뒤 {t['prod']} <b>{last['pmv']:+.1f}%</b>")
+        stats.append((f"노란 점({md_(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
     if live:
-        lines.append(f"취소선 {t['base']} ${s['low']} · 지금보다 {s['dist']:.1f}% 아래")
+        stats.append(('취소선까지', f"-{s['dist']:.1f}%", 'ref'))
     elif t.get('setupUp'):
-        lines.append(f"{t['setupUp']['left']}거래일 안에 반등 신호가 나와야 합니다")
+        stats.append(('반등 신호 남은 기간', f"{t['setupUp']['left']}거래일", ''))
     e = t.get('easy') or {}
     if e.get('head') == '어제와 판단이 달라짐' and e.get('why'):
         lines.append('어제와 달라짐: ' + e['why'][0])
-    return {'i': r[0], 'cls': r[1], 'text': r[2], 'say': r[3], 'lines': lines}
+    return {'i': r[0], 'cls': r[1], 'text': r[2], 'say': r[3], 'stats': stats, 'lines': lines}
 
 
 def headline(cards, vx):

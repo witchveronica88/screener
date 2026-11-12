@@ -360,6 +360,12 @@ details.fold[open]>summary::after{content:'－'}
 .dsec .dk small{font-weight:400;color:var(--ink3);font-size:var(--fs-s)}
 .dread{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--on);border-radius:14px;padding:16px;margin-bottom:12px}
 .dread .rh{font-size:var(--fs-s);color:var(--ink3);font-weight:600;margin-bottom:6px}
+.dbars{background:var(--s2);border-radius:12px;padding:10px 12px;margin:4px 0 8px}
+.dbr{display:grid;grid-template-columns:5.5em 1fr 4em;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--ink2);margin-bottom:6px}
+.dbr i{display:block;height:12px;border-radius:3px;min-width:3px}
+.dbr i.r{background:var(--dn)}.dbr i.r.m{opacity:.45}.dbr i.g{background:var(--up)}
+.dbr b{text-align:right;color:var(--ink)}
+.dbars .dnt{font-size:var(--fs-s);font-weight:700;color:var(--ink);margin-top:4px}
 .dread .rt{font-size:var(--fs-l);font-weight:700;line-height:var(--lh-t);word-break:keep-all;margin-bottom:8px}
 /* 요약 탭 첫 화면: 결론 한 문장 · 흐름 단계 막대 · 시장 한 줄 */
 .dhead1{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--on);border-radius:14px;padding:12px 16px;
@@ -382,9 +388,28 @@ details.fold[open]>summary::after{content:'－'}
 .track .st.on i{width:18px;height:18px;margin:0 auto 5px;border:0;background:var(--ink3)}
 .track .st.on.buy i{background:var(--up)}.track .st.on.watch i{background:var(--st-watch)}.track .st.on.hot i{background:var(--st-hot)}
 .track .st.on.sell i,.track .st.on.warn i{background:var(--dn)}
-.mrow{display:flex;gap:12px;align-items:flex-start;background:var(--s1);border:1px solid var(--bd);border-radius:14px;
+.mrow{display:block;background:var(--s1);border:1px solid var(--bd);border-radius:14px;
       padding:12px 16px 9px;margin-bottom:12px;overflow-wrap:anywhere}
-.mrow .lamp{margin-top:2px}
+.mrow .mh{display:flex;align-items:center;gap:10px}
+.mrow .mh .mv{margin-left:auto;white-space:nowrap}
+.mrow .lamp{width:18px;height:18px;border-width:2px}
+.mrow .fbody{margin-top:2px}
+.fbody{display:flex;align-items:center;gap:10px;margin-top:4px}
+.fst{flex:1;min-width:0}
+.fsv{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
+.fsv b{color:var(--ink)}
+.sdot,.sref{display:inline-block;margin-right:5px;vertical-align:middle}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2)}
+.sref{width:14px;height:0;border-top:2px dashed var(--dn)}
+svg.mini{display:block}
+.minw{position:relative;flex-shrink:0;display:block}
+.minw em{position:absolute;left:0;top:-2px;font-style:normal;font-size:var(--fs-s);line-height:1;color:var(--ink3);
+         background:var(--s1);padding:0 3px 1px 0;border-radius:3px}
+.mini .p{fill:none;stroke:var(--ink2);stroke-width:1.6;stroke-linejoin:round}
+.mini .l2{fill:none;stroke:var(--ink3);stroke-width:1;stroke-dasharray:3 3}
+.mini .ref{stroke:var(--dn);stroke-width:1.2;stroke-dasharray:4 3}
+.mini .dot{fill:var(--st-watch);stroke:var(--ink2);stroke-width:.8}
+.mini .end{fill:var(--on)}
 .mrow b{font-size:var(--fs-m)}
 .mrow .mv{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2)}
 .mrow .mv .g{color:var(--up)}.mrow .mv .r{color:var(--dn)}
@@ -1386,8 +1411,31 @@ function dipRules(){
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
-const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.prod} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${ul(c.dip.why)}</div>`;
+const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.prod} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
+/* 최근 한 달 고점에서 저점까지 — 이 종목군과 시장 전체(SPY), 그 뒤 되오른 폭 */
+function dropBars(c){
+  const d=c.dip&&c.dip.drop; if(!d||!d.days||d.pct>-3)return '';
+  const rows=[[c.base+' 하락',d.pct,'r'],...(d.spy!=null?[['시장(SPY)',d.spy,'r m']]:[]),...(d.back!=null?[['저점 뒤',d.back,'g']]:[])];
+  const mx=Math.max(...rows.map(r=>Math.abs(r[1])),1);
+  return `<div class="dbars">${rows.map(([k,v,cl])=>`<div class="dbr"><span>${k}</span><i class="${cl}" style="width:${Math.abs(v)/mx*100}%"></i><b>${v>0?'+':''}${v}%</b></div>`).join('')}
+    <div class="cc">${md(d.from)} 고점 → ${md(d.to)} 저점 (${d.days}거래일, SPY도 같은 기간)</div>
+    ${d.note?`<div class="dnt">${d.note}</div>`:''}</div>`;
+}
 
+/* 작은 그래프(1개월) — 선 · 점선 기준선(ref) · 회색 점선(l2) · 노란 점(dots). 요약 줄 오른쪽에 붙인다 */
+function miniChart(vals,o={}){
+  const W=112,H=44,n=vals.length; if(n<3)return '';
+  const all=vals.concat(o.ref!=null?[o.ref]:[],o.l2||[]), lo=Math.min(...all), hi=Math.max(...all), pad=(hi-lo)*.08||1;
+  const X=i=>3+(W-6)*i/(n-1), Y=v=>4+(H-8)*(1-(v-lo+pad)/(hi-lo+2*pad));
+  const path=a=>a.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('');
+  return `<span class="minw"><svg class="mini" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">`+
+    (o.ref!=null?`<line class="ref" x1="0" x2="${W}" y1="${Y(o.ref).toFixed(1)}" y2="${Y(o.ref).toFixed(1)}"/>`:'')+
+    (o.l2?`<path class="l2" d="${path(o.l2)}"/>`:'')+`<path class="p" d="${path(vals)}"/>`+
+    (o.dots||[]).map(i=>`<circle class="dot" cx="${X(i).toFixed(1)}" cy="${Y(vals[i]).toFixed(1)}" r="3.2"/>`).join('')+
+    `<circle class="end" cx="${X(n-1).toFixed(1)}" cy="${Y(vals[n-1]).toFixed(1)}" r="2.6"/></svg>`+
+    (o.label?`<em>${o.label}</em>`:'')+`</span>`;
+}
+const statIcon=c=>c==='dot'?'<i class="sdot"></i>':c==='ref'?'<i class="sref"></i>':'';
 /* 흐름 단계 막대 — 평소 → 노란 점 → 반등 → 과열 → 꺾임 중 지금 어디쯤 (desk.py stage_of) */
 const STAGES=['평소','노란 점','반등','과열','꺾임'];
 function flowRow(c,link){
@@ -1396,17 +1444,27 @@ function flowRow(c,link){
     `<span class="fn ${g.cls}">${g.text}</span>`+
     (c.ind?`<span class="dpx ${sc(c.ind.pchg)}">오늘 ${sg(c.ind.pchg)}</span>`:'')+`</div>`+
     (g.i==null?'':`<div class="track">${STAGES.map((n,k)=>`<div class="st${k===1?' y':''}${k===g.i?' on '+g.cls:''}"><i></i>${n}</div>`).join('')}</div>`)+
-    ul(g.lines)+`</div>`;
+    flowBody(c,g,link)+ul(g.lines||[])+`</div>`;
+}
+/* 요약 줄 아래: 왼쪽 숫자 두 개, 오른쪽 기준자산 1개월 그래프(노란 점 · 취소선 점선) */
+function flowBody(c,g,mini){
+  if(!mini)return '';                        /* 종목별 탭에서는 아래 해석과 큰 그래프가 같은 것을 보여 준다 */
+  const H=c.hist||[], s=c.sig&&c.sig.valid&&c.sig.age<=60?c.sig:null;
+  const chart=mini&&H.length>2?miniChart(H.map(x=>x.c),{label:c.base,ref:s?s.low:null,dots:H.map((x,i)=>x.marks.includes('ro')?i:-1).filter(i=>i>=0)}):'';
+  const st=(g.stats||[]).map(([k,v,ic])=>`<div class="fsv">${statIcon(ic)}<span>${k}</span> <b>${v}</b></div>`).join('');
+  return st||chart?`<div class="fbody"><div class="fst">${st}</div>${chart}</div>`:'';
 }
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · 종목별 흐름 단계 · 시장 한 줄. 근거는 종목별 탭으로 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix, f=m.fut;
   let h=D.headline?`<div class="dhead1">${D.headline}</div>`:'';
   h+=D.cards.map(c=>flowRow(c,true)).join('');
-  h+=`<div class="mrow" data-dt="MKT"><i class="lamp ${mktCls(v)}"></i><div><b>시장 불안 ${VE[v.st]}</b>`+
-    ` <span class="mv">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span>`+ul([
+  h+=`<div class="mrow" data-dt="MKT"><div class="mh"><i class="lamp ${mktCls(v)}"></i><b>시장 불안 ${VE[v.st]}</b>`+
+    `<span class="mv">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
+    `<div class="fbody"><div class="fst">${ul([
       f?(f.back?'선물: 단기 불안이 남아 있음':'선물: 평소 모습'):'선물: 자료 없음',
-      u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])+`</div></div>`;
+      u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])}</div>`+
+    (m.spark?miniChart(m.spark.map(x=>x.c),{label:'VIX',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   h+=`<div class="dstamp">줄을 누르면 차트와 근거가 있는 자세한 화면으로 갑니다.</div>`;
   return h+dipRules()+secRules()+secLog();
 }

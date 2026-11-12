@@ -192,7 +192,7 @@ class FlowStage(unittest.TestCase):
         self.assertEqual(desk.stage_of(self.card('watch', setup={'left': 4}))['i'], 1)
         b = desk.stage_of(self.card('buy', self.sig()))
         self.assertEqual((b['i'], b['cls']), (2, 'buy'))
-        self.assertIn('취소선 SOXX $100.0', b['lines'][0])
+        self.assertEqual(b['stats'][-1][:2], ('취소선까지', '-5.0%'))
         self.assertEqual(desk.stage_of(self.card('warn', self.sig()))['cls'], 'warn')
         self.assertEqual(desk.stage_of(self.card('neutral', self.sig(age=10)))['i'], 2)   # 새 신호는 없지만 반등이 이어짐
         self.assertEqual(desk.stage_of(self.card('hot'))['i'], 3)
