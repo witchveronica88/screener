@@ -1196,13 +1196,10 @@ ${cus&&(st.cust[tk]||(tok&&REPO.has(tk)))?secOpen('list','목록',`
   el.querySelectorAll('.rmain').forEach(m=>m.onclick=()=>{
     const tk=m.parentElement.dataset.tk;
     st.open=st.open===tk?null:tk;render();
-    if(st.open){const r=document.querySelector(`[data-tk="${tk}"]`);
-      if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'});}
+    if(st.open)showRow(tk);
   });
   el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{
-    const tk=b.dataset.go;st.open=tk;render();
-    const r=document.querySelector(`.row[data-tk="${tk}"]`);
-    if(r)r.scrollIntoView({block:'start',behavior:'smooth'});
+    const tk=b.dataset.go;st.open=tk;render();showRow(tk);
   });
   bindAdd();
   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
@@ -1272,6 +1269,12 @@ const md=d=>{if(!d)return'';const a=d.split('-');return `${+a[1]}/${+a[2]}`;};
 const sg=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
 const sc=v=>v>0?'g':v<0?'r':'';
 const bat=t=>/[LMNR013678]$/i.test(t), eul=t=>bat(t)?'을':'를', eun=t=>bat(t)?'은':'는';
+/* 펼친 종목을 위에 고정된 머리 바로 아래에 맞춘다 — 티커 줄부터 보이게 (머리 높이는 글자 크기에 따라 달라짐) */
+function showRow(tk){
+  const r=document.querySelector(`.row[data-tk="${tk}"]`), hd=document.querySelector('.top'); if(!r)return;
+  const off=(hd?hd.getBoundingClientRect().bottom:0)+8;
+  window.scrollTo({top:Math.max(0,window.scrollY+r.getBoundingClientRect().top-off),behavior:'smooth'});
+}
 const ul=a=>`<ul class="dul">${a.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}</ul>`;
 const blk=(t,b)=>`<div class="blk"><div class="bt">${t}</div>${b}</div>`;
 const px=(p,ch)=>`<span class="dpx">$${p} <span class="${sc(ch)}">${sg(ch)}</span></span>`;
