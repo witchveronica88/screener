@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12T02:46+00:00",
+ "updated": "2026-11-12T10:18+00:00",
  "count": 61,
  "data": {
   "SOLT": {
@@ -24,6 +24,28 @@
    "riskBars": 415,
    "uwMax": 69,
    "uwNow": 419,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 24.1,
+    "cci": -123.3,
+    "rsi": 30.1,
+    "past": {
+     "n": 8,
+     "ep": 3,
+     "from": "2025-03-20",
+     "days": 60,
+     "hit": 75,
+     "medD": 6,
+     "maeAvg": -17.7,
+     "maeMax": -43.4
+    },
+    "last": {
+     "date": "2026-11-10",
+     "age": 1,
+     "mv": 4.3
+    }
+   },
    "corr": 0.32,
    "peers": [
     [
@@ -64,6 +86,28 @@
    "riskBars": 613,
    "uwMax": 0,
    "uwNow": 889,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 18.4,
+    "cci": -161.0,
+    "rsi": 33.0,
+    "past": {
+     "n": 22,
+     "ep": 11,
+     "from": "2024-06-04",
+     "days": 60,
+     "hit": 86,
+     "medD": 5,
+     "maeAvg": -15.7,
+     "maeMax": -66.3
+    },
+    "last": {
+     "date": "2026-06-25",
+     "age": 97,
+     "mv": 56.7
+    }
+   },
    "corr": 0.35,
    "peers": [
     [
@@ -112,6 +156,28 @@
    "riskBars": 750,
    "uwMax": 370,
    "uwNow": 3169,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 24.8,
+    "cci": 29.5,
+    "rsi": 52.8,
+    "past": {
+     "n": 81,
+     "ep": 35,
+     "from": "2015-08-20",
+     "days": 60,
+     "hit": 79,
+     "medD": 4,
+     "maeAvg": -23.7,
+     "maeMax": -90.8
+    },
+    "last": {
+     "date": "2026-09-30",
+     "age": 30,
+     "mv": 13.0
+    }
+   },
    "corr": 0.13,
    "crash": {
     "me": -1.5,
@@ -150,6 +216,28 @@
    "riskBars": 99,
    "uwMax": 0,
    "uwNow": 139,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 86.5,
+    "cci": -73.7,
+    "rsi": 40.7,
+    "past": {
+     "n": 2,
+     "ep": 2,
+     "from": "2026-06-24",
+     "days": 60,
+     "hit": 100,
+     "medD": 8,
+     "maeAvg": -11.1,
+     "maeMax": -14.6
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 36.1
+    }
+   },
    "corr": 0.91,
    "peers": [
     [
@@ -206,6 +294,23 @@
    "riskBars": 750,
    "uwMax": 22,
    "uwNow": 4135,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 75.3,
+    "cci": 44.7,
+    "rsi": 50.8,
+    "past": {
+     "n": 63,
+     "ep": 38,
+     "from": "2015-05-28",
+     "days": 60,
+     "hit": 92,
+     "medD": 2,
+     "maeAvg": -14.7,
+     "maeMax": -67.8
+    }
+   },
    "corr": 0.42,
    "peers": [
     [
@@ -250,6 +355,28 @@
    "riskBars": 750,
    "uwMax": 253,
    "uwNow": 694,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 26.6,
+    "cci": -123.4,
+    "rsi": 36.4,
+    "past": {
+     "n": 16,
+     "ep": 7,
+     "from": "2023-06-27",
+     "days": 60,
+     "hit": 81,
+     "medD": 6,
+     "maeAvg": -15.5,
+     "maeMax": -60.1
+    },
+    "last": {
+     "date": "2026-06-05",
+     "age": 110,
+     "mv": 36.3
+    }
+   },
    "corr": 0.34,
    "peers": [
     [
@@ -298,6 +425,28 @@
    "riskBars": 750,
    "uwMax": 1833,
    "uwNow": 287,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 22.3,
+    "cci": 2.0,
+    "rsi": 45.7,
+    "past": {
+     "n": 24,
+     "ep": 16,
+     "from": "2020-12-03",
+     "days": 60,
+     "hit": 96,
+     "medD": 4,
+     "maeAvg": -6.8,
+     "maeMax": -38.3
+    },
+    "last": {
+     "date": "2026-03-20",
+     "age": 163,
+     "mv": -41.4
+    }
+   },
    "corr": 0.41,
    "peers": [
     [
@@ -358,6 +507,28 @@
    "riskBars": 750,
    "uwMax": 1613,
    "uwNow": 4215,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 2.0,
+    "cci": 31.2,
+    "rsi": 49.2,
+    "past": {
+     "n": 95,
+     "ep": 53,
+     "from": "2009-12-03",
+     "days": 60,
+     "hit": 83,
+     "medD": 6,
+     "maeAvg": -16.6,
+     "maeMax": -61.3
+    },
+    "last": {
+     "date": "2026-06-26",
+     "age": 96,
+     "mv": 12.4
+    }
+   },
    "corr": 0.22,
    "peers": [
     [
@@ -402,6 +573,28 @@
    "riskBars": 750,
    "uwMax": 867,
    "uwNow": 1821,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 48.9,
+    "cci": 103.1,
+    "rsi": 59.6,
+    "past": {
+     "n": 78,
+     "ep": 40,
+     "from": "2010-07-14",
+     "days": 60,
+     "hit": 87,
+     "medD": 10,
+     "maeAvg": -14.8,
+     "maeMax": -78.4
+    },
+    "last": {
+     "date": "2026-03-20",
+     "age": 163,
+     "mv": 40.8
+    }
+   },
    "corr": 0.15,
    "peers": [
     [
@@ -446,6 +639,28 @@
    "riskBars": 750,
    "uwMax": 1201,
    "uwNow": 783,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 14.0,
+    "cci": 36.1,
+    "rsi": 53.1,
+    "past": {
+     "n": 71,
+     "ep": 33,
+     "from": "2015-08-19",
+     "days": 60,
+     "hit": 77,
+     "medD": 5,
+     "maeAvg": -21.2,
+     "maeMax": -90.9
+    },
+    "last": {
+     "date": "2026-03-20",
+     "age": 163,
+     "mv": -2.4
+    }
+   },
    "corr": 0.15,
    "peers": [
     [
@@ -490,6 +705,28 @@
    "riskBars": 598,
    "uwMax": 271,
    "uwNow": 287,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 72.9,
+    "cci": -28.7,
+    "rsi": 42.4,
+    "past": {
+     "n": 8,
+     "ep": 8,
+     "from": "2024-06-26",
+     "days": 60,
+     "hit": 100,
+     "medD": 2,
+     "maeAvg": -2.4,
+     "maeMax": -5.9
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 16.0
+    }
+   },
    "corr": 0.64,
    "peers": [
     [
@@ -538,6 +775,28 @@
    "riskBars": 750,
    "uwMax": 19,
    "uwNow": 4765,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 25.2,
+    "cci": 3.3,
+    "rsi": 45.6,
+    "past": {
+     "n": 75,
+     "ep": 36,
+     "from": "2013-10-03",
+     "days": 60,
+     "hit": 91,
+     "medD": 4,
+     "maeAvg": -14.0,
+     "maeMax": -69.8
+    },
+    "last": {
+     "date": "2026-06-10",
+     "age": 107,
+     "mv": 3.8
+    }
+   },
    "corr": 0.42,
    "peers": [
     [
@@ -598,6 +857,28 @@
    "riskBars": 750,
    "uwMax": 1078,
    "uwNow": 2093,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 1.8,
+    "cci": -10.7,
+    "rsi": 44.5,
+    "past": {
+     "n": 66,
+     "ep": 39,
+     "from": "2016-11-10",
+     "days": 60,
+     "hit": 85,
+     "medD": 6,
+     "maeAvg": -15.2,
+     "maeMax": -54.1
+    },
+    "last": {
+     "date": "2026-09-16",
+     "age": 40,
+     "mv": -6.6
+    }
+   },
    "corr": 0.21,
    "peers": [
     [
@@ -642,6 +923,28 @@
    "riskBars": 750,
    "uwMax": 3021,
    "uwNow": 163,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 79.7,
+    "cci": -86.5,
+    "rsi": 38.8,
+    "past": {
+     "n": 104,
+     "ep": 50,
+     "from": "2013-04-10",
+     "days": 60,
+     "hit": 73,
+     "medD": 7,
+     "maeAvg": -16.5,
+     "maeMax": -76.4
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 30.8
+    }
+   },
    "corr": 0.83,
    "peers": [
     [
@@ -706,6 +1009,28 @@
    "riskBars": 750,
    "uwMax": 161,
    "uwNow": 1891,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 88.5,
+    "cci": -41.5,
+    "rsi": 42.8,
+    "past": {
+     "n": 29,
+     "ep": 18,
+     "from": "2019-11-07",
+     "days": 60,
+     "hit": 90,
+     "medD": 3,
+     "maeAvg": -14.2,
+     "maeMax": -54.8
+    },
+    "last": {
+     "date": "2026-11-03",
+     "age": 6,
+     "mv": 5.3
+    }
+   },
    "corr": 0.43,
    "peers": [
     [
@@ -758,6 +1083,28 @@
    "riskBars": 750,
    "uwMax": 1624,
    "uwNow": 142,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 88.6,
+    "cci": -32.5,
+    "rsi": 44.9,
+    "past": {
+     "n": 29,
+     "ep": 11,
+     "from": "2019-11-07",
+     "days": 60,
+     "hit": 90,
+     "medD": 4,
+     "maeAvg": -19.2,
+     "maeMax": -83.8
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 33.4
+    }
+   },
    "corr": 0.9,
    "peers": [
     [
@@ -842,6 +1189,28 @@
    "riskBars": 750,
    "uwMax": 20,
    "uwNow": 3395,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 69.9,
+    "cci": 171.9,
+    "rsi": 64.1,
+    "past": {
+     "n": 70,
+     "ep": 29,
+     "from": "2017-05-03",
+     "days": 60,
+     "hit": 79,
+     "medD": 17,
+     "maeAvg": -18.9,
+     "maeMax": -77.2
+    },
+    "last": {
+     "date": "2026-10-01",
+     "age": 29,
+     "mv": 35.0
+    }
+   },
    "corr": 0.41,
    "peers": [
     [
@@ -886,6 +1255,28 @@
    "riskBars": 750,
    "uwMax": 2063,
    "uwNow": 254,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 98.6,
+    "cci": 146.4,
+    "rsi": 58.4,
+    "past": {
+     "n": 50,
+     "ep": 21,
+     "from": "2017-05-03",
+     "days": 60,
+     "hit": 86,
+     "medD": 6,
+     "maeAvg": -22.5,
+     "maeMax": -90.1
+    },
+    "last": {
+     "date": "2026-10-07",
+     "age": 25,
+     "mv": 21.9
+    }
+   },
    "corr": 0.39,
    "peers": [
     [
@@ -930,6 +1321,28 @@
    "riskBars": 750,
    "uwMax": 162,
    "uwNow": 5850,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 81.4,
+    "cci": 136.6,
+    "rsi": 75.0,
+    "past": {
+     "n": 112,
+     "ep": 67,
+     "from": "2010-03-11",
+     "days": 60,
+     "hit": 66,
+     "medD": 14,
+     "maeAvg": -14.9,
+     "maeMax": -82.1
+    },
+    "last": {
+     "date": "2026-10-08",
+     "age": 24,
+     "mv": 26.7
+    }
+   },
    "corr": 0.27,
    "crash": {
     "me": -1.0,
@@ -968,6 +1381,28 @@
    "riskBars": 750,
    "uwMax": 151,
    "uwNow": 5543,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 25.5,
+    "cci": 24.2,
+    "rsi": 48.0,
+    "past": {
+     "n": 120,
+     "ep": 54,
+     "from": "2010-12-08",
+     "days": 60,
+     "hit": 75,
+     "medD": 4,
+     "maeAvg": -20.9,
+     "maeMax": -76.2
+    },
+    "last": {
+     "date": "2026-03-20",
+     "age": 163,
+     "mv": -8.0
+    }
+   },
    "corr": 0.4,
    "peers": [
     [
@@ -1028,6 +1463,28 @@
    "riskBars": 750,
    "uwMax": 1186,
    "uwNow": 1835,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 77.3,
+    "cci": 128.1,
+    "rsi": 57.8,
+    "past": {
+     "n": 69,
+     "ep": 33,
+     "from": "2017-05-03",
+     "days": 60,
+     "hit": 87,
+     "medD": 11,
+     "maeAvg": -18.9,
+     "maeMax": -79.8
+    },
+    "last": {
+     "date": "2026-09-30",
+     "age": 30,
+     "mv": 20.1
+    }
+   },
    "corr": 0.31,
    "peers": [
     [
@@ -1076,6 +1533,28 @@
    "riskBars": 750,
    "uwMax": 204,
    "uwNow": 2996,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 100.0,
+    "cci": 240.4,
+    "rsi": 61.9,
+    "past": {
+     "n": 66,
+     "ep": 28,
+     "from": "2017-11-15",
+     "days": 60,
+     "hit": 80,
+     "medD": 7,
+     "maeAvg": -16.7,
+     "maeMax": -67.2
+    },
+    "last": {
+     "date": "2026-10-06",
+     "age": 26,
+     "mv": 26.0
+    }
+   },
    "corr": 0.3,
    "peers": [
     [
@@ -1120,6 +1599,28 @@
    "riskBars": 750,
    "uwMax": 892,
    "uwNow": 1829,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 81.0,
+    "cci": 80.2,
+    "rsi": 52.5,
+    "past": {
+     "n": 83,
+     "ep": 46,
+     "from": "2008-11-19",
+     "days": 60,
+     "hit": 82,
+     "medD": 5,
+     "maeAvg": -18.5,
+     "maeMax": -83.2
+    },
+    "last": {
+     "date": "2026-10-14",
+     "age": 20,
+     "mv": 10.9
+    }
+   },
    "corr": 0.69,
    "peers": [
     [
@@ -1196,6 +1697,23 @@
    "riskBars": 750,
    "uwMax": 1730,
    "uwNow": 89,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 96.2,
+    "cci": 108.3,
+    "rsi": 55.1,
+    "past": {
+     "n": 80,
+     "ep": 41,
+     "from": "2009-01-08",
+     "days": 60,
+     "hit": 81,
+     "medD": 6,
+     "maeAvg": -17.6,
+     "maeMax": -83.8
+    }
+   },
    "corr": 0.68,
    "peers": [
     [
@@ -1264,6 +1782,28 @@
    "riskBars": 750,
    "uwMax": 0,
    "uwNow": 4962,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 71.2,
+    "cci": -54.2,
+    "rsi": 31.3,
+    "past": {
+     "n": 109,
+     "ep": 49,
+     "from": "2013-04-10",
+     "days": 60,
+     "hit": 75,
+     "medD": 7,
+     "maeAvg": -23.1,
+     "maeMax": -95.7
+    },
+    "last": {
+     "date": "2026-11-03",
+     "age": 6,
+     "mv": 4.0
+    }
+   },
    "corr": 0.22,
    "crash": {
     "me": -2.4,
@@ -1302,6 +1842,23 @@
    "riskBars": 750,
    "uwMax": 7,
    "uwNow": 4172,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 75.7,
+    "cci": -97.2,
+    "rsi": 39.2,
+    "past": {
+     "n": 86,
+     "ep": 35,
+     "from": "2015-05-29",
+     "days": 60,
+     "hit": 79,
+     "medD": 3,
+     "maeAvg": -25.6,
+     "maeMax": -98.6
+    }
+   },
    "corr": -0.06,
    "peers": [
     [
@@ -1346,6 +1903,28 @@
    "riskBars": 750,
    "uwMax": 482,
    "uwNow": 2458,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 81.1,
+    "cci": 99.7,
+    "rsi": 62.7,
+    "past": {
+     "n": 59,
+     "ep": 27,
+     "from": "2017-05-03",
+     "days": 60,
+     "hit": 76,
+     "medD": 7,
+     "maeAvg": -12.6,
+     "maeMax": -62.1
+    },
+    "last": {
+     "date": "2026-09-28",
+     "age": 32,
+     "mv": 36.1
+    }
+   },
    "corr": 0.03,
    "crash": {
     "me": -0.2,
@@ -1384,6 +1963,28 @@
    "riskBars": 750,
    "uwMax": 898,
    "uwNow": 162,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 84.4,
+    "cci": -70.5,
+    "rsi": 40.0,
+    "past": {
+     "n": 45,
+     "ep": 31,
+     "from": "2008-12-30",
+     "days": 60,
+     "hit": 93,
+     "medD": 4,
+     "maeAvg": -10.0,
+     "maeMax": -49.4
+    },
+    "last": {
+     "date": "2026-11-06",
+     "age": 3,
+     "mv": 17.5
+    }
+   },
    "corr": 0.92,
    "peers": [
     [
@@ -1460,6 +2061,28 @@
    "riskBars": 750,
    "uwMax": 187,
    "uwNow": 1832,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 61.9,
+    "cci": 120.4,
+    "rsi": 61.5,
+    "past": {
+     "n": 36,
+     "ep": 25,
+     "from": "2018-11-29",
+     "days": 60,
+     "hit": 89,
+     "medD": 6,
+     "maeAvg": -16.9,
+     "maeMax": -74.8
+    },
+    "last": {
+     "date": "2026-07-23",
+     "age": 78,
+     "mv": 28.5
+    }
+   },
    "corr": 0.37,
    "peers": [
     [
@@ -1508,6 +2131,28 @@
    "riskBars": 750,
    "uwMax": 1128,
    "uwNow": 2462,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 52.9,
+    "cci": 101.7,
+    "rsi": 62.1,
+    "past": {
+     "n": 101,
+     "ep": 47,
+     "from": "2009-07-16",
+     "days": 60,
+     "hit": 89,
+     "medD": 8,
+     "maeAvg": -12.6,
+     "maeMax": -71.7
+    },
+    "last": {
+     "date": "2026-10-05",
+     "age": 27,
+     "mv": 29.1
+    }
+   },
    "corr": -0.04,
    "crash": {
     "me": -0.1,
@@ -1546,6 +2191,28 @@
    "riskBars": 750,
    "uwMax": 353,
    "uwNow": 5696,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 90.5,
+    "cci": -19.5,
+    "rsi": 44.7,
+    "past": {
+     "n": 94,
+     "ep": 47,
+     "from": "2008-12-30",
+     "days": 60,
+     "hit": 86,
+     "medD": 7,
+     "maeAvg": -14.7,
+     "maeMax": -61.7
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 21.0
+    }
+   },
    "corr": 0.85,
    "peers": [
     [
@@ -1618,6 +2285,28 @@
    "riskBars": 674,
    "uwMax": 266,
    "uwNow": 378,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 60.5,
+    "cci": -59.7,
+    "rsi": 43.8,
+    "past": {
+     "n": 12,
+     "ep": 10,
+     "from": "2024-03-07",
+     "days": 60,
+     "hit": 92,
+     "medD": 4,
+     "maeAvg": -14.6,
+     "maeMax": -41.0
+    },
+    "last": {
+     "date": "2026-06-25",
+     "age": 97,
+     "mv": 21.8
+    }
+   },
    "corr": 0.5,
    "peers": [
     [
@@ -1670,6 +2359,28 @@
    "riskBars": 750,
    "uwMax": 286,
    "uwNow": 5676,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 24.6,
+    "cci": -55.4,
+    "rsi": 37.8,
+    "past": {
+     "n": 123,
+     "ep": 58,
+     "from": "2008-12-04",
+     "days": 60,
+     "hit": 75,
+     "medD": 9,
+     "maeAvg": -12.5,
+     "maeMax": -56.4
+    },
+    "last": {
+     "date": "2026-11-03",
+     "age": 6,
+     "mv": 8.1
+    }
+   },
    "corr": 0.33,
    "peers": [
     [
@@ -1730,6 +2441,28 @@
    "riskBars": 750,
    "uwMax": 1189,
    "uwNow": 134,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 95.4,
+    "cci": 95.0,
+    "rsi": 53.2,
+    "past": {
+     "n": 52,
+     "ep": 23,
+     "from": "2017-05-03",
+     "days": 60,
+     "hit": 83,
+     "medD": 4,
+     "maeAvg": -17.5,
+     "maeMax": -81.9
+    },
+    "last": {
+     "date": "2026-09-16",
+     "age": 40,
+     "mv": 1.2
+    }
+   },
    "corr": 0.63,
    "peers": [
     [
@@ -1790,6 +2523,28 @@
    "riskBars": 626,
    "uwMax": 211,
    "uwNow": 162,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 87.4,
+    "cci": -42.0,
+    "rsi": 43.6,
+    "past": {
+     "n": 5,
+     "ep": 4,
+     "from": "2024-05-15",
+     "days": 60,
+     "hit": 100,
+     "medD": 3,
+     "maeAvg": -5.9,
+     "maeMax": -22.1
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 15.0
+    }
+   },
    "corr": 0.79,
    "peers": [
     [
@@ -1858,6 +2613,28 @@
    "riskBars": 750,
    "uwMax": 2922,
    "uwNow": 78,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 70.4,
+    "cci": 99.7,
+    "rsi": 55.0,
+    "past": {
+     "n": 85,
+     "ep": 47,
+     "from": "2014-01-22",
+     "days": 60,
+     "hit": 75,
+     "medD": 8,
+     "maeAvg": -15.4,
+     "maeMax": -77.4
+    },
+    "last": {
+     "date": "2026-10-01",
+     "age": 29,
+     "mv": 11.9
+    }
+   },
    "corr": 0.49,
    "peers": [
     [
@@ -1914,6 +2691,28 @@
    "riskBars": 750,
    "uwMax": 1841,
    "uwNow": 7,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 55.3,
+    "cci": 115.4,
+    "rsi": 61.5,
+    "past": {
+     "n": 78,
+     "ep": 39,
+     "from": "2008-11-19",
+     "days": 60,
+     "hit": 86,
+     "medD": 5,
+     "maeAvg": -14.5,
+     "maeMax": -83.4
+    },
+    "last": {
+     "date": "2026-09-30",
+     "age": 30,
+     "mv": 29.2
+    }
+   },
    "corr": 0.09,
    "peers": [
     [
@@ -1958,6 +2757,28 @@
    "riskBars": 750,
    "uwMax": 1132,
    "uwNow": 2438,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 22.1,
+    "cci": -30.6,
+    "rsi": 50.7,
+    "past": {
+     "n": 95,
+     "ep": 57,
+     "from": "2009-04-16",
+     "days": 60,
+     "hit": 57,
+     "medD": 16,
+     "maeAvg": -13.0,
+     "maeMax": -37.9
+    },
+    "last": {
+     "date": "2026-09-30",
+     "age": 30,
+     "mv": 13.2
+    }
+   },
    "corr": 0.09,
    "peers": [
     [
@@ -2002,6 +2823,28 @@
    "riskBars": 750,
    "uwMax": 1594,
    "uwNow": 7,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 67.8,
+    "cci": 104.3,
+    "rsi": 67.2,
+    "past": {
+     "n": 71,
+     "ep": 35,
+     "from": "2011-06-15",
+     "days": 60,
+     "hit": 93,
+     "medD": 7,
+     "maeAvg": -7.9,
+     "maeMax": -62.9
+    },
+    "last": {
+     "date": "2026-03-30",
+     "age": 157,
+     "mv": 105.0
+    }
+   },
    "corr": -0.1,
    "crash": {
     "me": 0.1,
@@ -2040,6 +2883,28 @@
    "riskBars": 750,
    "uwMax": 1231,
    "uwNow": 1829,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 91.3,
+    "cci": -54.9,
+    "rsi": 42.5,
+    "past": {
+     "n": 75,
+     "ep": 39,
+     "from": "2018-04-19",
+     "days": 60,
+     "hit": 81,
+     "medD": 6,
+     "maeAvg": -14.1,
+     "maeMax": -61.8
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 10.4
+    }
+   },
    "corr": 0.75,
    "peers": [
     [
@@ -2116,6 +2981,28 @@
    "riskBars": 750,
    "uwMax": 17,
    "uwNow": 4170,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 53.7,
+    "cci": -11.3,
+    "rsi": 43.2,
+    "past": {
+     "n": 72,
+     "ep": 34,
+     "from": "2015-04-16",
+     "days": 60,
+     "hit": 67,
+     "medD": 12,
+     "maeAvg": -13.3,
+     "maeMax": -38.9
+    },
+    "last": {
+     "date": "2026-10-30",
+     "age": 8,
+     "mv": 4.7
+    }
+   },
    "corr": 0.62,
    "crash": {
     "me": -1.8,
@@ -2154,6 +3041,23 @@
    "riskBars": 750,
    "uwMax": 1068,
    "uwNow": 4524,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 69.7,
+    "cci": -97.9,
+    "rsi": 41.6,
+    "past": {
+     "n": 108,
+     "ep": 43,
+     "from": "2008-11-19",
+     "days": 60,
+     "hit": 82,
+     "medD": 6,
+     "maeAvg": -22.3,
+     "maeMax": -96.4
+    }
+   },
    "corr": -0.09,
    "peers": [
     [
@@ -2198,6 +3102,28 @@
    "riskBars": 750,
    "uwMax": 924,
    "uwNow": 98,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 52.3,
+    "cci": -16.0,
+    "rsi": 51.5,
+    "past": {
+     "n": 71,
+     "ep": 45,
+     "from": "2010-02-11",
+     "days": 60,
+     "hit": 93,
+     "medD": 7,
+     "maeAvg": -11.0,
+     "maeMax": -76.3
+    },
+    "last": {
+     "date": "2026-03-30",
+     "age": 157,
+     "mv": 44.4
+    }
+   },
    "corr": 0.46,
    "peers": [
     [
@@ -2266,6 +3192,28 @@
    "riskBars": 750,
    "uwMax": 1148,
    "uwNow": 2290,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 13.6,
+    "cci": -16.2,
+    "rsi": 49.5,
+    "past": {
+     "n": 142,
+     "ep": 72,
+     "from": "2009-04-16",
+     "days": 60,
+     "hit": 28,
+     "medD": 31,
+     "maeAvg": -8.6,
+     "maeMax": -24.6
+    },
+    "last": {
+     "date": "2026-09-30",
+     "age": 30,
+     "mv": 6.5
+    }
+   },
    "corr": 0.06,
    "peers": [
     [
@@ -2310,6 +3258,28 @@
    "riskBars": 750,
    "uwMax": 4957,
    "uwNow": 286,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 1.1,
+    "cci": -67.2,
+    "rsi": 42.4,
+    "past": {
+     "n": 120,
+     "ep": 52,
+     "from": "2008-12-03",
+     "days": 60,
+     "hit": 63,
+     "medD": 17,
+     "maeAvg": -7.1,
+     "maeMax": -29.0
+    },
+    "last": {
+     "date": "2026-10-30",
+     "age": 8,
+     "mv": 5.1
+    }
+   },
    "corr": 0.3,
    "peers": [
     [
@@ -2370,6 +3340,28 @@
    "riskBars": 750,
    "uwMax": 1565,
    "uwNow": 142,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 87.3,
+    "cci": -60.9,
+    "rsi": 40.1,
+    "past": {
+     "n": 47,
+     "ep": 25,
+     "from": "2010-03-11",
+     "days": 60,
+     "hit": 91,
+     "medD": 4,
+     "maeAvg": -14.9,
+     "maeMax": -55.8
+    },
+    "last": {
+     "date": "2026-11-06",
+     "age": 3,
+     "mv": 43.6
+    }
+   },
    "peers": [
     [
      "TECL",
@@ -2431,6 +3423,28 @@
    "riskBars": 750,
    "uwMax": 29,
    "uwNow": 2129,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 73.5,
+    "cci": 78.2,
+    "rsi": 45.9,
+    "past": {
+     "n": 65,
+     "ep": 28,
+     "from": "2020-11-02",
+     "days": 60,
+     "hit": 78,
+     "medD": 4,
+     "maeAvg": -19.3,
+     "maeMax": -69.5
+    },
+    "last": {
+     "date": "2026-10-21",
+     "age": 15,
+     "mv": 18.5
+    }
+   },
    "corr": 0.48,
    "crash": {
     "me": -5.2,
@@ -2461,6 +3475,28 @@
    "riskBars": 750,
    "uwMax": 1379,
    "uwNow": 371,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 69.5,
+    "cci": -92.5,
+    "rsi": 36.6,
+    "past": {
+     "n": 24,
+     "ep": 14,
+     "from": "2021-11-17",
+     "days": 60,
+     "hit": 88,
+     "medD": 2,
+     "maeAvg": -16.1,
+     "maeMax": -72.3
+    },
+    "last": {
+     "date": "2026-11-05",
+     "age": 4,
+     "mv": 15.6
+    }
+   },
    "corr": 0.62,
    "crash": {
     "me": -6.6,
@@ -2491,6 +3527,28 @@
    "riskBars": 750,
    "uwMax": 8,
    "uwNow": 5507,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 76.6,
+    "cci": 63.1,
+    "rsi": 54.1,
+    "past": {
+     "n": 148,
+     "ep": 65,
+     "from": "2011-10-06",
+     "days": 60,
+     "hit": 72,
+     "medD": 6,
+     "maeAvg": -19.1,
+     "maeMax": -77.7
+    },
+    "last": {
+     "date": "2026-01-09",
+     "age": 211,
+     "mv": -39.4
+    }
+   },
    "corr": -0.08,
    "crash": {
     "me": -0.5,
@@ -2521,6 +3579,28 @@
    "riskBars": 750,
    "uwMax": 1169,
    "uwNow": 168,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 91.3,
+    "cci": 236.5,
+    "rsi": 59.2,
+    "past": {
+     "n": 27,
+     "ep": 15,
+     "from": "2020-11-24",
+     "days": 60,
+     "hit": 93,
+     "medD": 7,
+     "maeAvg": -10.9,
+     "maeMax": -39.6
+    },
+    "last": {
+     "date": "2026-10-20",
+     "age": 16,
+     "mv": 30.0
+    }
+   },
    "corr": 0.54,
    "crash": {
     "me": -4.2,
@@ -2551,6 +3631,28 @@
    "riskBars": 750,
    "uwMax": 0,
    "uwNow": 1821,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 51.3,
+    "cci": 84.4,
+    "rsi": 52.2,
+    "past": {
+     "n": 36,
+     "ep": 17,
+     "from": "2021-11-10",
+     "days": 60,
+     "hit": 83,
+     "medD": 9,
+     "maeAvg": -14.6,
+     "maeMax": -47.1
+    },
+    "last": {
+     "date": "2026-10-29",
+     "age": 9,
+     "mv": 18.3
+    }
+   },
    "corr": 0.29,
    "crash": {
     "me": -2.2,
@@ -2581,6 +3683,28 @@
    "riskBars": 750,
    "uwMax": 1100,
    "uwNow": 394,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 80.0,
+    "cci": 145.9,
+    "rsi": 51.0,
+    "past": {
+     "n": 44,
+     "ep": 17,
+     "from": "2021-01-04",
+     "days": 60,
+     "hit": 89,
+     "medD": 5,
+     "maeAvg": -14.3,
+     "maeMax": -50.4
+    },
+    "last": {
+     "date": "2026-10-14",
+     "age": 20,
+     "mv": 8.4
+    }
+   },
    "corr": 0.52,
    "peers": [
     [
@@ -2617,6 +3741,28 @@
    "riskBars": 750,
    "uwMax": 56,
    "uwNow": 2099,
+   "dip": {
+    "on": true,
+    "run": 4,
+    "k": 15.0,
+    "cci": -167.6,
+    "rsi": 28.4,
+    "past": {
+     "n": 35,
+     "ep": 16,
+     "from": "2020-06-18",
+     "days": 60,
+     "hit": 91,
+     "medD": 3,
+     "maeAvg": -10.0,
+     "maeMax": -61.3
+    },
+    "last": {
+     "date": "2026-11-11",
+     "age": 0,
+     "mv": 0.0
+    }
+   },
    "corr": 0.27,
    "crash": {
     "me": -3.3,
@@ -2647,6 +3793,28 @@
    "riskBars": 750,
    "uwMax": 1611,
    "uwNow": 464,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 69.3,
+    "cci": 158.5,
+    "rsi": 60.6,
+    "past": {
+     "n": 28,
+     "ep": 12,
+     "from": "2020-11-09",
+     "days": 60,
+     "hit": 86,
+     "medD": 9,
+     "maeAvg": -12.0,
+     "maeMax": -31.2
+    },
+    "last": {
+     "date": "2026-10-14",
+     "age": 20,
+     "mv": 27.5
+    }
+   },
    "corr": 0.48,
    "crash": {
     "me": -3.3,
@@ -2677,6 +3845,28 @@
    "riskBars": 750,
    "uwMax": 21,
    "uwNow": 7152,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 63.7,
+    "cci": -93.1,
+    "rsi": 33.7,
+    "past": {
+     "n": 141,
+     "ep": 67,
+     "from": "2007-03-19",
+     "days": 60,
+     "hit": 91,
+     "medD": 6,
+     "maeAvg": -11.0,
+     "maeMax": -79.7
+    },
+    "last": {
+     "date": "2026-11-04",
+     "age": 5,
+     "mv": -3.5
+    }
+   },
    "corr": 0.53,
    "peers": [
     [
@@ -2713,6 +3903,28 @@
    "riskBars": 750,
    "uwMax": 1053,
    "uwNow": 707,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 88.6,
+    "cci": 276.6,
+    "rsi": 73.4,
+    "past": {
+     "n": 72,
+     "ep": 36,
+     "from": "2016-09-21",
+     "days": 60,
+     "hit": 68,
+     "medD": 8,
+     "maeAvg": -16.5,
+     "maeMax": -48.0
+    },
+    "last": {
+     "date": "2026-09-29",
+     "age": 31,
+     "mv": 32.6
+    }
+   },
    "corr": -0.0,
    "crash": {
     "me": -1.5,
@@ -2743,6 +3955,28 @@
    "riskBars": 750,
    "uwMax": 126,
    "uwNow": 2063,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 43.3,
+    "cci": -57.1,
+    "rsi": 44.6,
+    "past": {
+     "n": 57,
+     "ep": 25,
+     "from": "2019-07-25",
+     "days": 60,
+     "hit": 61,
+     "medD": 6,
+     "maeAvg": -19.7,
+     "maeMax": -57.4
+    },
+    "last": {
+     "date": "2026-10-02",
+     "age": 28,
+     "mv": 5.6
+    }
+   },
    "corr": -0.11,
    "crash": {
     "me": -1.2,
@@ -2773,6 +4007,28 @@
    "riskBars": 750,
    "uwMax": 1226,
    "uwNow": 630,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 29.5,
+    "cci": -205.5,
+    "rsi": 35.3,
+    "past": {
+     "n": 46,
+     "ep": 20,
+     "from": "2019-09-13",
+     "days": 60,
+     "hit": 67,
+     "medD": 13,
+     "maeAvg": -12.0,
+     "maeMax": -49.5
+    },
+    "last": {
+     "date": "2026-11-10",
+     "age": 1,
+     "mv": 8.8
+    }
+   },
    "corr": 0.35,
    "crash": {
     "me": -4.5,
@@ -2803,6 +4059,28 @@
    "riskBars": 750,
    "uwMax": 1350,
    "uwNow": 408,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 81.5,
+    "cci": 57.8,
+    "rsi": 57.3,
+    "past": {
+     "n": 51,
+     "ep": 22,
+     "from": "2021-03-10",
+     "days": 60,
+     "hit": 90,
+     "medD": 6,
+     "maeAvg": -9.6,
+     "maeMax": -39.2
+    },
+    "last": {
+     "date": "2026-08-05",
+     "age": 69,
+     "mv": 45.4
+    }
+   },
    "corr": 0.16,
    "crash": {
     "me": -1.2,
@@ -2833,6 +4111,28 @@
    "riskBars": 750,
    "uwMax": 470,
    "uwNow": 2098,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 84.1,
+    "cci": -60.0,
+    "rsi": 43.7,
+    "past": {
+     "n": 67,
+     "ep": 39,
+     "from": "2014-10-31",
+     "days": 60,
+     "hit": 78,
+     "medD": 11,
+     "maeAvg": -9.4,
+     "maeMax": -41.7
+    },
+    "last": {
+     "date": "2026-02-05",
+     "age": 193,
+     "mv": 18.3
+    }
+   },
    "corr": 0.64,
    "peers": [
     [
@@ -2897,6 +4197,28 @@
    "riskBars": 750,
    "uwMax": 5410,
    "uwNow": 257,
+   "dip": {
+    "on": false,
+    "run": 0,
+    "k": 25.7,
+    "cci": -46.1,
+    "rsi": 42.1,
+    "past": {
+     "n": 135,
+     "ep": 60,
+     "from": "2006-11-28",
+     "days": 60,
+     "hit": 75,
+     "medD": 8,
+     "maeAvg": -17.3,
+     "maeMax": -80.4
+    },
+    "last": {
+     "date": "2026-10-14",
+     "age": 20,
+     "mv": -3.1
+    }
+   },
    "corr": 0.43,
    "peers": [
     [

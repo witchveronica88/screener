@@ -92,6 +92,7 @@ input,select,button{font-family:inherit}
 .met{display:flex;gap:10px;margin-top:6px;font-family:var(--mono);
      font-size:var(--fs-s);color:var(--ink3);flex-wrap:wrap}
 .met .g{color:var(--up)}.met .r{color:var(--dn)}.met .w{color:var(--warn)}
+.met .dip{background:var(--st-watch);color:var(--ink);border-radius:20px;padding:0 9px;font-family:var(--sans);font-weight:600}
 .rr{text-align:right;flex-shrink:0}
 .rr .a{font-family:var(--mono);font-size:var(--fs-l);font-weight:600;color:var(--ink)}
 .rr .b{font-family:var(--mono);font-size:var(--fs-m);color:var(--ink2);margin-top:2px}
@@ -406,6 +407,16 @@ input,select,button{font-family:inherit}
   </div>
 
   <div class="hcard">
+    <h4>노란 점</h4>
+    <div class="hitem"><div class="hterm">노란 점 — 매수 기회 표시</div>
+      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 매수 기회 전광판과 같은 계산이다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일이다.</div></div>
+    <div class="hitem"><div class="hterm">상황판과 다른 점</div>
+      <div class="hdef">여기서는 <b>그 종목 자체의 가격</b>으로 판정한다. 상황판은 기초자산(SOXX·QQQ)으로 판정하므로 SOXL의 노란 점 날짜가 하루쯤 다를 수 있다.</div></div>
+    <div class="hitem"><div class="hterm">과거 결과</div>
+      <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 센다. 종목마다 따로 계산한다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나온다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있다.</div></div>
+  </div>
+
+  <div class="hcard">
     <h4>급락 위험</h4>
     <div class="hitem"><div class="hterm">급락일 평균 손실</div>
       <div class="hdef">최근 3년 수익률을 나쁜 순으로 줄 세워 하위 5%만 평균한 값. <b>하루</b>는 가장 나빴던 날들의 평균이고, <b>5일</b>은 5거래일을 이어 붙였을 때의 평균이다. 분할 매수가 무너지는 건 하루 급락보다 반등 없이 며칠 이어지는 하락이라 5일 값을 함께 둔다. 상장이 3년보다 짧으면 있는 만큼만 쓰고 일수를 적는다. 표본이 적을수록 값이 크게 흔들린다.</div></div>
@@ -462,6 +473,7 @@ input,select,button{font-family:inherit}
   <select class="sortsel" id="sort">
     <option value="need">최소 시드순</option>
     <option value="sig">변동성순</option>
+    <option value="dip">노란 점 먼저</option>
     <option value="rsi">RSI 낮은순</option>
     <option value="dd">역대 낙폭순</option>
     <option value="dd1y">1년 낙폭순</option>
@@ -607,6 +619,9 @@ function fundCaut(tk){
   if((Date.now()-new Date(F.asof))/864e5>200) c.push(['재무 자료 오래됨',F.asof+' 기준 자료가 마지막입니다. 지금 상태와 다를 수 있습니다.']);
   return c;
 }
+/* 노란 점 (세 지표가 모두 '많이 빠짐') — 종목 자체 가격으로 판정. 켜진 종목 먼저, 그다음 최근에 찍힌 순 */
+const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
+const dipRank=tk=>{const d=dipOf(tk);return d.on?-d.run:d.last?d.last.age+1:9999;};
 function cautions(r,L,live,cus){
   const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
   const c=[];
@@ -841,11 +856,13 @@ function render(){
   const withPx=rows.map(r=>{const p=priceOf(r[0]);
     return {r,p,need:p?seedMin(p):Infinity};});
   const c=document.getElementById('cnt');
-  if(c)c.textContent=`${rows.length}종목`;
+  const nDip=rows.filter(r=>dipOf(r[0]).on).length;
+  if(c)c.textContent=`${rows.length}종목`+(nDip?` · 노란 점 ${nDip}`:'');
 
   const vis=[...withPx].sort((a,b)=>
       st.sort==='tk'?a.r[0].localeCompare(b.r[0])
      :st.sort==='sig'?sigOf(b.r[0],b.r[9])-sigOf(a.r[0],a.r[9])
+     :st.sort==='dip'?dipRank(a.r[0])-dipRank(b.r[0])
      :st.sort==='rsi'?((LIVE[a.r[0]]||{}).rsi??999)-((LIVE[b.r[0]]||{}).rsi??999)
      :st.sort==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
      :st.sort==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
@@ -912,6 +929,7 @@ function render(){
         ${L.chg!=null?`<span class="${sgn(L.chg)}">${L.chg>0?'+':''}${L.chg}%</span>`:''}
         ${L.rsi!=null?`<span class="${rsiC}">RSI ${L.rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
+        ${L.dip&&L.dip.on?`<span class="dip">노란 점${L.dip.run>1?' '+L.dip.run+'일째':''}</span>`:''}
         ${crashCaut(L)?'<span class="w">급락 동반</span>':''}
         ${(F=>F&&!F.na&&F.runway!=null&&F.runway<RUNWAY_MIN?'<span class="w">현금 주의</span>':'')(FUND[tk])}
         ${(F=>F&&!F.na&&F.sh!=null&&F.sh>SHARE_MAX?'<span class="w">주식 수 증가</span>':'')(FUND[tk])}
@@ -1000,6 +1018,22 @@ function render(){
           ${L&&L.peers&&L.peers.length?`<div class="wide"><div class="sk">같이 움직이는 종목 · 1년 상관 0.7 이상</div>
             <div class="sv">${L.peers.slice(0,5).map(([t,c])=>`<span class="u">${t}</span> <span class="q">${c.toFixed(2)}</span>`).join(' · ')}</div></div>`:''}
         </div>
+
+        ${L&&L.dip?(d=>`<div class="sec"><span>노란 점</span><i></i></div>
+        <div class="spec">
+          <div><div class="sk">지금</div><div class="sv">${d.on
+            ?`<span class="bg r-new">켜짐</span> <span class="q">${d.run>1?d.run+'일째':'오늘'}</span>`
+            :'<span class="bg r-none">꺼짐</span>'}</div></div>
+          <div><div class="sk">마지막 노란 점</div><div class="sv">${d.last&&!d.on
+            ?`<span class="u">${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)}</span> <span class="q">${d.last.age}거래일 전</span><br><span class="u">${d.last.mv>0?'+':''}${d.last.mv}%</span> <span class="q">그 뒤</span>`
+            :d.on?'<span class="q">지금 켜져 있음</span>':'<span class="q">최근 1년 없음</span>'}</div></div>
+          <div class="wide"><div class="sk">조건: 빠르기 ${d.k} (20 이하${d.k<=20?' ✓':''}) · 벗어난 정도 ${d.cci} (−100 이하${d.cci<=-100?' ✓':''}) · 힘 ${d.rsi} (30 이하${d.rsi<=30?' ✓':''})</div></div>
+          ${d.past?`<div><div class="sk">과거 +10% 도달</div><div class="sv"><span class="u">${d.past.hit}%</span> <span class="q">${d.past.n}번 중</span>${
+              d.past.medD?`<br><span class="u">${d.past.medD}거래일</span> <span class="q">보통</span>`:''}</div></div>
+          <div><div class="sk">가는 길 하락</div><div class="sv"><span class="u">${d.past.maeAvg}%</span> <span class="q">평균</span><br><span class="u">${d.past.maeMax}%</span> <span class="q">최악</span></div></div>
+          <div class="wide"><div class="sk">${d.past.from.slice(0,4)}년부터 · 노란 점 다음 날 시가에 샀다고 가정 · ${d.past.days}거래일 안${d.past.n<10?' · 횟수가 적어 믿기 어려움':''}</div></div>`
+          :'<div class="wide"><div class="sk">과거 노란 점이 없어 결과를 낼 수 없음</div></div>'}
+        </div>`)(L.dip):''}
 
         ${cus&&FUND[tk]?(F=>`<div class="sec"><span>재무</span><i></i></div>
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">

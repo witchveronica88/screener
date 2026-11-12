@@ -26,6 +26,7 @@ jobs:
           python3 -u << 'EOF'
           import urllib.request, csv, io, json, math, time, datetime, os, sys
           from zoneinfo import ZoneInfo
+          import desk   # 노란 점 판정은 상황판과 같은 계산을 쓴다
 
           BASE = """SOLT ETHU DPST RAM LABU BITX GDXU YINN RETL NAIL URAA
           JNUG CWEB KORU WEBL HIBL MEXX DFEN INDL NUGT TPOR PILL TNA MIDU BRZU
@@ -71,7 +72,7 @@ jobs:
               return out
 
           def history(tk):
-              """일봉 (날짜, 종가, 거래량, 수정종가) 리스트 반환 (오래된 순). Yahoo 전체 이력 → 실패 시 Stooq"""
+              """일봉 (날짜, 종가, 거래량, 수정종가, 시가, 고가, 저가) 리스트 반환 (오래된 순). Yahoo 전체 이력 → 실패 시 Stooq"""
               global STOOQ_OFF, stooq_fail
               try:
                   # range=max는 월봉으로 바뀌므로 period1=0으로 전체 일봉을 받는다
@@ -87,8 +88,9 @@ jobs:
                   vo = q.get('volume') or [None] * len(cl)
                   # 수정종가(배당 반영) — 기초자산 대비 수익률 비교에만 쓴다
                   ad = ((res['indicators'].get('adjclose') or [{}])[0].get('adjclose')) or cl
-                  out = [(datetime.date.fromtimestamp(t).isoformat(), c, num(v), a if a is not None else c)
-                         for t, c, v, a in zip(ts, cl, vo, ad) if c is not None]
+                  nz = lambda x, c: x if x is not None else c
+                  out = [(datetime.date.fromtimestamp(t).isoformat(), c, num(v), nz(a, c), nz(o, c), nz(hi, c), nz(lo, c))
+                         for t, c, v, a, o, hi, lo in zip(ts, cl, vo, ad, q['open'], q['high'], q['low']) if c is not None]
                   out = confirmed(out)
                   if out:
                       return out
@@ -99,7 +101,9 @@ jobs:
               try:
                   txt = get_csv(f'https://stooq.com/q/d/l/?s={tk.lower()}.us&i=d', timeout=10)
                   rows = list(csv.DictReader(io.StringIO(txt)))
-                  out = [(r['Date'], float(r['Close']), num(r.get('Volume')), float(r['Close']))
+                  fl = lambda r, k: num(r.get(k)) or float(r['Close'])
+                  out = [(r['Date'], float(r['Close']), num(r.get('Volume')), float(r['Close']),
+                          fl(r, 'Open'), fl(r, 'High'), fl(r, 'Low'))
                          for r in rows if r.get('Close') not in (None, '', 'N/A')]
                   out = confirmed(out)
                   stooq_fail = 0
@@ -218,6 +222,24 @@ jobs:
               sxx = sum((x - mx) ** 2 for x in xs); syy = sum((y - my) ** 2 for y in ys)
               return mx * 100, my * 100, (sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None), n
 
+          def yellow(h):
+              """노란 점(세 지표가 모두 '많이 빠짐': %K ≤ 20 · CCI ≤ -100 · RSI ≤ 30) — 이 종목 자체 가격으로 판정.
+                 상황판 전광판과 같은 계산이지만, 상황판은 기초자산(SOXX·QQQ)으로 판정한다는 점이 다르다"""
+              B = [{'d': x[0], 'c': x[1], 'o': x[4], 'h': max(x[5], x[1]), 'l': min(x[6], x[1])} for x in h]
+              if len(B) < 30:
+                  return None
+              I = desk.indicators(B); last = len(B) - 1
+              on = desk.is_dip(I, last); run = 0
+              while on and run <= last and desk.is_dip(I, last - run):
+                  run += 1
+              li = next((i for i in range(last, max(last - 250, 0), -1) if desk.is_dip(I, i)), None)
+              r = {'on': on, 'run': run, 'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1),
+                   'rsi': round(I['rsi'][-1], 1), 'past': desk.dip_past(B, I, B)}
+              if li is not None:
+                  r['last'] = {'date': B[li]['d'], 'age': last - li,
+                               'mv': round((B[-1]['c'] / B[li]['c'] - 1) * 100, 1)}
+              return r
+
           # 지난 수집 결과 — 이번에 실패한 종목은 이 값을 그대로 둔다
           try:
               prev = json.load(open('data.json', encoding='utf-8')).get('data', {})
@@ -232,9 +254,9 @@ jobs:
               if not h:
                   print(f'{tk}: 데이터 없음' + (' — 지난 값 유지' if tk in prev else ''))
                   continue
-              dates = [d for d, _, _, _ in h]
-              closes = [c for _, c, _, _ in h]
-              vols = [v for _, _, v, _ in h]
+              dates = [x[0] for x in h]
+              closes = [x[1] for x in h]
+              vols = [x[2] for x in h]
               tv = [c * v for c, v in zip(closes[-20:], vols[-20:]) if v]   # 최근 20일 거래대금
               peak = max(closes)
               c1y = closes[-250:]
@@ -270,7 +292,8 @@ jobs:
               }
               data[tk] = rec
               series[tk] = dict(zip(dates, closes))
-              adj[tk] = {d: a for d, _, _, a in h[-260:]}
+              adj[tk] = {x[0]: x[3] for x in h[-260:]}
+              rec['dip'] = yellow(h)
               print(f"{tk}: ${rec['price']} RSI {rec['rsi']} σ {rec['sig']}%({rec['sigN']}일) 역대 {rec['dd']}% 1년 {rec['dd1y']}% 거래대금 ${rec['dv']}M")
               time.sleep(0.4)
 
@@ -310,7 +333,7 @@ jobs:
               if tk not in adj:
                   continue
               if ref not in refh:
-                  refh[ref] = {d: a for d, _, _, a in history(ref)[-260:]}
+                  refh[ref] = {x[0]: x[3] for x in history(ref)[-260:]}
                   time.sleep(0.4)
               ds = sorted(d for d in adj[tk] if d in refh[ref])[-251:]
               if len(ds) < 60:
@@ -319,6 +342,7 @@ jobs:
               prod = adj[tk][ds[-1]] / adj[tk][ds[0]] - 1
               data[tk]['ref'] = {'t': ref, 'lev': lev, 'base': round(base * 100, 1), 'prod': round(prod * 100, 1),
                                  'gap': round((prod - lev * base) * 100, 1), 'n': len(ds) - 1}
+          print('노란 점 켜짐:', ' '.join(t for t in data if (data[t].get('dip') or {}).get('on')) or '없음')
           print('기초자산 대비:', ' '.join(f"{t} {data[t]['ref']['gap']:+}%p" for t in data if 'ref' in data[t]))
 
           fresh = len(data)
