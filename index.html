@@ -132,6 +132,11 @@ input,select,button{font-family:inherit}
 .crit i.y{color:var(--up)}.crit i.n{color:var(--dn)}
 .crit .ck{flex:1;font-size:var(--fs-m);color:var(--ink2)}
 .crit .cv{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3);text-align:right}
+.dipbox{background:var(--s1);border:1px solid var(--st-watch);border-left-width:5px;border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
+.dipbox .dh{font-size:var(--fs-l);font-weight:700;color:var(--ink)}
+.dipbox .bl{flex-wrap:wrap;row-gap:2px}
+.dipbox .bv{order:5;flex-basis:100%;white-space:normal}
+.dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:8px 0 10px}
 .best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:13px 15px 3px;margin-bottom:12px}
 .bt{font-size:var(--fs-l);letter-spacing:.02em;color:var(--on);font-weight:700}
 .bs{font-size:var(--fs-s);color:var(--ink3);margin:5px 0 4px;line-height:1.6}
@@ -918,8 +923,25 @@ function render(){
         <span class="bm">${money(seedMin(x.p))}</span></div>`).join('')}
     </div>`:'';
 
+  /* 종목 첫 화면 맨 위 — 노란 점이 켜진 종목. 없으면 최근 3거래일 안에 꺼진 종목 */
+  let dipHtml='';
+  if(st.grp==='all'&&!q&&Object.values(LIVE).some(x=>x.dip)){
+    const all=[...D,...cus].filter(r=>LIVE[r[0]]&&LIVE[r[0]].dip).map(r=>({r,tk:r[0],d:LIVE[r[0]].dip,p:priceOf(r[0])}));
+    const on=all.filter(x=>x.d.on).sort((a,b)=>b.d.run-a.d.run);
+    const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
+    const line=(x,v)=>`<div class="bl" data-go="${x.tk}"><span class="tk">${x.tk}</span><span class="nm">${x.r[1]}</span>
+        <span class="bv">${v}</span><span class="bm">${x.p?money(seedMin(x.p)):'—'}</span></div>`;
+    dipHtml=`<div class="dipbox"><div class="dh">노란 점 켜진 종목 ${on.length}</div>
+      <div class="bs">세 지표가 모두 '많이 빠짐'인 종목 · 누르면 그 종목으로 이동</div>
+      ${on.length?on.map(x=>line(x,(x.d.run>1?x.d.run+'일째':'오늘')+(x.d.past?` · 과거 ${x.d.past.n}번 중 ${x.d.past.hit}%가 +10%`:''))).join('')
+        :'<div class="none">지금 켜진 종목이 없습니다.</div>'}
+      ${near.length?`<div class="bs" style="margin-top:8px">최근 3거래일 안에 꺼진 종목</div>`+
+        near.map(x=>line(x,`${x.d.last.age}거래일 전 · 그 뒤 ${(x.d.last.pmv??x.d.last.mv)>0?'+':''}${x.d.last.pmv??x.d.last.mv}%`)).join(''):''}
+    </div>`;
+  }
+
   try{
-  el.innerHTML=addForm+bestHtml+vis.map(({r,p})=>{
+  el.innerHTML=addForm+dipHtml+bestHtml+vis.map(({r,p})=>{
     const [tk,nm,lev,lq,ref,up,dn,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
     const L=LIVE[tk]||null;
     const sig=sigOf(tk,sigMaster), live=!!(L&&L.sig!=null);
