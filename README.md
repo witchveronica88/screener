@@ -1,6 +1,6 @@
 # screener
 
-레버리지 ETF·개별주 스크리너와 반등·과열 상황판. 하루 한 번(한국 오전 7시쯤) 미국 확정 종가로 계산한다.
+레버리지 ETF·개별주 스크리너와 반등·과열 상황판. 하루 한 번(한국 아침 7시 반쯤) 미국 확정 종가로 계산한다.
 
 ## 파일
 
@@ -17,5 +17,7 @@
 
 ## 자동 실행
 
-- `.github/workflows/prices.yml` — 월~금 22:00 UTC에 `prices.py` → `desk.py` 순서로 돌고 결과를 커밋한다. `desk.py`가 실패해도 종가는 저장된다.
+- `.github/workflows/prices.yml` — 한국 화~토 07:23에 `prices.py` → `desk.py` 순서로 돌고 결과를 커밋한다. `desk.py`가 실패해도 종가는 저장된다.
+  GitHub 예약 실행은 몇 시간씩 늦거나 빠질 수 있어 10:47 · 14:17에 다시 시도하고, 이미 다 받았으면 건너뛴다(`prices.py --check`).
+  야후가 장 마감 뒤 몇 시간 동안 그날 일봉을 안 올려 두면 시세 요약으로 마지막 하루를 채운다(`market._fill_last`).
 - `.github/workflows/test.yml` — 계산 코드나 종목 목록이 바뀌면 `tests.py`를 돌린다.

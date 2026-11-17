@@ -2,7 +2,12 @@ name: 종가 수집
 
 on:
   schedule:
-    - cron: '0 22 * * 1-5'   # 월~금 22:00 UTC = 한국 화~토 07:00 (미국 장 마감 뒤 확정 종가)
+    # 한국 화~토 07:23 · 10:47 · 14:17. GitHub 예약 실행은 정각에 몰려 몇 시간씩 늦거나 빠지는 일이 잦아
+    # (2026-11: 매번 4~11시간 늦고 월요일 것은 빠짐) 정각을 피하고 두 번 더 건다.
+    # 이미 그날 종가를 다 받았으면 뒤의 실행은 '이미 받았는지 확인'에서 멈춘다.
+    - cron: '23 22 * * 1-5'
+    - cron: '47 1 * * 2-6'
+    - cron: '17 5 * * 2-6'
   workflow_dispatch:           # 수동 실행 버튼
   push:                        # 종목을 추가·삭제하면 바로 수집
     branches: [main]
@@ -21,14 +26,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: 이미 받았는지 확인 (예약 실행만)
+        id: chk
+        if: github.event_name == 'schedule'
+        run: python3 -u prices.py --check | tee -a "$GITHUB_OUTPUT"
+
       - name: 종가 수집
+        if: steps.chk.outputs.skip != 'true'
         run: python3 -u prices.py
 
       - name: 상황판 계산
+        if: steps.chk.outputs.skip != 'true'
         continue-on-error: true    # 상황판이 실패해도 종가는 저장한다
         run: python3 -u desk.py
 
       - name: 커밋
+        if: steps.chk.outputs.skip != 'true'
         run: |
           git config user.name  "github-actions"
           git config user.email "actions@github.com"

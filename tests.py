@@ -154,6 +154,56 @@ class Vix(unittest.TestCase):
         self.assertEqual(desk.vix_state(self.V([20] * 9))['st'], 'neutral')
 
 
+class FillLast(unittest.TestCase):
+    """야후 일봉이 아직 안 올라왔을 때 시세 요약(meta)으로 마지막 하루만 채운다"""
+    def setUp(self):
+        self._io = market._intraday_open
+        market._intraday_open = lambda sym, day: 33.88
+        self.res = {'meta': {'regularMarketTime': 1794862800,          # 2026-11-16 16:00 뉴욕(월)
+                             'regularMarketPrice': 32.48, 'regularMarketDayHigh': 34.2,
+                             'regularMarketDayLow': 32.11, 'regularMarketVolume': 945455}}
+
+    def tearDown(self):
+        market._intraday_open = self._io
+
+    def bar(self, d):
+        return [{'d': d, 'o': 33, 'h': 33.5, 'l': 32.5, 'c': 33.05, 'v': 1, 'a': 33.05}]
+
+    def test_fills_next_session(self):
+        out = market._fill_last('NAIL', self.res, self.bar('2026-11-13'))   # 금 → 월, 사이 평일 없음
+        self.assertEqual(len(out), 2)
+        self.assertEqual({k: out[-1][k] for k in 'dochl'},
+                         {'d': '2026-11-16', 'o': 33.88, 'c': 32.48, 'h': 34.2, 'l': 32.11})
+
+    def test_skips_when_a_day_is_missing(self):
+        out = market._fill_last('NAIL', self.res, self.bar('2026-11-12'))   # 금요일이 빠져 있음
+        self.assertEqual(len(out), 1)
+
+    def test_no_change_when_daily_is_there(self):
+        out = market._fill_last('NAIL', self.res, self.bar('2026-11-16'))
+        self.assertEqual(len(out), 1)
+
+
+class UpToDate(unittest.TestCase):
+    """예약 실행 세 번 중 이미 받은 날은 뒤의 것을 건너뛴다"""
+    def check(self, dates, now):
+        import tempfile, os, prices, datetime as dt
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+            json.dump({'data': {f'T{i}': {'date': d} for i, d in enumerate(dates)}}, f)
+        try:
+            return prices.up_to_date(f.name, dt.datetime.fromisoformat(now))
+        finally:
+            os.unlink(f.name)
+
+    def test_after_monday_close(self):
+        self.assertFalse(self.check(['2026-11-13'] * 3, '2026-11-16T22:23+00:00'))   # 월요일 첫 시도
+        self.assertTrue(self.check(['2026-11-16'] * 3, '2026-11-17T01:47+00:00'))    # 두 번째는 건너뜀
+        self.assertFalse(self.check(['2026-11-16', '2026-11-13'], '2026-11-17T01:47+00:00'))  # 한 종목이라도 늦으면 다시
+
+    def test_weekend_uses_friday(self):
+        self.assertTrue(self.check(['2026-11-20'], '2026-11-21T05:17+00:00'))        # 토요일 → 금요일 종가
+
+
 class UvixCycle(unittest.TestCase):
     def test_low_day_high_is_not_a_rebound(self):
         """새 최저가를 찍은 날의 장중 고가는 저점보다 먼저 나온 값 — +10% 닿음으로 치지 않는다"""

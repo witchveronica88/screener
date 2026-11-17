@@ -161,6 +161,21 @@ def record(h):
     }
 
 
+def up_to_date(path='data.json', now=None):
+    """모든 종목이 마지막 장의 종가를 이미 갖고 있으면 True — 예약 실행을 하루 세 번 걸어 두고 뒤의 것은 건너뛴다.
+       마지막 장은 21:15 UTC(뉴욕 16:15, 서머타임이면 17:15)가 지난 가장 최근 평일.
+       미국 공휴일은 모르므로 그날은 False — 한 번 더 받을 뿐 해는 없다"""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    exp = (now - datetime.timedelta(hours=21, minutes=15)).date()
+    while exp.weekday() >= 5:
+        exp -= datetime.timedelta(days=1)
+    try:
+        D = json.load(open(path, encoding='utf-8'))['data']
+    except (OSError, ValueError, KeyError):
+        return False
+    return bool(D) and all((v.get('date') or '') >= exp.isoformat() for v in D.values())
+
+
 def main():
     print(f'대상 {len(TICKERS)}종목 (ETF {len(BASE)} + 추가 {len(EXTRA)})')
     if EXTRA:
@@ -270,6 +285,8 @@ def main():
     stale = [t for t in TICKERS if data.get(t, {}).get('stale')]
     missing = [t for t in TICKERS if t not in data]
     print(f'\n완료 — 새로 받음 {fresh}/{len(TICKERS)}종목')
+    if market.FILLED:
+        print(f'일봉이 아직 없어 시세 요약으로 마지막 하루를 채움 {len(market.FILLED)}종목:', ' '.join(market.FILLED))
     if stale:
         print('지난 값 유지:', ' '.join(stale))
     if missing:
@@ -277,4 +294,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if '--check' in sys.argv:          # 워크플로가 GITHUB_OUTPUT에 붙여 쓴다
+        print('skip=' + ('true' if up_to_date() else 'false'))
+    else:
+        main()

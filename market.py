@@ -32,6 +32,48 @@ def confirmed(out):
     return out
 
 
+FILLED = []              # 일봉이 아직 안 올라와 시세 요약으로 마지막 하루를 채운 종목 (로그용)
+
+
+def _gap_days(a, b):
+    """a와 b 사이(둘 다 빼고)의 평일 수"""
+    d0, d1 = datetime.date.fromisoformat(a), datetime.date.fromisoformat(b)
+    return sum(1 for k in range(1, (d1 - d0).days) if (d0 + datetime.timedelta(k)).weekday() < 5)
+
+
+def _intraday_open(sym, day):
+    """그날 1시간봉의 첫 시가 (실패하면 None)"""
+    try:
+        url = f'https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?range=1d&interval=60m'
+        with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=25) as r:
+            res = json.load(r)['chart']['result'][0]
+        for t, o in zip(res['timestamp'], res['indicators']['quote'][0]['open']):
+            if o is not None and datetime.datetime.fromtimestamp(t, ZoneInfo('America/New_York')).date().isoformat() == day:
+                return o
+    except Exception:
+        pass
+    return None
+
+
+def _fill_last(sym, res, out):
+    """야후는 장이 끝나고 몇 시간 동안 그날 일봉을 안 올려 두는 일이 잦다(2026-11 확인: 마감 5시간 뒤에도
+       62종목 중 40종목이 빠짐). 그동안에도 응답의 시세 요약(meta)에는 그날 종가·고가·저가·거래량이 있으므로
+       마지막 하루만 그걸로 채운다. 시가는 그날 1시간봉의 첫 값. 사이에 빠진 평일이 있으면 채우지 않는다.
+       장중이면 confirmed()가 다시 뺀다. 다음 실행 때 진짜 일봉으로 바뀐다"""
+    m = res.get('meta') or {}
+    rt, px = m.get('regularMarketTime'), num(m.get('regularMarketPrice'))
+    if not (out and rt and px):
+        return out
+    day = datetime.datetime.fromtimestamp(rt, ZoneInfo('America/New_York')).date().isoformat()
+    if day <= out[-1]['d'] or _gap_days(out[-1]['d'], day):
+        return out
+    hi, lo = num(m.get('regularMarketDayHigh')) or px, num(m.get('regularMarketDayLow')) or px
+    o = num(_intraday_open(sym, day)) or px
+    FILLED.append(sym)
+    return out + [{'d': day, 'o': o, 'h': max(hi, o, px), 'l': min(lo, o, px), 'c': px,
+                   'v': num(m.get('regularMarketVolume')), 'a': px}]
+
+
 def _yahoo(sym):
     # range=max는 월봉으로 바뀌므로 period1=0으로 전체 일봉을 받는다
     url = (f'https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}'
@@ -46,10 +88,11 @@ def _yahoo(sym):
     # 수정종가(배당 반영) — 기초자산 대비 수익률 비교에만 쓴다
     ad = ((res['indicators'].get('adjclose') or [{}])[0].get('adjclose')) or cl
     nz = lambda x, c: x if x is not None else c
-    return [{'d': datetime.datetime.fromtimestamp(t, datetime.timezone.utc).date().isoformat(),
+    out = [{'d': datetime.datetime.fromtimestamp(t, datetime.timezone.utc).date().isoformat(),
              'o': nz(o, c), 'h': nz(h, c), 'l': nz(l, c), 'c': c, 'v': num(v), 'a': nz(a, c)}
             for t, c, v, a, o, h, l in zip(res['timestamp'], cl, vo, ad, q['open'], q['high'], q['low'])
             if c is not None]
+    return _fill_last(sym, res, out)
 
 
 _stooq_fail = 0           # Stooq가 연달아 실패하면 그날은 건너뛴다 (시간 초과로 수집이 몇십 분씩 늘어지는 것 방지)
