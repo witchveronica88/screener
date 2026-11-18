@@ -1604,7 +1604,7 @@ function secLog(){
 }
 function renderDesk(){
   const el=document.getElementById('vDesk');
-  if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 아침 7시 반쯤) 뒤에 보입니다.</div>';return;}
+  if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 아침 6시 반쯤) 뒤에 보입니다.</div>';return;}
   el.querySelectorAll('.dsec').forEach(x=>DOPEN[x.dataset.s]=x.open);
   const u=new Date(DESK.updated);
   const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
@@ -1619,7 +1619,7 @@ function renderDesk(){
     (DTAB==='SUM'?'':`<div class="dstamp"><b>${md(DESK.asof)}</b> 미국 종가 기준 · ${ut} 갱신</div>`)+
     (LASTD&&LASTD>DESK.asof?`<div class="dstale">상황판 계산이 종가보다 늦습니다. 종가는 ${md(LASTD)}, 상황판은 ${md(DESK.asof)} 기준입니다. 상황판 계산이 실패했을 수 있습니다.</div>`
       :missedDays(DESK.asof)?`<div class="dstale">${staleMsg(missedDays(DESK.asof),'상황판이')}</div>`:'')+body+
-    `<div class="dnote">${ul([`${md(DESK.asof)} 미국 종가 기준 · ${ut} 갱신`,`${DESK.rule} · 자동매매가 아니라 판단 참고용`,'하루 한 번, 한국 아침 7시 반쯤 확정 종가로 계산 (늦어지면 오후 2시쯤까지 다시 시도)',
+    `<div class="dnote">${ul([`${md(DESK.asof)} 미국 종가 기준 · ${ut} 갱신`,`${DESK.rule} · 자동매매가 아니라 판단 참고용`,'하루 한 번, 한국 아침 6시 반쯤 확정 종가로 계산 (늦어지면 오후 2시쯤까지 다시 시도)',
       '신호는 기준자산(SOXX·QQQ)으로 계산하고 SOXL·TQQQ 가격은 참고로 표시','가격은 야후 일봉, 현재 분할·병합 보정 기준'])}</div>`;
 }
 document.getElementById('vDesk').onclick=e=>{
@@ -1656,7 +1656,7 @@ fetch('./fund.json?'+Date.now())
   .catch(()=>{});
 
 /* 수집이 멈췄는지 — 마지막 종가 다음 날부터 빠진 미국 거래일 수(주말만 빼고 공휴일은 모름).
-   수집은 한국 07:23 · 10:47 · 14:17에 시도하고 GitHub 사정으로 몇 시간 늦을 수 있으므로,
+   수집은 한국 06:23(Claude 예약 작업)에 하고, 안 되면 GitHub 예약 07:23 · 10:47 · 14:17이 다시 시도한다(몇 시간 늦을 수 있음).
    그날 종가는 다음 날 뉴욕 06시(한국 저녁 8시쯤)까지 기다린다.
    1거래일은 휴장일일 수 있어 부드럽게, 2거래일부터는 멈춘 것으로 알린다 */
 const STALE_MIN=2;
