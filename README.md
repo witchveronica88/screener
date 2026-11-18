@@ -19,5 +19,6 @@
 
 - `.github/workflows/prices.yml` — 한국 화~토 07:23에 `prices.py` → `desk.py` 순서로 돌고 결과를 커밋한다. `desk.py`가 실패해도 종가는 저장된다.
   GitHub 예약 실행은 몇 시간씩 늦거나 빠질 수 있어 10:47 · 14:17에 다시 시도하고, 이미 다 받았으면 건너뛴다(`prices.py --check`).
+  제시간 수집은 Claude 예약 작업(한국 화~토 07:31)이 아직 안 받았으면 이 워크플로를 수동 실행으로 시작시켜 맡는다.
   야후가 장 마감 뒤 몇 시간 동안 그날 일봉을 안 올려 두면 시세 요약으로 마지막 하루를 채운다(`market._fill_last`).
 - `.github/workflows/test.yml` — 계산 코드나 종목 목록이 바뀌면 `tests.py`를 돌린다.
