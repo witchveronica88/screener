@@ -832,6 +832,9 @@ def stage_of(t):
     if st == 'wait':
         return {'i': None, 'cls': 'wait', 'text': '자료 확인 중', 'say': '자료를 확인하는 중입니다', 'lines': []}
     live = s and s['valid'] and s['age'] <= 60
+    # 작은 그래프 기간(최근 1개월) 안에 취소된 신호 — '뚜렷한 신호 없음'으로만 보이면 왜 취소선이 사라졌는지 모른다
+    hd = [h['d'] for h in t.get('hist') or []]
+    broke = bool(s and not s['valid'] and s.get('brokeDate') and hd and s['brokeDate'] >= hd[0])
     if st == 'hot':
         r = (3, 'hot', '많이 올라 과열', '많이 올라 과열이라 추격은 조심할 자리입니다')
     elif st == 'sell':
@@ -847,7 +850,9 @@ def stage_of(t):
     elif t.get('setupUp'):
         r = (1, 'watch', '많이 빠진 뒤 반등 기다리는 중', '많이 빠진 뒤 반등을 기다리는 중입니다')
     elif live:
-        r = (2, 'neutral', f"반등 신호 뒤 {s['age']}거래일 · 새 신호 없음", '급락 뒤 반등이 이어지는 중입니다(새 신호는 없음)')
+        r = (2, 'neutral', f"반등 신호 뒤 {s['age']}거래일", '반등이 이어지는 중입니다')
+    elif broke:
+        r = (0, 'neutral', f"반등 신호 취소({md_(s['brokeDate'])})", '반등 신호가 취소됐습니다')
     else:
         r = (0, 'neutral', '뚜렷한 신호 없음', '뚜렷한 신호가 없습니다')
     # stats: 요약 줄 왼쪽에 놓는 짧은 숫자(이름, 값, 색) — 오른쪽에는 1개월 작은 그래프
@@ -864,6 +869,8 @@ def stage_of(t):
         stats.append(('반등 취소까지', f"-{s['dist']:.1f}%", 'ref'))
     elif t.get('setupUp'):
         stats.append(('반등 신호 남은 기간', f"{t['setupUp']['left']}거래일", ''))
+    elif broke and s.get('dist') is not None:
+        stats.append(('취소선보다', f"{abs(s['dist']):.1f}% {'아래' if s['dist'] < 0 else '위'}", 'ref'))
     e = t.get('easy') or {}
     if e.get('head') == '어제와 판단이 달라짐' and e.get('why'):
         lines.append('어제와 달라짐: ' + e['why'][0])
@@ -885,7 +892,8 @@ def headline(cards, vx):
         out.append(f'{subj} {say}.')
     # '다만 …'은 한 문장으로 잇는다 (앞 것은 '…고', 마지막은 '…니다')
     live = [c for c in cards if c['state'] != 'wait']
-    rebound = [c for c in live if (c.get('stage') or {}).get('i') == 2]
+    # '가장 싸게 살 자리는 지남'은 막 나온 반등 신호에만 — 며칠 지난 반등은 단계 막대가 이미 말해 준다
+    rebound = [c for c in live if (c.get('stage') or {}).get('i') == 2 and (c.get('sig') or {}).get('new')]
     dates = sorted({c['dip']['last']['date'] for c in rebound
                     if c.get('dip') and c['dip'].get('last') and not c['dip']['on']})
     but = []
@@ -894,8 +902,7 @@ def headline(cards, vx):
         but.append((f'가장 싸게 살 수 있던 자리({d})는 지났고', f'가장 싸게 살 수 있던 자리({d})는 지났습니다'))
     if live and all(c.get('weak') for c in live) and any((c.get('stage') or {}).get('i') in (1, 2) for c in live):
         but.append(('큰 흐름(주·월 단위)은 아직 약세이고', '큰 흐름(주·월 단위)은 아직 약세입니다'))
-    if vx and vx['st'] == 'worse' and not any(c['state'] == 'warn' for c in live):
-        but.append(('시장 불안(VIX)이 커지는 중이고', '시장 불안(VIX)이 커지는 중입니다'))
+    # 시장 불안(VIX)은 바로 아래 시장 줄 제목이 말하므로 여기서 되풀이하지 않는다(첫 화면에 같은 말 두 번 금지)
     if but:
         out.append('다만 ' + ', '.join([x[0] for x in but[:-1]] + [but[-1][1]]) + '.')
     return ' '.join(out)

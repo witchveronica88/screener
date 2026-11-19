@@ -30,7 +30,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:var(--fs-m);line-height:var(--lh);
-     padding-bottom:56px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+     padding-bottom:84px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;
      word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased;text-size-adjust:100%}
 input,select,button{font-family:inherit}
 .mono{font-family:var(--mono)}
@@ -297,6 +297,11 @@ details.fold[open]>summary::after{content:'－'}
 .del{background:transparent;border:1px solid var(--bd2);color:var(--ink3);
      border-radius:8px;padding:8px 14px;font-size:var(--fs-s);cursor:pointer;width:100%}
 .empty{text-align:center;color:var(--ink3);padding:48px 20px;line-height:var(--lh-l)}
+/* 뒤로 · 맨 위 — 오른쪽 아래에 떠 있는 버튼 */
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:8px}
+.fab button{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--bd2);background:var(--s1);color:var(--ink);
+  font:inherit;font-size:var(--fs-s);font-weight:700;line-height:var(--lh-t);box-shadow:0 4px 14px rgba(21,26,35,.16);cursor:pointer}
+.fab button[hidden]{display:none}
 .foot{padding:26px 18px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-l);text-align:center}
 .foot code{font-family:var(--mono);color:var(--ink2)}
 .rst{margin-top:16px;background:transparent;border:1px solid var(--bd2);color:var(--ink3);
@@ -483,6 +488,8 @@ svg.mini{display:block}
     <button data-v="desk">상황</button><button data-v="scr">종목</button>
   </div>
 </div>
+
+<div class="fab"><button id="fBack" hidden aria-label="뒤로 가기">← 뒤로</button><button id="fTop" hidden aria-label="맨 위로">↑ 맨 위</button></div>
 
 <div id="vScr">
 <div class="help" id="help">
@@ -1195,12 +1202,11 @@ ${cus&&(st.cust[tk]||(tok&&REPO.has(tk)))?secOpen('list','목록',`
   });
   el.querySelectorAll('.rmain').forEach(m=>m.onclick=()=>{
     const tk=m.parentElement.dataset.tk;
-    st.open=st.open===tk?null:tk;render();
-    if(st.open)showRow(tk);
+    if(st.open===tk){ if(history.state&&history.state.o){history.back();return;}
+      st.open=null;render();navRep();return; }
+    openRow(tk);
   });
-  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{
-    const tk=b.dataset.go;st.open=tk;render();showRow(tk);
-  });
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openRow(b.dataset.go));
   bindAdd();
   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();const t=b.dataset.del;
@@ -1269,6 +1275,11 @@ const md=d=>{if(!d)return'';const a=d.split('-');return `${+a[1]}/${+a[2]}`;};
 const sg=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
 const sc=v=>v>0?'g':v<0?'r':'';
 const bat=t=>/[LMNR013678]$/i.test(t), eul=t=>bat(t)?'을':'를', eun=t=>bat(t)?'은':'는';
+/* 종목 펼치기 — 이미 펼친 종목이 있으면 기록을 바꾸고, 없으면 한 칸 쌓는다(뒤로 가면 목록으로) */
+function openRow(tk){
+  if(st.open){st.open=tk;render();showRow(tk);navRep();return;}
+  navGo(()=>{st.open=tk;render();showRow(tk);},{o:true});
+}
 /* 펼친 종목을 위에 고정된 머리 바로 아래에 맞춘다 — 티커 줄부터 보이게 (머리 높이는 글자 크기에 따라 달라짐) */
 function showRow(tk){
   const r=document.querySelector(`.row[data-tk="${tk}"]`), hd=document.querySelector('.top'); if(!r)return;
@@ -1456,7 +1467,7 @@ function flowRow(c,link){
 /* 요약 줄 아래: 왼쪽 숫자 두 개, 오른쪽 기준자산 1개월 그래프(노란 점 · 취소선 점선) */
 function flowBody(c,g,mini){
   if(!mini)return '';                        /* 종목별 탭에서는 아래 해석과 큰 그래프가 같은 것을 보여 준다 */
-  const H=c.hist||[], s=c.sig&&c.sig.valid&&c.sig.age<=60?c.sig:null;
+  const H=c.hist||[], g0=c.sig, s=g0&&g0.age<=60&&(g0.valid||(g0.brokeDate&&H.length&&g0.brokeDate>=H[0].d))?g0:null;
   const chart=mini&&H.length>2?miniChart(H.map(x=>x.c),{label:c.base,ref:s?s.low:null,dots:H.map((x,i)=>x.marks.includes('ro')?i:-1).filter(i=>i>=0)}):'';
   const st=(g.stats||[]).map(([k,v,ic])=>`<div class="fsv">${statIcon(ic)}<span>${k}</span> <b>${v}</b></div>`).join('');
   return st||chart?`<div class="fbody"><div class="fst">${st}</div>${chart}</div>`:'';
@@ -1469,7 +1480,7 @@ function deskSum(){
   h+=`<div class="mrow" data-dt="MKT"><div class="mh"><i class="lamp ${mktCls(v)}"></i><b>시장 불안 ${VE[v.st]}</b>`+
     `<span class="mv">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
-      f&&f.back?'VIX 선물: 단기 불안이 남아 있음':null,
+      f&&f.back?'VIX 선물: 단기 불안 남음':null,
       u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'VIX',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   h+=`<div class="dstamp">줄을 누르면 차트와 근거가 있는 자세한 화면으로 갑니다.</div>`;
@@ -1624,7 +1635,7 @@ function renderDesk(){
 }
 document.getElementById('vDesk').onclick=e=>{
   const t=e.target.closest('[data-dt]');
-  if(t){DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);return;}
+  if(t){if(t.dataset.dt!==DTAB)navGo(()=>{DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);});return;}
   const r=e.target.closest('.hit');if(!r)return;
   DSEL[r.closest('.dchart').dataset.p]=+r.dataset.i;const y=window.scrollY;renderDesk();window.scrollTo(0,y);};
 function syncView(){
@@ -1634,8 +1645,39 @@ function syncView(){
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.view));
   if(d)renderDesk();
 }
-document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{st.view=b.dataset.v;save();syncView();window.scrollTo(0,0);});
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.v!==st.view)navGo(()=>{st.view=b.dataset.v;save();syncView();window.scrollTo(0,0);});});
 syncView();
+
+/* 뒤로 가기 — 화면 이동(상황/종목 · 요약/종목별 탭 · 종목 펼치기)을 브라우저 기록에 남긴다.
+   화면의 ← 버튼과 휴대폰 뒤로 가기 버튼이 앞 화면으로, 떠날 때의 스크롤 위치로 돌아간다.
+   d: 앱 안에서 쌓은 기록 수(0이면 ← 버튼 숨김) · o: 종목을 펼치며 쌓은 칸 */
+if('scrollRestoration' in history)history.scrollRestoration='manual';
+const navNow=()=>({v:st.view,dt:DTAB,open:st.open,y:window.scrollY});
+function navRep(extra){history.replaceState({...(history.state||{}),...navNow(),...(extra||{})},'');navBtns();}
+function navGo(change,extra){
+  navRep();
+  const d=((history.state&&history.state.d)||0)+1;
+  change();
+  history.pushState({...navNow(),d,...(extra||{})},'');navBtns();
+}
+window.addEventListener('popstate',e=>{
+  const s=e.state; if(!s)return;
+  const was=st.view;
+  st.view=s.v||'desk';DTAB=s.dt||'SUM';st.open=s.open||null;
+  if(st.view!==was)save();
+  syncView();if(st.view==='scr')render();
+  requestAnimationFrame(()=>window.scrollTo(0,s.y||0));navBtns();
+});
+const fBack=document.getElementById('fBack'), fTop=document.getElementById('fTop');
+function navBtns(){
+  fBack.hidden=!(history.state&&history.state.d>0);
+  fTop.hidden=window.scrollY<innerHeight*.8;
+}
+fBack.onclick=()=>history.back();
+fTop.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+addEventListener('scroll',()=>{const h=window.scrollY<innerHeight*.8;if(fTop.hidden!==h)fTop.hidden=h;},{passive:true});
+history.replaceState({...navNow(),d:0},'');navBtns();
 fetch('./desk.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
   .then(j=>{DESK=j;if(st.view==='desk')renderDesk();})

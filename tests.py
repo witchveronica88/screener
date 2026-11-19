@@ -262,6 +262,16 @@ class FlowStage(unittest.TestCase):
         self.assertEqual(desk.stage_of(self.card('sell'))['i'], 4)
         self.assertIsNone(desk.stage_of(self.card('wait'))['i'])
 
+    def test_recently_cancelled_signal(self):
+        """최근 1개월 안에 취소된 신호는 '뚜렷한 신호 없음' 대신 취소됐다고 보여 준다"""
+        s = dict(self.sig(age=7, valid=False), brokeDate='2026-11-19', dist=-0.3)
+        c = dict(self.card('neutral', s), hist=[{'d': '2026-10-22'}, {'d': '2026-11-19'}])
+        g = desk.stage_of(c)
+        self.assertEqual((g['i'], g['text']), (0, '반등 신호 취소(11/19)'))
+        self.assertEqual(g['stats'][-1][:2], ('취소선보다', '0.3% 아래'))
+        c['hist'] = [{'d': '2026-11-20'}]                       # 1개월보다 오래전 취소
+        self.assertEqual(desk.stage_of(c)['text'], '뚜렷한 신호 없음')
+
     def test_dip_shows_past_results(self):
         past = {'n': 26, 'hit': 92, 'days': 60, 'maeAvg': -17.1}
         g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}))
@@ -280,7 +290,7 @@ class FlowStage(unittest.TestCase):
         h = desk.headline(cs, {'st': 'worse'})
         self.assertIn('반도체(SOXL)는 급락 뒤', h)
         self.assertIn('나스닥(TQQQ)은 뚜렷한 신호가 없습니다', h)
-        self.assertIn('시장 불안(VIX)이 커지는 중', h)
+        self.assertNotIn('시장 불안', h)          # 시장 줄 제목과 겹치므로 결론 문장에는 넣지 않는다
 
 
 if __name__ == '__main__':
