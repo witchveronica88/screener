@@ -18,7 +18,7 @@ v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아�
 """
 import urllib.request, csv, io, json, time, datetime, sys
 from market import (UA, fetch, sma, stoch_k, cci, rsi_w, boll, indicators,   # 가격 받기 · 지표 · 노란 점은 종가 수집과 같이 쓴다
-                    is_dip, dip_past, TARGET, DIP_DAYS)
+                    is_dip, dip_past, dip_targets, TARGET, DIP_DAYS)
 
 RULE = 'Rule v2.3'
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
@@ -497,6 +497,9 @@ def history(base, prod, bars, today, n=21):
     """최근 n거래일의 봉·지표·당일 기준 판정(그날까지의 자료만으로 계산)·마커"""
     js = [today] + [judge(base, prod, bars, k) for k in range(1, n + 1)]
     B = bars[base]; I = indicators(B); dv = divergence(B, I)
+    # 노란 점 다음 날 상품(SOXL·TQQQ)을 샀다면 +TARGET%에 닿은 날 — 그래프는 기초자산이라 날짜에만 표시
+    P = bars.get(prod) or B
+    hits = {t['hit'] for t in dip_targets(B, I, P, B[max(0, len(B) - n)]['d']) if t['hit']}
     if dv and dv['confirm'] > len(B) - 1:
         dv = None
     r2 = lambda v: None if v is None else round(v, 2)
@@ -514,6 +517,7 @@ def history(base, prod, bars, today, n=21):
         if t['sig'] and t['sig']['brokeDate'] == b['d']: marks.append('x')
         if dv and dv['low'] == i: marks.append('dl')
         if dv and dv['confirm'] == i: marks.append('dc')
+        if b['d'] in hits: marks.append('tg')
         out.append({'d': b['d'], 'o': r2(b['o']), 'h': r2(b['h']), 'l': r2(b['l']), 'c': r2(b['c']),
                     'bu': r2(I['bu'][i]), 'bl': r2(I['bl'][i]), 'm50': r2(I['m50'][i]),
                     'k': round(kk, 1), 'cci': round(cc, 1), 'rsi': round(rs, 1), 'disp': round(I['disp'][i], 1),

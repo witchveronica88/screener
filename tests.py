@@ -184,6 +184,19 @@ class FillLast(unittest.TestCase):
         self.assertEqual(len(out), 1)
 
 
+class DipTargets(unittest.TestCase):
+    """노란 점 다음 날 시가에 샀다면 +10% 목표가와 처음 닿은 날"""
+    def test_hit_day(self):
+        B = bars([100] * 10)
+        I = ind([50, 50, 10, 50, 50, 50, 50, 50, 50, 50], [0, 0, -150] + [0] * 7, [50, 50, 20] + [50] * 7)
+        P = bars([10, 10, 10, 10, 10.5, 10.8, 11.2, 11, 11, 11], spread=0.1)   # 다음 날(3번) 시가 10 → 목표 11
+        t = market.dip_targets(B, I, P, B[0]['d'])
+        self.assertEqual(len(t), 1)
+        self.assertEqual((t[0]['d0'], t[0]['buy'], t[0]['tgt']), (B[2]['d'], P[3]['d'], 11.0))
+        self.assertEqual(t[0]['hit'], P[6]['d'])          # 5번 고가 10.9 < 11, 6번 고가 11.3 ≥ 11
+        self.assertFalse(t[0]['open'])
+
+
 class UpToDate(unittest.TestCase):
     """예약 실행 세 번 중 이미 받은 날은 뒤의 것을 건너뛴다"""
     def check(self, dates, now):

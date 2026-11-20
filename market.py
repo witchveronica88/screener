@@ -262,6 +262,30 @@ def dip_past(B, I, P):
             'miss': len(miss), 'missAvg': round(sum(miss) / len(miss), 1) if miss else None}
 
 
+def dip_targets(B, I, P, since):
+    """그래프에 그릴 노란 점 목표 — dip_past와 같은 셈법: 묶음의 첫날 다음 거래일 시가에 P를 샀다고 보고,
+       DIP_DAYS 안에 장중 고가가 +TARGET%(목표가)에 닿은 첫날. 기간 끝이 since 이후인 것만.
+       반환 [{d0 노란 점 날, buy 산 날, tgt 목표가, hit 닿은 날(없으면 None), end 닿은 날·기간 끝·마지막 날, open 아직 기다리는 중}]"""
+    pidx = {b['d']: i for i, b in enumerate(P)}
+    out = []
+    for i in range(len(B)):
+        if not is_dip(I, i) or (i > 0 and is_dip(I, i - 1)):
+            continue
+        pi = pidx.get(B[i]['d'])
+        if pi is None or pi + 1 >= len(P):
+            continue                                   # 다음 날 시가가 아직 없다
+        end = min(pi + DIP_DAYS, len(P) - 1)
+        if P[end]['d'] < since:
+            continue
+        tgt = P[pi + 1]['o'] * (1 + TARGET / 100)
+        hit = next((j for j in range(pi + 1, end + 1) if P[j]['h'] >= tgt), None)
+        out.append({'d0': B[i]['d'], 'buy': P[pi + 1]['d'], 'tgt': round(tgt, 2),
+                    'hit': P[hit]['d'] if hit is not None else None,
+                    'end': P[hit if hit is not None else end]['d'],
+                    'open': hit is None and end - pi < DIP_DAYS})
+    return out
+
+
 def yellow(B, P=None, base=None):
     """종목 카드의 노란 점. B: 판정에 쓰는 일봉. P가 있으면 B는 기초자산이고 P가 실제로 사는 상품이다
        (상황판의 SOXX→SOXL과 같은 방식). 종가가 고가·저가 밖으로 나간 봉은 범위를 종가까지 넓혀 계산한다"""
@@ -286,6 +310,15 @@ def yellow(B, P=None, base=None):
     w = P[-63:]
     r['chart'] = {'from': w[0]['d'], 'to': w[-1]['d'], 'c': [round(x['c'], 2) for x in w],
                   'dot': [i for i, x in enumerate(w) if x['d'] in dots]}
+    # 노란 점 다음 날 샀다면의 +10% 목표가(a~b 구간 점선)와 닿은 날(hit) — 그래프 칸 번호로
+    widx = {x['d']: k for k, x in enumerate(w)}
+    tg = []
+    for t in dip_targets(B, I, P, w[0]['d']):
+        a = widx.get(t['buy'], 0 if t['buy'] < w[0]['d'] else None)
+        b = widx.get(t['end'])
+        if a is not None and b is not None:
+            tg.append({'a': a, 'b': b, 'y': t['tgt'], 'hit': widx.get(t['hit']) if t['hit'] else None})
+    r['chart']['tg'] = tg
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'mv': round((B[-1]['c'] / B[li]['c'] - 1) * 100, 1)}
