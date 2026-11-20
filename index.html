@@ -167,6 +167,10 @@ details.fold[open]>summary::after{content:'－'}
 .pb{display:flex;height:26px;border-radius:7px;overflow:hidden;margin:6px 0 4px;font-size:var(--fs-s);font-weight:600;color:var(--onInk)}
 .pb span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
 .pb .g{background:var(--up)}.pb .r{background:var(--dn);justify-content:flex-end}
+.dul a[data-dt]{color:var(--on);font-weight:700;text-decoration:underline;cursor:pointer}
+.pbr{display:grid;grid-template-columns:3.2em 1fr;align-items:center;gap:8px}
+.pbr>span{font-size:var(--fs-s);font-weight:700;color:var(--ink2)}
+.pbr .pb{margin:3px 0}
 .pbl{display:flex;gap:14px;font-size:var(--fs-s);color:var(--ink3);margin-bottom:6px}
 .pbl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .pbl i.g{background:var(--up)}.pbl i.r{background:var(--dn)}
@@ -536,7 +540,7 @@ svg.mini{display:block}
     <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 그래프 아래에 'IWM 기준'처럼 적습니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
-      <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 셉니다. 며칠 연달아 켜지면 첫날 한 번만 세고, 못 닿았으면 60거래일 뒤 종가로 손익을 적습니다. 그래프의 <b>초록 점선</b>은 그 목표가(다음 날 시가의 +10%)이고, <b>✓</b>는 장중 고가가 처음 목표가에 닿은 날입니다. 취소선 없이 기다린 결과라 상황판의 반등 신호 결과와 비율을 그대로 견주면 안 됩니다. 종목마다 따로 계산합니다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나옵니다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있습니다.</div></div>
+      <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 셉니다. 며칠 연달아 켜지면 첫날 한 번만 세고, 못 닿았으면 60거래일 뒤 종가로 손익을 적습니다. +20%도 같은 방식으로 세되, 기간이 아직 안 끝났고 못 닿은 건은 +20% 비율에서 뺍니다. 그래프의 <b>초록 점선</b>은 그 목표가(다음 날 시가의 +10%)이고, <b>✓</b>는 장중 고가가 처음 목표가에 닿은 날입니다. 취소선 없이 기다린 결과라 상황판의 반등 신호 결과와 비율을 그대로 견주면 안 됩니다. 종목마다 따로 계산합니다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나옵니다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있습니다.</div></div>
   </div>
 
   <div class="hcard">
@@ -822,16 +826,21 @@ function dipBlock(d,tk){
   const col=(nm,v,lo,hi,th)=>`<div><div class="dmr"><span>${nm}</span><b class="${v<=th?'y':''}">${v<=th?'✓ ':''}${Math.round(v)}</b></div>${meter(v,lo,hi,{zones:[[lo,th,'y']]})}</div>`;
   const cond=`<div class="dcd"><div class="d3">`+col('빠르기',d.k,0,100,20)+col('벗어남',d.cci,-250,250,-100)+col('힘',d.rsi,0,100,30)+
     `</div><div class="cc">${d.base?d.base+' 기준 · ':''}세 막대가 모두 노란 칸에 들어가면 켜집니다 <small>(%K · CCI · RSI)</small></div></div>`;
-  const p=d.past;
-  const past=!p?'<div class="cc">과거 노란 점이 없어 결과를 낼 수 없습니다</div>':
-    `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${d.base?tk+eul(tk)+' ':''}샀다면 ${p.days}거래일 안에</div>
-     <div class="pb"><span class="g" style="width:${p.hit}%">${p.hit>=12?p.hit+'%':''}</span><span class="r" style="width:${100-p.hit}%">${100-p.hit>=12?(100-p.hit)+'%':''}</span></div>
-     <div class="pbl"><span><i class="g"></i>60거래일 안 +10% 닿음</span><span><i class="r"></i>못 닿음</span></div>`+
+  return st+cond+dipPast(d.past,d.base?tk+eul(tk):'');
+}
+/* 노란 점 과거 결과 — 다음 날 샀다면 60거래일 안에 +10% · +20%에 닿은 비율 (종목 탭과 상황판 SOXL·TQQQ 탭이 같이 쓴다) */
+function dipPast(p,who){
+  if(!p)return '<div class="cc">과거 노란 점이 없어 결과를 낼 수 없습니다</div>';
+  const bar=(lab,v)=>v==null?'':`<div class="pbr"><span>${lab}</span><div class="pb"><span class="g" style="width:${v}%">${v>=12?v+'%':''}</span>`+
+    `<span class="r" style="width:${100-v}%">${100-v>=12?(100-v)+'%':''}</span></div></div>`;
+  return `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${who?who+' ':''}샀다면 ${p.days}거래일 안에</div>`+
+    bar('+10%',p.hit)+bar('+20%',p.hit20)+
+    `<div class="pbl"><span><i class="g"></i>닿음</span><span><i class="r"></i>못 닿음</span></div>`+
     ul([`가는 길에 더 빠진 폭: 평균 <b>${p.maeAvg}%</b> · 최악 ${p.maeMax}%`,
-        p.miss?`못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
-        p.medD?`닿은 경우 보통 ${p.medD}거래일 걸림`:null,
-        `<small>${p.from.slice(0,4)}년부터 · 며칠 연달아 켜지면 첫날 한 번만 셈${p.n<10?' · 횟수가 적어 믿기 어려움':''}</small>`]);
-  return st+cond+past;
+        p.miss?`+10%에 못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
+        p.medD?`닿기까지 보통 +10%는 ${p.medD}거래일${p.medD20?`, +20%는 ${p.medD20}거래일`:''}`:null,
+        `<small>${p.from.slice(0,4)}년부터 · 며칠 연달아 켜지면 첫날 한 번만 셈${p.n<10?' · 횟수가 적어 믿기 어려움':''}${
+          p.hit20!=null&&p.n20<p.n?` · +20%는 아직 기다리는 ${p.n-p.n20}번을 빼고 셈`:''}</small>`]);
 }
 /* 주의 — 이름만 칩으로, 누르면 그 설명 */
 const CAUT={};
@@ -1072,7 +1081,7 @@ function render(){
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
     const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">노란 점 켜진 종목 ${on.length} ${qBtn('dip')}</div>${qBox('dip')}
-      ${on.length?on.map(x=>boxLine(x.tk,x.r[1],(x.d.run>1?x.d.run+'일째':'오늘')+(x.d.past?` · 과거 ${x.d.past.n}번 중 ${x.d.past.hit}%가 +10%`:''),x.p?money(seedMin(x.p)):'—',x.w)).join('')
+      ${on.length?on.map(x=>boxLine(x.tk,x.r[1],(x.d.run>1?x.d.run+'일째':'오늘')+(x.d.past?` · 과거 ${x.d.past.n}번: +10% ${x.d.past.hit}%`+(x.d.past.hit20!=null?`, +20% ${x.d.past.hit20}%`:''):''),x.p?money(seedMin(x.p)):'—',x.w)).join('')
         :'<div class="none">지금 켜진 종목이 없습니다.</div>'}
       ${near.length?`<div class="dnear"><span>최근 3거래일 안에 꺼짐 · 그 뒤</span>${
         near.map(x=>`<b data-go="${x.tk}">${x.tk} <em class="${mv(x)>0?'up':mv(x)<0?'dn':''}">${mv(x)>0?'+':''}${mv(x)}%</em></b>`).join('')}</div>`:''}
@@ -1432,11 +1441,7 @@ function dipRules(){
     "흐름 막대의 <b>노란 점</b> 단계입니다. 세 지표가 모두 '많이 빠짐'에 들어간 날 켜집니다",
     '반등 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
     '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
-    ...C.filter(c=>c.dip.past).map(c=>{const p=c.dip.past;
-      return `<b>${c.prod}</b> 과거 노란 점 ${p.n}번 <small>(며칠 연달아 켜지면 한 번으로 셈)</small> — 다음 날 샀다면`+ul([
-        `${p.days}거래일 안에 +${DESK.target}%에 닿은 비율 <b>${p.hit}%</b>`+(p.medD?` <small>(보통 ${p.medD}거래일 걸림)</small>`:''),
-        p.miss?`못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
-        `가는 길에 평균 <b>${p.maeAvg}%</b>, 가장 깊게는 <b>${p.maeMax}%</b> 더 빠졌음`]);}),
+    `과거에 노란 점 다음 날 샀다면 60거래일 안에 +10% · +20%에 닿은 비율은 ${C.filter(c=>c.dip.past).map(c=>`<a data-dt="${c.prod}">${c.prod}</a>`).join(' · ')} 탭의 '노란 점 과거 결과'에 있습니다`,
     '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
 }
@@ -1524,6 +1529,7 @@ function deskCard(c){
       a.pLow!=null?`그때 ${c.prod}${eun(c.prod)} 약 $${a.pLow} — 지금보다 <b class="r">-${a.pDist.toFixed(1)}%</b>`:null]));
     h+=pastBlk(c);
   }
+  if(c.dip)h+=blk('노란 점 과거 결과',dipPast(c.dip.past,c.prod+eul(c.prod)));
   h+=blk('조심할 점',ul(c.easyRisks&&c.easyRisks.length?c.easyRisks:['특별히 없음']));
   if(c.next&&c.next.length)h+=blk('앞으로 이렇게 되면',ul(c.next));
   h+=blk(`지금 지표 값 <small>${c.base} ${md(c.asof)} 종가 $${c.ind.close} (${sg(c.ind.chg)})</small>`,ul([
@@ -1609,7 +1615,7 @@ function secRules(){
     blk('원문(블로그)에서 온 것',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14)','장이 끝나 확정된 종가로만 판단',
       'UVIX: 저점에서 +10% 넘게 반등한 뒤 다시 사상 최저가를 깨면 1일차','그 뒤 최저가를 또 깨도 1일차는 그대로']))+
     blk('운영 설정 <small>원문에 확정된 규칙이 아님</small>',ul(['되살아남 인정 기간: 10거래일','신호 취소: 기준자산 <b>종가</b>가 취소선 아래로 갈 때',
-      `목표 +${D.target}%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
+      `목표 +${D.target}% · +20%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
       'UVIX의 +10%는 한 사이클이 끝났다는 뜻일 뿐, 팔 때를 알려 주는 기준이 아님','새 신호로 보는 기간: 3거래일',
       "노란 점(매수 기회): 세 지표가 모두 '많이 빠짐'인 날 켜짐. 🟢🟡 판정과는 따로 움직임"]))+
     blk('과거 자료로 고친 것',ul(['v2.1: 주·월 단위로 꺾인 상태는 보류 사유가 아니라 조심할 점으로만 표시',

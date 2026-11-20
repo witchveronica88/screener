@@ -10,6 +10,7 @@ UA = {'User-Agent': 'Mozilla/5.0'}
 CACHE = '.cache'          # 같은 실행(워크플로 한 번) 안에서 prices.py가 받은 일봉을 desk.py가 다시 쓴다
 CACHE_HOURS = 3
 TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰는 운영 설정
+TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
 DIP_DAYS = 60             # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
 
 
@@ -230,7 +231,8 @@ def is_dip(I, i):
 def dip_past(B, I, P):
     """과거 노란 점 결과. 며칠 연달아 켜진 노란 점은 한 번으로 묶고, 묶음의 첫날 다음 거래일 시가에
        관찰 상품(P)을 샀다고 가정한다. DIP_DAYS 안에 장중 고가가 목표에 닿았는지,
-       닿기 전 가장 깊은 하락, 못 닿았을 때 기간이 끝난 날 종가 기준 손익을 센다"""
+       닿기 전 가장 깊은 하락, 못 닿았을 때 기간이 끝난 날 종가 기준 손익을 센다.
+       두 번째 목표(TARGET2)는 닿은 비율·걸린 날만 센다. 기간이 안 끝났고 아직 못 닿은 건은 그 비율에서 뺀다"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     rows = []
     for i in range(len(B)):
@@ -239,26 +241,34 @@ def dip_past(B, I, P):
         pi = pidx.get(B[i]['d'])
         if pi is None or pi + 1 >= len(P):
             continue
-        entry = P[pi + 1]['o']; mae = 0.0; hit = None
+        entry = P[pi + 1]['o']; mae = 0.0; hit = hit2 = None
         end = min(pi + DIP_DAYS, len(P) - 1)
         for j in range(pi + 1, end + 1):
-            mae = min(mae, P[j]['l'] / entry - 1)
-            if P[j]['h'] >= entry * (1 + TARGET / 100):
-                hit = j - pi
+            if hit is None:
+                mae = min(mae, P[j]['l'] / entry - 1)
+                if P[j]['h'] >= entry * (1 + TARGET / 100):
+                    hit = j - pi
+            if P[j]['h'] >= entry * (1 + TARGET2 / 100):
+                hit2 = j - pi
                 break
-        if hit is None and end - pi < DIP_DAYS:
+        done = end - pi >= DIP_DAYS
+        if hit is None and not done:
             continue                                   # 아직 기간이 안 끝난 최근 건은 세지 않는다
-        rows.append((hit, mae * 100, None if hit else (P[end]['c'] / entry - 1) * 100))
+        rows.append((hit, mae * 100, None if hit else (P[end]['c'] / entry - 1) * 100, hit2, done))
     if not rows:
         return None
-    hits = sorted(h for h, _, _ in rows if h is not None)
-    miss = [m for h, _, m in rows if h is None]
+    hits = sorted(r[0] for r in rows if r[0] is not None)
+    miss = [r[2] for r in rows if r[0] is None]
+    r2 = [r[3] for r in rows if r[3] is not None or r[4]]          # 두 번째 목표를 셀 수 있는 건
+    h2 = sorted(h for h in r2 if h is not None)
     med = lambda a: (a[(len(a) - 1) // 2] + a[len(a) // 2]) / 2
     return {'n': len(rows), 'ep': len(rows), 'from': P[0]['d'], 'days': DIP_DAYS,
             'hit': round(len(hits) / len(rows) * 100),
             'medD': round(med(hits)) if hits else None,
-            'maeAvg': round(sum(m for _, m, _ in rows) / len(rows), 1),
-            'maeMax': round(min(m for _, m, _ in rows), 1),
+            'maeAvg': round(sum(r[1] for r in rows) / len(rows), 1),
+            'maeMax': round(min(r[1] for r in rows), 1),
+            'hit20': round(len(h2) / len(r2) * 100) if r2 else None, 'n20': len(r2),
+            'medD20': round(med(h2)) if h2 else None,
             'miss': len(miss), 'missAvg': round(sum(miss) / len(miss), 1) if miss else None}
 
 

@@ -18,7 +18,7 @@ v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아�
 """
 import urllib.request, csv, io, json, time, datetime, sys
 from market import (UA, fetch, sma, stoch_k, cci, rsi_w, boll, indicators,   # 가격 받기 · 지표 · 노란 점은 종가 수집과 같이 쓴다
-                    is_dip, dip_past, dip_targets, TARGET, DIP_DAYS)
+                    is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS)
 
 RULE = 'Rule v2.3'
 PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
@@ -865,8 +865,9 @@ def stage_of(t):
     if d.get('on'):
         stats.append(('노란 점', f"{d['run']}일째", 'dot'))
         if past:
-            lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['hit']}%가 {past['days']}거래일 안에 +{TARGET}% · "
-                         f"가는 길에 평균 {past['maeAvg']}% 더 빠짐")
+            lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['days']}거래일 안에 +{TARGET}% {past['hit']}%"
+                         + (f", +{TARGET2}% {past['hit20']}%" if past.get('hit20') is not None else '')
+                         + f" · 가는 길에 평균 {past['maeAvg']}% 더 빠짐")
     elif last and last.get('pmv') is not None:
         stats.append((f"노란 점({md_(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
     if live:

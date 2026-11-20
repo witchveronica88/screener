@@ -197,6 +197,29 @@ class DipTargets(unittest.TestCase):
         self.assertFalse(t[0]['open'])
 
 
+class DipPast20(unittest.TestCase):
+    """과거 결과의 +20%: 닿은 비율·걸린 날. 기간이 안 끝났고 아직 못 닿은 건은 +20% 비율에서 뺀다"""
+    I = ind([50, 50, 10] + [50] * 7, [0, 0, -150] + [0] * 7, [50, 50, 20] + [50] * 7)
+
+    def test_both_targets(self):
+        P = bars([10, 10, 10, 10, 10.5, 11.2, 12.2, 12, 12, 12], spread=0.1)   # 산 값 10 → 5번 +10%, 6번 +20%
+        p = market.dip_past(bars([100] * 10), self.I, P)
+        self.assertEqual((p['hit'], p['medD'], p['hit20'], p['medD20'], p['n20']), (100, 3, 100, 4, 1))   # 노란 점 날부터 센 거래일
+
+    def test_pending_second_target_left_out(self):
+        P = bars([10, 10, 10, 10, 10.5, 11.2, 11.2, 11, 11, 11], spread=0.1)   # +10%만 닿았고 기간은 진행 중
+        p = market.dip_past(bars([100] * 10), self.I, P)
+        self.assertEqual((p['hit'], p['hit20'], p['n20']), (100, None, 0))
+
+    def test_real_data_invariant(self):
+        with open('test_data.json', encoding='utf-8') as f:
+            fx = json.load(f)
+        B = [{'d': d, 'o': c, 'h': h, 'l': l, 'c': c} for d, h, l, c in fx['SOXX']]
+        p = market.dip_past(B, market.indicators(B), B)
+        self.assertLessEqual(p['hit20'], p['hit'])
+        self.assertLessEqual(p['n20'], p['n'])
+
+
 class UpToDate(unittest.TestCase):
     """예약 실행 세 번 중 이미 받은 날은 뒤의 것을 건너뛴다"""
     def check(self, dates, now):
@@ -286,9 +309,10 @@ class FlowStage(unittest.TestCase):
         self.assertEqual(desk.stage_of(c)['text'], '뚜렷한 신호 없음')
 
     def test_dip_shows_past_results(self):
-        past = {'n': 26, 'hit': 92, 'days': 60, 'maeAvg': -17.1}
+        past = {'n': 26, 'hit': 92, 'hit20': 77, 'days': 60, 'maeAvg': -17.1}
         g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}))
         self.assertIn('과거 노란 점 26번', g['lines'][0])
+        self.assertIn('+10% 92%, +20% 77%', g['lines'][0])
 
     def test_headline(self):
         last = {'date': '2026-11-05', 'pmv': 61.6}
