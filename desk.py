@@ -844,8 +844,8 @@ def stage_of(t):
     elif st == 'sell':
         r = (4, 'sell', '과열 뒤 꺾임', '많이 오른 뒤 꺾였습니다')
     elif d.get('on'):
-        r = (1, 'watch', f"노란 점 {d['run']}일째 · 바닥 확인 전",
-             '노란 점이 켜져 싸게 살 수 있는 자리지만, 바닥을 확인하기 전입니다')
+        r = (1, 'watch', f"노란 점 {d['run']}일째",
+             '노란 점이 켜져 싸게 살 자리지만, 아직 바닥 확인 전입니다')
     elif st in ('buy', 'watch', 'warn') and s and s['new'] and s['valid']:
         n = s['age'] + 1
         r = {'buy': (2, 'buy', f'반등 {n}일째 · 확인됨', '급락 뒤 반등이 확인됐습니다'),
@@ -863,21 +863,22 @@ def stage_of(t):
     stats, lines = [], []
     last, past = d.get('last'), d.get('past')
     if d.get('on'):
-        stats.append(('노란 점', f"{d['run']}일째", 'dot'))
-        if past:
-            lines.append(f"과거 노란 점 {past['n']}번: 다음 날 샀다면 {past['days']}거래일 안에 +{TARGET}% {past['hit']}%"
-                         + (f", +{TARGET2}% {past['hit20']}%" if past.get('hit20') is not None else '')
-                         + f" · 가는 길에 평균 {past['maeAvg']}% 더 빠짐")
+        # 노란 점이 켜진 날: 과거 결과(다음 날 샀다면 +10%·+20%에 닿은 비율)를 색 칸으로 — 화면이 [hit, hit20]을 그린다.
+        # 요약 첫 화면이 한 장에 들어가야 해서 가는 길 하락·어제와 달라짐 문장은 종목별 탭에 맡긴다
+        if past:                                       # '노란 점 N일째'는 줄 제목이 이미 말한다
+            stats.append(('과거', [past['hit'], past.get('hit20')], 'past'))
     elif last and last.get('pmv') is not None:
         stats.append((f"노란 점({md_(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
-    if live:
+    if d.get('on'):
+        pass                                           # 노란 점이 켜진 날은 노란 점 · 과거 결과 두 칸만
+    elif live:
         stats.append(('반등 취소까지', f"-{s['dist']:.1f}%", 'ref'))
     elif t.get('setupUp'):
         stats.append(('반등 신호 남은 기간', f"{t['setupUp']['left']}거래일", ''))
     elif broke and s.get('dist') is not None:
         stats.append(('취소선보다', f"{abs(s['dist']):.1f}% {'아래' if s['dist'] < 0 else '위'}", 'ref'))
     e = t.get('easy') or {}
-    if e.get('head') == '어제와 판단이 달라짐' and e.get('why'):
+    if e.get('head') == '어제와 판단이 달라짐' and e.get('why') and not d.get('on'):
         lines.append('어제와 달라짐: ' + e['why'][0])
     return {'i': r[0], 'cls': r[1], 'text': r[2], 'say': r[3], 'stats': stats, 'lines': lines}
 

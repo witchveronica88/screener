@@ -310,9 +310,9 @@ class FlowStage(unittest.TestCase):
 
     def test_dip_shows_past_results(self):
         past = {'n': 26, 'hit': 92, 'hit20': 77, 'days': 60, 'maeAvg': -17.1}
-        g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}))
-        self.assertIn('과거 노란 점 26번', g['lines'][0])
-        self.assertIn('+10% 92%, +20% 77%', g['lines'][0])
+        g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}, setup={'left': 4}))
+        self.assertEqual(g['stats'], [('과거', [92, 77], 'past')])   # 색 칸 두 개 ('노란 점 1일째'는 줄 제목에)
+        self.assertEqual(g['lines'], [])          # 첫 화면 한 장 — 긴 문장은 종목별 탭으로
 
     def test_headline(self):
         last = {'date': '2026-11-05', 'pmv': 61.6}
