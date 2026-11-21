@@ -456,8 +456,8 @@ def uvix_card(U, X):
             r['vxxLow'] = prior is not None and min((b['c'] for b in xs[xi:]), default=prior) < prior
     else:
         r['cycle'] = {'stage': '완료' if doneToday else '대기', 'note':
-                      '사이클 최저 종가 대비 +10% 회복으로 사이클이 끝났습니다.' if doneToday else
-                      '직전 반등 완료 후 아직 사상 신저가(종가)를 갱신하지 않았습니다.',
+                      '다음 사이클은 UVIX가 다시 최저가를 깰 때 시작합니다.' if doneToday else
+                      '지난 사이클이 끝난 뒤 쉬는 중입니다.',
                       'allLow': round(lo, 2), 'toLow': round((c[-1] - lo) / c[-1] * 100, 1)}
     # 월중 급등·피크아웃
     ym = U[-1]['d'][:7]
@@ -699,7 +699,7 @@ def plain_reason(y, t):
         why.append('많이 빠졌다가 반등 신호가 새로 나왔습니다')
     if ys and ts and ys['date'] == ts['date']:
         if ys['valid'] and not ts['valid']:
-            why.append('가격이 기준 저점 아래로 내려가 반등 신호가 취소됐습니다')
+            why.append('가격이 취소선 아래로 내려가 반등 신호가 취소됐습니다')
         elif ys['new'] and not ts['new'] and ts['valid']:
             why.append('신호가 나온 지 3일이 지났습니다(신호는 아직 살아 있음)')
     td, yd = t.get('dnSig'), y.get('dnSig')
