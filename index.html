@@ -413,8 +413,8 @@ details.fold[open]>summary::after{content:'－'}
 .dbars .dnt{font-size:var(--fs-s);font-weight:700;color:var(--ink);margin-top:4px}
 .dread .rt{font-size:var(--fs-l);font-weight:700;line-height:var(--lh-t);word-break:keep-all;margin-bottom:8px}
 /* 요약 탭 첫 화면: 결론 한 문장 · 흐름 단계 막대 · 시장 한 줄 */
-.dhead1{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--on);border-radius:14px;padding:12px 16px;
-        margin-bottom:10px;font-size:var(--fs-m);font-weight:700;line-height:var(--lh);word-break:keep-all;overflow-wrap:anywhere}
+.dhead1{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--on);border-radius:14px;padding:10px 16px;
+        margin-bottom:6px;font-size:var(--fs-m);font-weight:700;line-height:var(--lh-t);word-break:keep-all;overflow-wrap:anywhere}
 .flow{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:12px 16px 8px;margin-bottom:10px;overflow-wrap:anywhere}
 .flow[data-dt],.mrow{cursor:pointer}
 .flow .fh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
@@ -425,6 +425,15 @@ details.fold[open]>summary::after{content:'－'}
 .flow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:3px;line-height:var(--lh)}
 .flow .dul b{color:var(--ink)}
 .track{display:flex;margin:9px 0 2px;position:relative}
+/* 요약: 세 줄의 단계 막대는 칸이 같으므로 이름(평소·노란 점…)은 첫 줄에만 — 나머지는 점만 */
+.fsum .flow{padding:10px 16px 8px;margin-bottom:6px}
+.fsum .flow .fh .tk{line-height:var(--lh-t)}
+.fsum .fbody{align-items:flex-end;margin-top:2px}
+.fsum .track{margin:4px 0 4px}
+.fsum .track .st{white-space:nowrap;letter-spacing:-.02em}
+.fsum .flow+.flow .track .st{font-size:0;line-height:0}
+.fsum .flow+.flow .track i{margin-bottom:2px}
+.fsum .fpv{margin:1px 0}.fsum .fpast .dpc{padding:0 6px}
 .track::before{content:'';position:absolute;left:10%;right:10%;top:9px;height:2px;background:var(--s3)}
 .track .st{flex:1;min-width:0;text-align:center;position:relative;font-size:var(--fs-s);color:var(--ink3);word-break:keep-all;line-height:var(--lh-t)}
 .track i{display:block;width:12px;height:12px;border-radius:50%;background:var(--s3);margin:3px auto 5px;position:relative}
@@ -436,6 +445,7 @@ details.fold[open]>summary::after{content:'－'}
 .mrow{display:block;background:var(--s1);border:1px solid var(--bd);border-radius:14px;
       padding:12px 16px 9px;margin-bottom:12px;overflow-wrap:anywhere}
 .mrow .mh{display:flex;align-items:center;gap:10px}
+.mrow .mst{font-size:var(--fs-m)}.mrow .mst.warn{color:var(--dn)}.mrow .mst.watch{color:var(--warn)}.mrow .mst.buy{color:var(--up)}
 .mrow .mh .mv{margin-left:auto;white-space:nowrap}
 .mrow .lamp{width:18px;height:18px;border-width:2px}
 .mrow .fbody{margin-top:2px}
@@ -461,7 +471,8 @@ svg.mini{display:block}
 .mrow b{font-size:var(--fs-m)}
 .mrow .mv{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2)}
 .mrow .mv .g{color:var(--up)}.mrow .mv .r{color:var(--dn)}
-.mrow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:2px}
+.mrow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:2px;line-height:var(--lh-t)}
+.fsum+.mrow{padding:9px 16px 7px}
 .lamp{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:var(--s3);border:3px solid var(--s2)}
 .lamp.buy{background:var(--up)}.lamp.sell,.lamp.worse{background:var(--dn)}.lamp.warn{background:var(--warn)}
 .lamp.watch{background:var(--st-watch)}.lamp.hot{background:var(--st-hot)}
@@ -1365,7 +1376,7 @@ const MK={ro:"노란 점 — 세 지표가 모두 '많이 빠짐'에 들어간 �
   us:'반등 신호가 나온 날 (세 지표가 같은 날 한꺼번에 회복)',uq:'반등 신호가 나온 날 (세 지표가 며칠에 걸쳐 차례로 회복)',
   dn:'과열 뒤 꺾이는 신호가 나온 날',x:'가격이 취소선 아래로 내려가 신호가 취소된 날',
   dl:'이날 저점이 나중에 바닥 힌트로 확인됨',dc:'바닥 힌트가 확인된 날 (가격은 더 빠졌는데 힘은 덜 빠짐)',
-  tg:'노란 점 다음 날 상품(SOXL·TQQQ)을 샀다면 +10%에 닿은 날'};
+  tg:'노란 점 다음 날 샀다면 +10%에 닿은 날 (SOXX는 SOXL, QQQ는 TQQQ, SPY는 SPY 가격)'};
 const ic=b=>`<svg class="ic" viewBox="0 0 14 14">${b}</svg>`;
 const IC={ro:ic('<circle class="mk-ro" cx="7" cy="7" r="4"/>'),rb:ic('<circle class="mk-rb" cx="7" cy="7" r="4"/>'),
   up:ic('<path class="mk-us" d="M7 2L12.5 12L1.5 12Z"/>'),tg:ic(`<path class="tgk" d="${ckPath(7,7)}"/>`),dn:ic('<path class="mk-dn" d="M7 12L12.5 2L1.5 2Z"/>'),
@@ -1474,7 +1485,8 @@ const vixLine=v=>v.st==='worse'?'불안이 커지는 동안에는 반등 신호�
   :v.st==='fast'?'꺾이기 시작했지만 아직 확인은 덜 됐습니다.':'가라앉는 조짐도, 커지는 조짐도 없습니다.';
 const coupleLine=m=>!m.couple?null:m.couple==='바닥 소진 관찰'?'주가와 VIX가 같이 내림 — 하락이 지쳐 가는 모습일 수 있음':'주가와 VIX가 같이 오름 — 고점 근처일 수 있어 조심';
 const mktCls=v=>v.st==='worse'?'warn':v.st==='fast'?'watch':v.st==='confirm'?'buy':'';   /* 신호등 판 시장 칸과 같은 색 */
-const cardHead=c=>`<div class="dhead"><span class="tk">${c.prod}</span><span class="lev">${tkB(c.base)} 기준으로 판정</span>${c.ind?px(c.ind.pclose,c.ind.pchg):''}</div>`+
+const cardHead=c=>`<div class="dhead"><span class="tk">${c.base}</span>${c.ind?px(c.ind.close,c.ind.chg):''}</div>`+
+  (c.prod!==c.base&&c.ind?`<div class="dterm" style="margin-top:2px">과거 결과는 ${tkP(c.prod)}${eul(c.prod)} 샀다고 보고 셈 · ${c.prod} $${c.ind.pclose} <span class="${sc(c.ind.pchg)}">${sg(c.ind.pchg)}</span></div>`:'')+
   `<div class="dbadge">${c.easyTitle||c.label}</div>`;
 const pastBlk=c=>{const p=c.past, s=liveSig(c); if(!p||!s||!s.new)return '';
   return blk('과거 비슷한 때',ul([`${p.cat}: ${p.n}건`,`그중 <b>${p.hit}%</b>가 목표 +${DESK.target}%에 닿음`,
@@ -1485,14 +1497,14 @@ function dipRules(){
   const C=DESK.cards.filter(c=>c.dip); if(!C.length)return '';
   return dsec('b','노란 점(매수 기회)은 이렇게 켜집니다',ul([
     "흐름 막대의 <b>노란 점</b> 단계입니다. 세 지표가 모두 '많이 빠짐'에 들어간 날 켜집니다",
-    `켜진 날 그 줄의 <b>과거 +10% · +20% 도달</b> 초록 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율입니다 (진할수록 높음). 자세한 결과는 ${C.filter(c=>c.dip.past).map(c=>`<a data-dt="${c.prod}">${c.prod}</a>`).join(' · ')} 탭의 '노란 점 과거 결과'에 있습니다`,
+    `켜진 날 그 줄의 <b>과거 +10% · +20% 도달</b> 초록 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율입니다 (진할수록 높음). 자세한 결과는 ${C.filter(c=>c.dip.past).map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭의 '노란 점 과거 결과'에 있습니다. 줄 이름 옆 회색 꼬리표는 그 결과를 셀 때 샀다고 본 상품입니다 (SPY는 SPY 그대로)`,
     '반등 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
     '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
     '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
-    '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품이라 가는 길의 하락이 큽니다</small>']));
+    '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. SOXL·TQQQ는 3배 상품이라 가는 길의 하락이 크고, SPY는 1배라 +10% · +20%에 닿는 비율이 낮게 나옵니다</small>']));
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
-const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.prod} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
+const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
 /* 최근 한 달 고점에서 저점까지 — 이 종목군과 시장 전체(SPY), 그 뒤 되오른 폭 */
 function dropBars(c){
   const d=c.dip&&c.dip.drop; if(!d||!d.days||d.pct>-3)return '';
@@ -1505,7 +1517,7 @@ function dropBars(c){
 
 /* 작은 그래프(1개월) — 선 · 점선 기준선(ref) · 회색 점선(l2) · 노란 점(dots). 요약 줄 오른쪽에 붙인다 */
 function miniChart(vals,o={}){
-  const W=112,H=44,n=vals.length; if(n<3)return '';
+  const W=112,H=40,n=vals.length; if(n<3)return '';
   const all=vals.concat(o.ref!=null?[o.ref]:[],o.l2||[]), lo=Math.min(...all), hi=Math.max(...all), pad=(hi-lo)*.08||1;
   const X=i=>3+(W-6)*i/(n-1), Y=v=>4+(H-8)*(1-(v-lo+pad)/(hi-lo+2*pad));
   const path=a=>a.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('');
@@ -1521,35 +1533,36 @@ const statIcon=c=>c==='dot'?'<i class="sdot"></i>':c==='ref'?'<i class="sref"></
 const STAGES=['평소','노란 점','반등','과열','꺾임'];
 function flowRow(c,link){
   const g=c.stage||{i:null,cls:'wait',text:'자료 확인 중',lines:[]};
-  return `<div class="flow"${link?` data-dt="${c.prod}"`:''}><div class="fh"><span class="tk">${c.prod}</span>`+
+  const track=g.i==null?'':`<div class="track">${STAGES.map((n,k)=>`<div class="st${k===1?' y':''}${k===g.i?' on '+g.cls:''}"><i></i>${n}</div>`).join('')}</div>`;
+  return `<div class="flow"${link?` data-dt="${c.base}"`:''}><div class="fh"><span class="tk">${c.base}</span>${c.prod!==c.base?tkP(c.prod):''}`+
     `<span class="fn ${g.cls}">${g.text}</span>`+
-    (c.ind?`<span class="dpx ${sc(c.ind.pchg)}">오늘 ${sg(c.ind.pchg)}</span>`:'')+`</div>`+
-    (g.i==null?'':`<div class="track">${STAGES.map((n,k)=>`<div class="st${k===1?' y':''}${k===g.i?' on '+g.cls:''}"><i></i>${n}</div>`).join('')}</div>`)+
-    flowBody(c,g,link)+ul(g.lines||[])+`</div>`;
+    (c.ind?`<span class="dpx ${sc(c.ind.chg)}">오늘 ${sg(c.ind.chg)}</span>`:'')+`</div>`+
+    (link?flowBody(c,g,track):track)+(g.lines&&g.lines.length?ul(g.lines):'')+`</div>`;
 }
-/* 요약 줄 아래: 왼쪽 숫자 두 개, 오른쪽 기준자산 1개월 그래프(노란 점 · 취소선 점선) */
-function flowBody(c,g,mini){
-  if(!mini)return '';                        /* 종목별 탭에서는 아래 해석과 큰 그래프가 같은 것을 보여 준다 */
+/* 요약 줄 몸통: 왼쪽에 단계 막대와 숫자 두 개, 오른쪽에 기준자산 1개월 그래프(노란 점 · 취소선 점선)
+   종목별 탭에서는 쓰지 않는다 — 아래 해석과 큰 그래프가 같은 것을 보여 준다 */
+function flowBody(c,g,track){
+  const mini=true;
   const H=c.hist||[], g0=c.sig, s=g0&&g0.age<=60&&(g0.valid||(g0.brokeDate&&H.length&&g0.brokeDate>=H[0].d))?g0:null;
   const ref=s&&(g.stats||[]).some(x=>x[2]==='ref')?s.low:null;   /* 취소선은 줄에 그 숫자가 있을 때만 (기호가 범례) */
-  const chart=mini&&H.length>2?miniChart(H.map(x=>x.c),{label:c.base,ref,dots:H.map((x,i)=>x.marks.includes('ro')?i:-1).filter(i=>i>=0)}):'';
+  const chart=mini&&H.length>2?miniChart(H.map(x=>x.c),{label:'1개월',ref,dots:H.map((x,i)=>x.marks.includes('ro')?i:-1).filter(i=>i>=0)}):'';
   const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,v,ic])=>`<div class="fsv">${statIcon(ic)}<span>${k}</span> <b>${v}</b></div>`).join('');
   /* 노란 점이 켜진 날: 과거에 다음 날 샀다면 +10% · +20%에 닿은 비율 — 그래프 아래 한 줄, 색 칸 */
   const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
   const past=v?`<div class="fpast"><div class="fpv"><span>과거 +10% 도달</span>${pctCell(v[0])}</div>${v[1]!=null?`<div class="fpv"><span>과거 +20% 도달</span>${pctCell(v[1])}</div>`:''}</div>`:'';
-  return st||past||chart?`<div class="fbody"><div class="fst">${st}${past}</div>${chart}</div>`:'';
+  return `<div class="fbody"><div class="fst">${track}${st}${past}</div>${chart}</div>`;
 }
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · 종목별 흐름 단계 · 시장 한 줄. 근거는 종목별 탭으로 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, u=D.uvix, f=m.fut;
   let h=D.headline?`<div class="dhead1">${D.headline}</div>`:'';
-  h+=D.cards.map(c=>flowRow(c,true)).join('');
-  h+=`<div class="mrow" data-dt="MKT"><div class="mh"><i class="lamp ${mktCls(v)}"></i><b>시장 불안 ${VE[v.st]}</b>`+
-    `<span class="mv">VIX ${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
+  h+=`<div class="fsum">${D.cards.map(c=>flowRow(c,true)).join('')}</div>`;
+  h+=`<div class="mrow" data-dt="VIX"><div class="mh"><span class="tk">VIX</span><b class="mst ${mktCls(v)}">불안 ${VE[v.st]}</b>`+
+    `<span class="mv">${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
       f&&f.back?'VIX 선물: 단기 불안 남음':null,
       u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])}</div>`+
-    (m.spark?miniChart(m.spark.map(x=>x.c),{label:'VIX',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
+    (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   h+=`<div class="dstamp">줄을 누르면 차트와 근거가 있는 자세한 화면으로 갑니다.</div>`;
   return h+dipRules()+secRules()+secLog();
 }
@@ -1572,12 +1585,12 @@ function deskCard(c){
     const mv=(nm,close,open,mc,mo,cur)=>[`<b>${nm}</b>: 신호 날 $${close} → 지금 $${cur} <b class="${sc(mc)}">${sg(mc)}</b>`,
       open!=null?`${nm} 다음 날 시가 $${open} 기준으로는 <b class="${sc(mo)}">${sg(mo)}</b>`:null];
     h+=blk('신호 뒤 가격 이동',ul([...mv(c.base,a.sigClose,a.nextOpen,a.mvClose,a.mvOpen,c.ind.close),
-      ...(a.pSigClose!=null?mv(c.prod,a.pSigClose,a.pNextOpen,a.pMvClose,a.pMvOpen,c.ind.pclose):[]),
+      ...(a.pSigClose!=null&&c.prod!==c.base?mv(c.prod,a.pSigClose,a.pNextOpen,a.pMvClose,a.pMvOpen,c.ind.pclose):[]),
       a.nextOpen==null?'<small>다음 날 시가는 다음 거래일에 나옵니다</small>':null,'<small>많이 올랐을수록 뒤늦은 추격입니다</small>']));
     h+=targetGauge(c);
     h+=blk('신호 취소선',ul([`${c.base} 종가가 <b>$${a.low}</b> 아래로 가면 신호 취소 <small>(${md(a.lowDate)} 종가)</small>`,
       `지금보다 <b>${a.dist.toFixed(1)}%</b> 아래`,
-      a.pLow!=null?`그때 ${c.prod}${eun(c.prod)} 약 $${a.pLow} — 지금보다 <b class="r">-${a.pDist.toFixed(1)}%</b>`:null]));
+      a.pLow!=null&&c.prod!==c.base?`그때 ${c.prod}${eun(c.prod)} 약 $${a.pLow} — 지금보다 <b class="r">-${a.pDist.toFixed(1)}%</b>`:null]));
     h+=pastBlk(c);
   }
   if(c.dip)h+=blk('노란 점 과거 결과',dipPast(c.dip.past,c.prod+eul(c.prod)));
@@ -1609,12 +1622,11 @@ function deskUvix(u){
 }
 function deskMarket(m){
   const v=m.vix, f=m.fut;
-  let h=`<div class="dcard ${mktCls(v)}"><div class="dhead"><span class="tk">시장</span><span class="lev">SPY · VIX</span></div>`+
+  let h=`<div class="dcard ${mktCls(v)}"><div class="dhead"><span class="tk">VIX</span><span class="lev">시장 불안 지수 — 높을수록 불안</span></div>`+
     `<div class="dbadge">시장 불안(VIX) ${VE[v.st]}</div><div class="dline">${vixLine(v)}</div>`;
   h+=vixSpark(m,110)+futBars(m);
-  h+=blk('VIX <small>시장 불안 지수 — 높을수록 불안</small>',ul([`지금 <b>${v.c}</b> (전날보다 <span class="${sc(-v.chg)}">${sg(v.chg)}</span>)`,
-    `최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`]));
-  h+=blk('S&P500 <small>SPY</small>',ul([`$${m.spy} (<span class="${sc(m.spyChg)}">${sg(m.spyChg)}</span>)`,coupleLine(m)]));
+  h+=blk('지금 값',ul([`VIX <b>${v.c}</b> (전날보다 <span class="${sc(-v.chg)}">${sg(v.chg)}</span>)`,
+    `최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,m.couple?`SPY와 함께 보면: ${coupleLine(m)}`:null]));
   if(!f)h+=blk('VIX 선물',ul(['자료를 확인하지 못함 — VIX 현물만으로 판단']));
   return h+'</div>';
 }
@@ -1684,19 +1696,18 @@ function renderDesk(){
   el.querySelectorAll('.dsec').forEach(x=>DOPEN[x.dataset.s]=x.open);
   const u=new Date(DESK.updated);
   const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
-  const T=[['SUM','요약'],...DESK.cards.map(c=>[c.prod,c.prod]),['UVIX','UVIX'],['MKT','시장']];
+  const T=[['SUM','요약'],...DESK.cards.map(c=>[c.base,c.base]),['VIX','VIX']];
   if(!T.some(t=>t[0]===DTAB))DTAB='SUM';
-  const c=DESK.cards.find(x=>x.prod===DTAB);
+  const c=DESK.cards.find(x=>x.base===DTAB);
   const body=DTAB==='SUM'?deskSum()
-    :DTAB==='UVIX'?deskUvix(DESK.uvix)+secTable(['UVIX','VXX'])
-    :DTAB==='MKT'?deskMarket(DESK.market)+secTable(['SPY','VIX'])
-    :deskCard(c)+secTable([c.base,c.prod])+secScore(c.prod)+secEvents(c.prod);
-  el.innerHTML=`<div class="tabs" style="padding:0 0 12px">${T.map(t=>`<button class="tab${t[0]===DTAB?' on':''}" data-dt="${t[0]}">${t[1]}</button>`).join('')}</div>`+
+    :DTAB==='VIX'?deskMarket(DESK.market)+deskUvix(DESK.uvix)+secTable(['VIX','UVIX','VXX'])
+    :deskCard(c)+secTable([...new Set([c.base,c.prod])])+secScore(c.prod)+secEvents(c.prod);
+  el.innerHTML=`<div class="tabs" style="padding:0 0 8px">${T.map(t=>`<button class="tab${t[0]===DTAB?' on':''}" data-dt="${t[0]}">${t[1]}</button>`).join('')}</div>`+
     (DTAB==='SUM'?'':`<div class="dstamp"><b>${md(DESK.asof)}</b> 미국 종가 기준 · ${ut} 갱신</div>`)+
     (LASTD&&LASTD>DESK.asof?`<div class="dstale">상황판 계산이 종가보다 늦습니다. 종가는 ${md(LASTD)}, 상황판은 ${md(DESK.asof)} 기준입니다. 상황판 계산이 실패했을 수 있습니다.</div>`
       :missedDays(DESK.asof)?`<div class="dstale">${staleMsg(missedDays(DESK.asof),'상황판이')}</div>`:'')+body+
     `<div class="dnote">${ul([`${md(DESK.asof)} 미국 종가 기준 · ${ut} 갱신`,`${DESK.rule} · 자동매매가 아니라 판단 참고용`,'하루 한 번, 한국 아침 6시 반쯤 확정 종가로 계산 (늦어지면 오후 2시쯤까지 다시 시도)',
-      '신호는 기준자산(SOXX·QQQ)으로 계산하고 SOXL·TQQQ 가격은 참고로 표시','가격은 야후 일봉, 현재 분할·병합 보정 기준'])}</div>`;
+      `신호는 ${DESK.cards.map(c=>c.base).join(' · ')}로 판정하고, 과거 결과는 ${DESK.cards.map(c=>c.prod).join(' · ')}을 샀다고 보고 셈`,'가격은 야후 일봉, 현재 분할·병합 보정 기준'])}</div>`;
 }
 document.getElementById('vDesk').onclick=e=>{
   const t=e.target.closest('[data-dt]');

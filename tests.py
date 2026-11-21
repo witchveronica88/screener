@@ -320,13 +320,13 @@ class FlowStage(unittest.TestCase):
         for c in cs:
             c['stage'] = desk.stage_of(c)
         h = desk.headline(cs, {'st': 'confirm'})
-        self.assertTrue(h.startswith('반도체(SOXL)·나스닥(TQQQ) 모두 급락 뒤 반등이 확인됐습니다.'), h)
+        self.assertTrue(h.startswith('반도체·나스닥 모두 급락 뒤 반등이 확인됐습니다.'), h)
         # '다만 …'은 한 문장: 앞은 '…고', 마지막은 '…니다'
         self.assertIn('다만 가장 싸게 살 수 있던 자리(11/5)는 지났고, 큰 흐름(주·월 단위)은 아직 약세입니다.', h)
         cs[1] = self.card('neutral', prod='TQQQ'); cs[1]['stage'] = desk.stage_of(cs[1])
         h = desk.headline(cs, {'st': 'worse'})
-        self.assertIn('반도체(SOXL)는 급락 뒤', h)
-        self.assertIn('나스닥(TQQQ)은 뚜렷한 신호가 없습니다', h)
+        self.assertIn('반도체는 급락 뒤', h)
+        self.assertIn('나스닥은 뚜렷한 신호가 없습니다', h)
         self.assertNotIn('시장 불안', h)          # 시장 줄 제목과 겹치므로 결론 문장에는 넣지 않는다
 
 

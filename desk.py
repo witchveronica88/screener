@@ -12,16 +12,18 @@ v2.2: VIX '빠른 완화 관찰'(초기 반등형)은 🟢 매수 검토가 아�
       신호일 VIX 상태별 +10% 도달 — 확인형 50/75건(67%), 초기 반등형 15/31건(48%)
       (SOXL·TQQQ·UPRO·TNA·TECL 합계). VIX가 확인형으로 바뀌면 신규 3거래일 안에서 🟢로 올라간다.
 
-기준자산(SOXX·QQQ)의 확정 일봉으로 SCR 3단 신호를 판정하고, VIX 완화/악화,
+기준자산(SPY·QQQ·SOXX)의 확정 일봉으로 SCR 3단 신호를 판정하고, VIX 완화/악화,
 주봉·월봉 상위 추세, UVIX 사이클을 합쳐 '현재 판단' 카드를 만든다.
 어제 판정은 마지막 봉을 뺀 자료로 같은 계산을 한 번 더 돌려 구한다(미래 참조 금지).
+화면은 기준자산 이름(SPY·QQQ·SOXX·VIX)으로 보여 준다. 과거 결과는 SOXX→SOXL, QQQ→TQQQ를 샀다고 보고,
+SPY는 SPY 자체로 센다(판정 규칙은 그대로 — 2026-11 사용자 결정으로 SPY 칸을 더함).
 """
 import urllib.request, csv, io, json, time, datetime, sys
 from market import (UA, fetch, sma, stoch_k, cci, rsi_w, boll, indicators,   # 가격 받기 · 지표 · 노란 점은 종가 수집과 같이 쓴다
                     is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS)
 
 RULE = 'Rule v2.3'
-PAIRS = [('SOXL', 'SOXX'), ('TQQQ', 'QQQ')]   # (관찰 상품, 주 신호 계산 기준자산)
+PAIRS = [('SPY', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 상품, 신호를 판정하는 기준자산) — 화면 순서
 SYMS = ['SOXX', 'SOXL', 'QQQ', 'TQQQ', 'UVIX', 'VXX', 'SPY', '^VIX']
 NEW_DAYS = 3      # 신규 신호 강조: 발생일 포함 3거래일 (D+0~D+2)
 WINDOW = 10       # 준비 이후 순차 회복·이탈 허용 거래일
@@ -497,7 +499,7 @@ def history(base, prod, bars, today, n=21):
     """최근 n거래일의 봉·지표·당일 기준 판정(그날까지의 자료만으로 계산)·마커"""
     js = [today] + [judge(base, prod, bars, k) for k in range(1, n + 1)]
     B = bars[base]; I = indicators(B); dv = divergence(B, I)
-    # 노란 점 다음 날 상품(SOXL·TQQQ)을 샀다면 +TARGET%에 닿은 날 — 그래프는 기초자산이라 날짜에만 표시
+    # 노란 점 다음 날 상품(SOXL·TQQQ, SPY는 그대로)을 샀다면 +TARGET%에 닿은 날 — 그래프는 기초자산이라 날짜에만 표시
     P = bars.get(prod) or B
     hits = {t['hit'] for t in dip_targets(B, I, P, B[max(0, len(B) - n)]['d']) if t['hit']}
     if dv and dv['confirm'] > len(B) - 1:
@@ -769,7 +771,8 @@ def dip_card(t, base, prod, bars):
     hi = max(range(len(w)), key=lambda i: w[i]['c'])
     lo = min(range(hi, len(w)), key=lambda i: w[i]['c'])          # 고점 뒤 가장 낮았던 날
     drop = pct(w[lo]['c'], w[hi]['c']); days = lo - hi
-    spy = pct(S[w[lo]['d']], S[w[hi]['d']]) if w[lo]['d'] in S and w[hi]['d'] in S else None
+    spy = (pct(S[w[lo]['d']], S[w[hi]['d']]) if w[lo]['d'] in S and w[hi]['d'] in S and base != 'SPY'
+           else None)                                  # SPY 칸은 시장과 견줄 것이 자기 자신이라 빼 둔다
     back = pct(B[-1]['c'], w[lo]['c']) if lo < len(w) - 1 else None   # 저점 뒤 되오른 폭
     r['drop'] = {'pct': drop, 'days': days, 'from': w[hi]['d'], 'to': w[lo]['d'], 'spy': spy, 'back': back}
     st = t['state']; lastd = r.get('last'); vix = t['vix']; sig = t.get('sig')
@@ -795,7 +798,7 @@ def dip_card(t, base, prod, bars):
         head = '급락 뒤 되살아나는 중입니다. 가장 싸게 살 수 있던 구간은 지났을 수 있습니다.'
         if lastd:
             why.append(f"마지막 노란 점({md(lastd['date'])}) 뒤로 이미 {base} <b>{lastd['mv']:+.1f}%</b>" +
-                       (f" · {prod} <b>{lastd['pmv']:+.1f}%</b>" if lastd['pmv'] is not None else ''))
+                       (f" · {prod} <b>{lastd['pmv']:+.1f}%</b>" if lastd['pmv'] is not None and prod != base else ''))
         why.append({'worse': '다만 시장 불안(VIX)이 다시 커지고 있어 한 번 더 빠질 수 있습니다',
                     'fast': '시장 불안(VIX)은 막 꺾이는 중입니다',
                     'confirm': '시장 불안(VIX)도 가라앉았습니다',
@@ -821,7 +824,7 @@ def dip_card(t, base, prod, bars):
 
 # ───────────── 흐름 단계 · 결론 한 문장 (요약 탭 첫 화면) ─────────────
 STAGES = ['평소', '노란 점', '반등', '과열', '꺾임']
-NAMES = {'SOXL': ('반도체(SOXL)', '는'), 'TQQQ': ('나스닥(TQQQ)', '은')}   # 결론 문장에 쓰는 이름과 조사
+NAMES = {'SPY': ('S&P500', '은'), 'TQQQ': ('나스닥', '은'), 'SOXL': ('반도체', '는')}   # 결론 문장에 쓰는 이름과 조사 (줄 이름이 티커라 여기는 우리말만)
 
 
 def md_(d):
@@ -845,7 +848,7 @@ def stage_of(t):
         r = (4, 'sell', '과열 뒤 꺾임', '많이 오른 뒤 꺾였습니다')
     elif d.get('on'):
         r = (1, 'watch', f"노란 점 {d['run']}일째",
-             '노란 점이 켜져 싸게 살 자리지만, 아직 바닥 확인 전입니다')
+             '노란 점이 켜졌습니다(싸게 살 자리지만 아직 바닥 확인 전)')
     elif st in ('buy', 'watch', 'warn') and s and s['new'] and s['valid']:
         n = s['age'] + 1
         r = {'buy': (2, 'buy', f'반등 {n}일째 · 확인됨', '급락 뒤 반등이 확인됐습니다'),
@@ -877,9 +880,7 @@ def stage_of(t):
         stats.append(('반등 신호 남은 기간', f"{t['setupUp']['left']}거래일", ''))
     elif broke and s.get('dist') is not None:
         stats.append(('취소선보다', f"{abs(s['dist']):.1f}% {'아래' if s['dist'] < 0 else '위'}", 'ref'))
-    e = t.get('easy') or {}
-    if e.get('head') == '어제와 판단이 달라짐' and e.get('why') and not d.get('on'):
-        lines.append('어제와 달라짐: ' + e['why'][0])
+    # '어제와 달라짐' 문장은 요약에 넣지 않는다 — 세 줄(SPY·QQQ·SOXX)이 한 화면에 들어가야 해서 종목별 탭의 날짜 칸에 맡긴다
     return {'i': r[0], 'cls': r[1], 'text': r[2], 'say': r[3], 'stats': stats, 'lines': lines}
 
 
