@@ -581,7 +581,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>노란 점</h4>
     <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 — 매수 기회 표시</div>
-      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목(경고 없는 종목 먼저)과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 표의 +10% · +20% 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율이고, 80% 이상은 진한 초록, 60~79%는 옅은 초록입니다. 과거 횟수가 10번보다 적으면 점선 테두리를 둘러 믿기 어렵다고 표시합니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
+      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 켜진 종목은 <b>추천순</b>으로 놓습니다: 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 과거 +10% 도달률이 높은 순 → +20% 도달률이 높은 순. 과거 노란 점이 10번보다 적으면 비율을 믿기 어려워 경고 하나로 셉니다. 목록 정렬의 '노란 점 추천순'도 같은 순서입니다. 순서는 고르는 참고일 뿐이고 판단은 직접 합니다. 표의 +10% · +20% 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율이고, 80% 이상은 진한 초록, 60~79%는 옅은 초록입니다. 과거 횟수가 10번보다 적으면 점선 테두리를 둘러 믿기 어렵다고 표시합니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 남색 꼬리표(예: <span class="tkb">IWM</span>)로 표시합니다. 회색 꼬리표(예: <span class="tkp">TNA</span>)는 상품 자체 가격으로 잰 값입니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
@@ -645,7 +645,7 @@ svg.mini{display:block}
   <select class="sortsel" id="sort">
     <option value="need">최소 시드순</option>
     <option value="sig">변동성순</option>
-    <option value="dip">노란 점 먼저</option>
+    <option value="dip">노란 점 추천순</option>
     <option value="rsi">RSI 낮은순</option>
     <option value="dd">역대 낙폭순</option>
     <option value="dd1y">1년 낙폭순</option>
@@ -724,6 +724,14 @@ function priceChart(d,tk){
 /* 타이밍 지표 RSI — 레버리지 ETF는 노란 점과 같이 기초자산 값(감가로 자기 가격 지표가 왜곡되기 쉽다) */
 const rsiOf=L=>L?(L.dip&&L.dip.base?L.dip.rsi:L.rsi):null;
 const rsiBy=L=>L&&L.dip&&L.dip.base?L.dip.base+' ':'';
+/* 변동성 부족 — 들어가기 전 확인의 '변동성 5% 이상'과 같은 값(화면에 보이는 소수 한 자리)으로 판정.
+   개별주인데 실제 값이 없으면(가정값) 모름이라 붙이지 않는다 */
+function sigLow(tk,L){
+  const live=!!(L&&L.sig!=null), e=D.find(r=>r[0]===tk);
+  if(!live&&!e)return null;
+  const v=live?L.sig:e[9];
+  return v!=null&&Math.round(v*10)/10<SIG_MIN?v:null;
+}
 /* 종목에 붙는 짧은 경고. 목록 줄과 노란 점 상자가 같이 쓴다 */
 function warnTags(tk,L){
   const F=FUND[tk], cus=!KNOWN.has(tk), w=[];
@@ -731,15 +739,25 @@ function warnTags(tk,L){
   if(oldPx(L)) w.push('종가 갱신 안 됨');
   if(e&&e[14].includes('ETN 구조')) w.push('ETN 구조');
   if(recOf(L,cus)==='미회복') w.push('미회복');
+  if(sigLow(tk,L)!=null) w.push('변동성 부족');
   if(crashCaut(L)) w.push('급락 동반');
   if(cashLow(F)) w.push('현금 주의');
   if(guideBad(F)) w.push('전망 '+GD[F.guide.dir][0]);
   if(F&&!F.na&&F.sh!=null&&F.sh>SHARE_MAX) w.push('주식 수 증가');
   return w;
 }
-/* 노란 점 (세 지표가 모두 '많이 빠짐') — 종목 자체 가격으로 판정. 켜진 종목 먼저, 그다음 최근에 찍힌 순 */
+/* 노란 점 (세 지표가 모두 '많이 빠짐') — 레버리지 ETF는 기초자산, 나머지는 자기 가격으로 판정 */
 const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
-const dipRank=tk=>{const d=dipOf(tk);return d.on?-d.run:d.last?d.last.age+1:9999;};
+/* 노란 점 추천순 — 걸리는 것 적은 순 → 과거 +10% 도달률 높은 순 → +20% 도달률 높은 순 → 오래 켜진 순.
+   걸리는 것 = 경고 칩 수 + 과거 노란 점이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
+const DIP_FEW=10;
+const dipKey=tk=>{const d=dipOf(tk), p=d.past;
+  return [warnTags(tk,LIVE[tk]).length+(!p||p.n<DIP_FEW?1:0), -(p&&p.hit!=null?p.hit:0), -(p&&p.hit20!=null?p.hit20:0), -(d.run||0)];};
+const keyCmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
+/* 목록 정렬 '노란 점 추천순': 켜진 종목을 추천순으로 → 최근에 꺼진 순 → 노란 점 기록 없음 */
+const dipCmp=(a,b)=>{const x=dipOf(a), y=dipOf(b);
+  if(x.on||y.on)return x.on&&y.on?keyCmp(dipKey(a),dipKey(b)):x.on?-1:1;
+  return (x.last?x.last.age:9999)-(y.last?y.last.age:9999);};
 function cautions(r,L,live,cus){
   const [tk,,,lq,,,,,nMaster,sigMaster,,mdd,mddEst,corr,warns]=r;
   const c=[];
@@ -750,6 +768,7 @@ function cautions(r,L,live,cus){
     c.push(['실적·이벤트 갭','분기 실적이나 공시로 하루에 갭이 크게 벌어질 수 있습니다. LOC는 종가 일괄 체결이라 칸을 건너뛰고 한 번에 체결됩니다.']);
     if(!live) c.push(['변동성을 모릅니다','실제 변동성 값이 없어 임시로 '+sigMaster.toFixed(1)+'%를 가정했습니다. 시드는 주가만으로 정해지지만, 변동성 기준 통과 여부는 아직 모릅니다. 개별주식 탭에서 GitHub를 연결하고 추가하면 몇 분 뒤 실제 값으로 바뀝니다.']);
     if(live&&L.sigN&&L.sigN<200) c.push(['변동성 자료 '+L.sigN+'일뿐','1년치가 채워지지 않아 변동성 값을 그대로 믿기 어렵습니다.']);
+    if(live&&sigLow(tk,L)!=null) c.push(['변동성 부족','하루 평균 움직임이 '+sigLow(tk,L).toFixed(1)+'%로 기준 '+SIG_MIN+'%보다 작습니다. 스위치법은 오르내림에서 수익을 만들기 때문에 덜 출렁이면 사고파는 횟수가 적고, 노란 점 뒤 +10%에 닿기까지도 오래 걸립니다.']);
     if(crashCaut(L)) c.push(crashCaut(L));
     return c;
   }
@@ -757,6 +776,7 @@ function cautions(r,L,live,cus){
   else if(mddEst&&!mddLive(L)) c.push(['최대낙폭 추정','실측이 없어 배수별 대리값을 쓴 수치입니다.']);
   if(warns.includes('액면병합')) c.push(['액면병합 이력','병합 전후 주가가 이어지지 않아 장기 차트가 왜곡됩니다. 수정주가 기준인지 확인하세요.']);
   if(recOf(L,cus)==='미회복') c.push(['미회복',(L.rec.by?'기초자산 '+L.rec.by+'가':'')+' 역대 고점보다 '+(-L.rec.dd)+'% 아래입니다. 큰 하락 뒤 아직 이전 수준을 되찾지 못했습니다. 스위치법은 돌아오는 자산을 전제합니다.']);
+  if(sigLow(tk,L)!=null) c.push(['변동성 부족','하루 평균 움직임이 '+sigLow(tk,L).toFixed(1)+'%로 기준 '+SIG_MIN+'%보다 작습니다. 스위치법은 오르내림에서 수익을 만들기 때문에 덜 출렁이면 사고파는 횟수가 적고, 노란 점 뒤 +10%에 닿기까지도 오래 걸립니다.']);
   if(tk!=='SOXL'&&corrOf(r,L)==='높음') c.push(['SOXL 상관 높음','반도체가 꺾이는 날 함께 꺾입니다. 분산이 아니라 같은 베팅의 증량입니다.']);
   if(crashCaut(L)) c.push(crashCaut(L));
   if(warns.includes('종목 집중')) c.push(['소수 종목 쏠림','상위 몇 종목이 지수 전체를 좌우합니다.']);
@@ -1070,7 +1090,7 @@ function render(){
   const vis=[...withPx].sort((a,b)=>
       st.sort==='tk'?a.r[0].localeCompare(b.r[0])
      :st.sort==='sig'?sigOf(b.r[0],b.r[9])-sigOf(a.r[0],a.r[9])
-     :st.sort==='dip'?dipRank(a.r[0])-dipRank(b.r[0])
+     :st.sort==='dip'?dipCmp(a.r[0],b.r[0])
      :st.sort==='rsi'?(rsiOf(LIVE[a.r[0]])??999)-(rsiOf(LIVE[b.r[0]])??999)
      :st.sort==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
      :st.sort==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
@@ -1124,11 +1144,11 @@ function render(){
   if(st.grp==='all'&&!q&&Object.values(LIVE).some(x=>x.dip)){
     const all=[...D,...cus].filter(r=>LIVE[r[0]]&&LIVE[r[0]].dip).map(r=>({r,tk:r[0],d:LIVE[r[0]].dip,p:priceOf(r[0])}));
     all.forEach(x=>x.w=warnTags(x.tk,LIVE[x.tk]));
-    const on=all.filter(x=>x.d.on).sort((a,b)=>(a.w.length>0)-(b.w.length>0)||b.d.run-a.d.run);
+    const on=all.filter(x=>x.d.on).sort((a,b)=>keyCmp(dipKey(a.tk),dipKey(b.tk)));
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
     const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">노란 점 켜진 종목 ${on.length} ${qBtn('dip')}</div>${qBox('dip')}
-      ${on.length?`<div class="dtb"><div class="dtc">과거에 다음 날 샀다면 60거래일 안에 닿은 비율</div><div class="dth"><span></span><span>+10%</span><span>+20%</span></div>`+
+      ${on.length?`<div class="dtb"><div class="dtc">추천순: 경고 적은 순 → 과거 +10% 도달률 높은 순 (과거 ${DIP_FEW}번 미만도 경고 하나로 셈)<br>칸은 과거에 다음 날 샀다면 60거래일 안에 닿은 비율</div><div class="dth"><span></span><span>+10%</span><span>+20%</span></div>`+
         on.map(x=>{const p=x.d.past;
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${x.d.base?' '+tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hit,p&&p.n)+pctCell(p&&p.hit20,p&&p.n20)+
@@ -1161,7 +1181,7 @@ function render(){
         ${rsi!=null?`<span class="${rsiC}">${rsiBy(L)?tkB(rsiBy(L).trim())+' ':''}RSI ${rsi}</span>`:''}
         ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
         ${L.dip&&L.dip.on?`<span class="dip">노란 점${L.dip.run>1?' '+L.dip.run+'일째':''}</span>`:''}
-        ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
+        ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
         <div class="k">최소 시드</div>`:'<div class="nopx">주가 입력</div>')
