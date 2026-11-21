@@ -225,6 +225,11 @@ details.fold[open]>summary::after{content:'－'}
 .bnote{background:var(--s2);border-radius:11px;padding:10px 12px;margin:2px 0 14px;font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
 .bnote>div{display:flex;gap:8px;align-items:flex-start}.bnote>div+div{margin-top:6px}
 .bnote .tkb,.bnote .tkp{flex-shrink:0;margin-top:2px}.bnote b{color:var(--ink)}
+.ustb{margin:6px 0 4px;border-top:1px solid var(--s2)}
+.ush,.usr{display:grid;grid-template-columns:3.4em 1fr 1fr;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--s2)}
+.ush{font-size:var(--fs-s);color:var(--ink3);font-weight:700}
+.usr>span:not(.tk){display:flex;flex-direction:column;line-height:var(--lh-t)}
+.usr b{font-family:var(--mono);color:var(--ink)}.usr small{font-size:var(--fs-s);color:var(--ink3)}
 .dtb{border-top:1px solid var(--s2)}
 .dtc{font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t);padding-top:8px}
 .dth,.dtr{display:grid;grid-template-columns:minmax(0,1fr) 3.8em 3.8em;column-gap:6px;align-items:center}
@@ -872,8 +877,8 @@ function dipBlock(d,tk){
 /* 노란 점 과거 결과 — 다음 날 샀다면 60거래일 안에 +10% · +20%에 닿은 비율 (종목 탭과 상황판 SOXL·TQQQ 탭이 같이 쓴다) */
 function dipPast(p,who){
   if(!p)return '<div class="cc">과거 노란 점이 없어 결과를 낼 수 없습니다</div>';
-  const bar=(lab,v)=>v==null?'':`<div class="pbr"><span>${lab}</span><div class="pb"><span class="g" style="width:${v}%">${v>=12?v+'%':''}</span>`+
-    `<span class="r" style="width:${100-v}%">${100-v>=12?(100-v)+'%':''}</span></div></div>`;
+  const bar=(lab,v)=>v==null?'':`<div class="pbr"><span>${lab}</span><div class="pb"><span class="g" style="width:${v}%">${v>=18?v+'%':''}</span>`+
+    `<span class="r" style="width:${100-v}%">${100-v>=18?(100-v)+'%':''}</span></div></div>`;   /* 칸이 좁으면 숫자가 잘리므로 18% 미만은 숫자를 빼고 색만 */
   return `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${who?who+' ':''}샀다면 ${p.days}거래일 안에</div>`+
     bar('+10%',p.hit)+bar('+20%',p.hit20)+
     `<div class="pbl"><span><i class="g"></i>닿음</span><span><i class="r"></i>못 닿음</span></div>`+
@@ -1561,6 +1566,7 @@ function deskSum(){
     `<span class="mv">${v.c} <span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
       f&&f.back?'VIX 선물: 단기 불안 남음':null,
+      D.uvixDip&&D.uvixDip.on?'UVIX 노란 점: 시장이 아주 조용함':
       u?`UVIX: ${u.cycle.day?'새 최저가 '+u.cycle.day+'일차':u.cycle.stage==='완료'?'저점에서 +10% 반등':'새 최저가 기다리는 중'}`:null])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   h+=`<div class="dstamp">줄을 누르면 차트와 근거가 있는 자세한 화면으로 갑니다.</div>`;
@@ -1599,6 +1605,28 @@ function deskCard(c){
   /* 지표 값은 위 세 지표 그래프(오늘 값)와 '지표 값 자세히'에 있으므로 여기서 되풀이하지 않는다 */
   return h+'</div>';
 }
+/* UVIX 노란 점 — 참고용. 시장이 갑자기 아주 조용해진 날. 판정에는 쓰지 않는다(desk.py uvix_dip) */
+function uvixDipBlk(x){
+  if(!x)return '';
+  const st=x.on?`<div class="dst on">UVIX 노란 점 켜짐 · ${x.run>1?x.run+'일째':'오늘'}</div>`
+    :`<div class="dst">UVIX 노란 점 꺼짐${x.last?` <small>마지막 ${md(x.last.date)} (${x.last.age}거래일 전)</small>`:''}</div>`;
+  const a=x.any, sx=x.stocks||[];
+  const f=(v,pct)=>pct?v+'%':(v>0?'+':'')+v.toFixed(1)+'%';
+  const cell=(v,all,pct)=>`<span><b>${f(v,pct)}</b><small>평소 ${f(all,pct)}</small></span>`;
+  const tbl=sx.length?`<div class="ustb"><div class="ush"><span></span><span>60일 뒤 평균</span><span>−10% 넘게 빠짐</span></div>`+
+    sx.map(r=>`<div class="usr"><span class="tk">${r.s}</span>${cell(r.dip.ret,r.all.ret)}${cell(r.dip.dd10,r.all.dd10,1)}</div>`).join('')+`</div>`:'';
+  const weaker=sx.length&&sx.every(r=>r.dip.ret<r.all.ret), notRiskier=sx.length&&sx.every(r=>r.dip.dd10<=r.all.dd10+5);
+  return blk('UVIX 노란 점 <small>참고 — 판정에는 쓰지 않음</small>',st+ul([
+      "UVIX의 세 지표가 모두 '많이 빠짐' — 불안이 급하게 가라앉아 시장이 아주 조용해졌다는 뜻입니다",
+      '주식의 노란 점과 뜻이 반대입니다. 이때 UVIX를 사는 것은 곧 불안이 튈 것에 거는 일입니다'])+
+    `<div class="pbt" style="margin-top:12px"><b>그 뒤 60거래일 주식</b> <small>(UVIX 노란 점 ${sx[0]?sx[0].dip.n:0}번 뒤, 평소와 비교)</small></div>`+tbl+
+    (sx.length?ul([weaker&&notRiskier?'더 오를 여지는 평소보다 작았고, 큰 하락이 더 잦지는 않았습니다. 파는 신호라기보다 <b>새로 사거나 더 넣기엔 덜 좋은 때</b>에 가깝습니다'
+      :weaker?'더 오를 여지가 평소보다 작았습니다':'평소와 크게 다르지 않았습니다',
+      `<small>${x.from.slice(0,4)}년부터 · 횟수가 적어 참고만 하세요</small>`]):'')+
+    `<div class="pbt" style="margin-top:12px"><b>UVIX를 샀다면</b></div>`+dipPast(x.past,'UVIX를')+
+    ul([a?`아무 날이나 샀어도 +10% ${a.hit}% · +20% ${a.hit20}%에 닿았습니다 (워낙 크게 출렁이는 상품)`:null,
+        `<span class="w">오래 들고 있으면 녹아내립니다 — 상장 뒤 가장 높았을 때보다 ${x.drop}%</span>`]));
+}
 function deskUvix(u){
   if(!u)return '';
   const cy=u.cycle, m=u.month;
@@ -1614,6 +1642,7 @@ function deskUvix(u){
     :[`사상 최저 종가: $${cy.allLow}`,`지금은 그보다 ${cy.toLow.toFixed(1)}% 위`,'종가가 그 아래로 내려가면 1일차 시작',
       u.lastDone?`<small>직전 사이클은 ${md(u.lastDone.date)}에 끝남 (${u.lastDone.days}거래일 걸림)</small>`:null]));
   const same=cy.day&&m.lowClose===cy.low;
+  h+=uvixDipBlk(DESK.uvixDip);
   h+=blk('이번 달 급등 여부',ul([`<b>${uvixMonth(u)}</b>`,
     same?'이번 달 최저가는 위 사이클 최저가와 같음':`이번 달 가장 낮았던 종가: $${m.lowClose} (${md(m.lowDate)})`,same?null:`지금은 그보다 <b>${sg(m.rise)}</b>`,
     Math.abs(m.peakRise-m.rise)>=0.05?`이번 달 최저가에서 가장 많이 올랐을 때 ${sg(m.peakRise)}`:'<small>지금이 이번 달 가장 높은 자리</small>',`세 지표 동시 과열: ${m.ob?'<span class="w">예</span>':'아님'} <small>(%K ${m.k} · CCI ${m.cci} · RSI ${m.rsi})</small>`,

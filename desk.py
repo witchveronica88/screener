@@ -420,6 +420,49 @@ def next_states(base, t, vx):
 
 
 # ───────────── UVIX ─────────────
+def uvix_dip(U, bars, days=DIP_DAYS):
+    """UVIX 노란 점 — 참고용(사용자 요청, 2026-11). UVIX가 세 지표 모두 '많이 빠짐'인 날 = 불안이 급하게 가라앉아
+       시장이 아주 조용해진 날. 주식 노란 점과 뜻이 반대이고 UVIX는 오래 들고 있으면 녹아내리므로 판정에는 쓰지 않는다.
+       ① UVIX를 다음 날 샀다면 60거래일 안 +10%·+20% — 아무 날 샀을 때와 함께
+       ② 그 뒤 60거래일 SPY·QQQ·SOXX(종가 기준 평균 등락 · 오른 비율 · -10% 넘게 빠진 비율) — 같은 기간 아무 날과 함께"""
+    if len(U) < 60:
+        return None
+    I = indicators(U); last = len(U) - 1
+    on = is_dip(I, last); run = 0
+    while on and run <= last and is_dip(I, last - run):
+        run += 1
+    li = next((i for i in range(last, 0, -1) if is_dip(I, i)), None)
+    starts = [i for i in range(1, len(U)) if is_dip(I, i) and not is_dip(I, i - 1)]
+    # 아무 날이나 다음 날 시가에 샀을 때(60거래일 안 장중 고가)
+    h1 = h2 = n = 0
+    for i in range(len(U) - days - 1):
+        e = U[i + 1]['o']; hi = max(U[j]['h'] for j in range(i + 1, i + days + 1))
+        n += 1; h1 += hi >= e * (1 + TARGET / 100); h2 += hi >= e * (1 + TARGET2 / 100)
+    out = {'on': on, 'run': run, 'past': dip_past(U, I, U), 'from': U[0]['d'],
+           'any': {'hit': round(h1 / n * 100), 'hit20': round(h2 / n * 100), 'n': n} if n else None,
+           'drop': round((U[-1]['c'] / max(b['c'] for b in U) - 1) * 100, 2), 'stocks': []}   # -99.95를 -100으로 반올림하지 않게
+    if li is not None:
+        out['last'] = {'date': U[li]['d'], 'age': last - li}
+
+    def fwd(P, i):                                     # 그날 종가에서 60거래일 뒤 종가, 그동안 가장 낮은 값
+        c0 = P[i]['c']
+        return P[i + days]['c'] / c0 - 1, min(P[j]['l'] for j in range(i + 1, i + days + 1)) / c0 - 1
+
+    def stat(rows):
+        return {'n': len(rows), 'ret': round(sum(r for r, _ in rows) / len(rows) * 100, 1),
+                'up': round(sum(1 for r, _ in rows if r > 0) / len(rows) * 100),
+                'dd10': round(sum(1 for _, d in rows if d <= -0.10) / len(rows) * 100)} if rows else None
+
+    sd = {U[i]['d'] for i in starts}
+    for s in ('SPY', 'QQQ', 'SOXX'):
+        P = bars.get(s) or []
+        ok = [i for i, b in enumerate(P) if b['d'] >= U[0]['d'] and i + days < len(P)]
+        a, b_ = stat([fwd(P, i) for i in ok if P[i]['d'] in sd]), stat([fwd(P, i) for i in ok])
+        if a and b_:
+            out['stocks'].append({'s': s, 'dip': a, 'all': b_})
+    return out
+
+
 def uvix_card(U, X):
     c = [b['c'] for b in U]
     cyc = None; lastDone = None; lo = c[0]; doneToday = False
@@ -985,6 +1028,7 @@ def main():
            'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
            'cards': cards,
            'uvix': uvix_card(bars['UVIX'], bars['VXX']) if len(bars['UVIX']) > 60 else None,
+           'uvixDip': uvix_dip(bars['UVIX'], bars),
            'market': market_card(bars['SPY'], bars['^VIX'], vx, vxf),
            'headline': headline(cards, vx)}
     with open('desk.json', 'w', encoding='utf-8') as f:

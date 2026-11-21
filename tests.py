@@ -220,6 +220,20 @@ class DipPast20(unittest.TestCase):
         self.assertLessEqual(p['n20'], p['n'])
 
 
+class UvixDip(unittest.TestCase):
+    """UVIX 노란 점(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
+    def test_shape(self):
+        with open('test_data.json', encoding='utf-8') as f:
+            fx = json.load(f)
+        B = [{'d': d, 'o': c, 'h': h, 'l': l, 'c': c} for d, h, l, c in fx['SOXX']]
+        x = desk.uvix_dip(B, {'SPY': B, 'QQQ': B, 'SOXX': B})
+        self.assertEqual([r['s'] for r in x['stocks']], ['SPY', 'QQQ', 'SOXX'])
+        r = x['stocks'][0]
+        self.assertLessEqual(r['dip']['n'], x['past']['n'] + 1)
+        self.assertGreater(r['all']['n'], r['dip']['n'])
+        self.assertTrue(0 <= x['any']['hit20'] <= x['any']['hit'] <= 100)
+
+
 class UpToDate(unittest.TestCase):
     """예약 실행 세 번 중 이미 받은 날은 뒤의 것을 건너뛴다"""
     def check(self, dates, now):
