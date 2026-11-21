@@ -909,10 +909,10 @@ def stage_of(t):
     stats, lines = [], []
     last, past = d.get('last'), d.get('past')
     if d.get('on'):
-        # 노란 점이 켜진 날: 과거 결과(다음 날 샀다면 +10%·+20%에 닿은 비율)를 색 칸으로 — 화면이 [hit, hit20]을 그린다.
+        # 노란 점이 켜진 날: 과거 결과(다음 날 샀다면 +10%에 20거래일·60거래일 안에 닿은 비율)를 색 칸으로 — 화면이 [hitF, hit]을 그린다.
         # 요약 첫 화면이 한 장에 들어가야 해서 가는 길 하락·어제와 달라짐 문장은 종목별 탭에 맡긴다
         if past:                                       # '노란 점 N일째'는 줄 제목이 이미 말한다
-            stats.append(('과거', [past['hit'], past.get('hit20')], 'past'))
+            stats.append(('과거', [past.get('hitF'), past['hit']], 'past'))
     elif last and last.get('pmv') is not None:
         stats.append((f"노란 점({md_(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
     if d.get('on'):

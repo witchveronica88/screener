@@ -220,6 +220,33 @@ class DipPast20(unittest.TestCase):
         self.assertLessEqual(p['n20'], p['n'])
 
 
+class DipPastFast(unittest.TestCase):
+    """20거래일 안 +10%(hitF): 20일이 지났으면 60일이 안 끝났어도 세고, 21일째 닿은 건은 20일 기준으로는 못 닿음"""
+    def run_case(self, closes):
+        n = len(closes)
+        I = ind([10] + [50] * (n - 1), [-150] + [0] * (n - 1), [20] + [50] * (n - 1))   # 0번 날만 노란 점
+        return market.dip_past(bars([100] * n), I, bars(closes, spread=0.1))
+
+    def test_late_hit_counts_only_for_60(self):
+        p = self.run_case([10] * 22 + [11.5] + [11] * 50)           # 산 값 10, 22번(노란 점 뒤 22거래일)에 +10%
+        self.assertEqual((p['hit'], p['hitF'], p['nF'], p['missF']), (100, 0, 1, 1))
+        self.assertEqual(p['missAvgF'], 0.0)                         # 20거래일 뒤 종가 10 → 0%
+
+    def test_counted_before_60_days_end(self):
+        p = self.run_case([10] * 30)                                 # 60일은 안 끝남, 20일은 끝남 · 못 닿음
+        self.assertIsNone(p)                                         # 60일 결과가 없으면 통째로 없음
+        p = self.run_case([10] * 5 + [11.5] + [10] * 10)             # 5번째 날 닿음 — 기간이 짧아도 셈
+        self.assertEqual((p['hit'], p['hitF'], p['nF']), (100, 100, 1))
+
+    def test_real_data_invariant(self):
+        with open('test_data.json', encoding='utf-8') as f:
+            fx = json.load(f)
+        B = [{'d': d, 'o': c, 'h': h, 'l': l, 'c': c} for d, h, l, c in fx['SOXX']]
+        p = market.dip_past(B, market.indicators(B), B)
+        self.assertGreaterEqual(p['nF'], p['n'])                     # 20일은 60일보다 먼저 끝나므로 표본이 같거나 많다
+        self.assertTrue(0 <= p['hitF'] <= 100)
+
+
 class UvixDip(unittest.TestCase):
     """UVIX 노란 점(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
     def test_shape(self):
@@ -323,9 +350,9 @@ class FlowStage(unittest.TestCase):
         self.assertEqual(desk.stage_of(c)['text'], '뚜렷한 신호 없음')
 
     def test_dip_shows_past_results(self):
-        past = {'n': 26, 'hit': 92, 'hit20': 77, 'days': 60, 'maeAvg': -17.1}
+        past = {'n': 26, 'hit': 92, 'hit20': 77, 'days': 60, 'maeAvg': -17.1, 'hitF': 76, 'nF': 27, 'daysF': 20}
         g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}, setup={'left': 4}))
-        self.assertEqual(g['stats'], [('과거', [92, 77], 'past')])   # 색 칸 두 개 ('노란 점 1일째'는 줄 제목에)
+        self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])   # [20거래일 안 +10%, 60거래일 안 +10%]   # 색 칸 두 개 ('노란 점 1일째'는 줄 제목에)
         self.assertEqual(g['lines'], [])          # 첫 화면 한 장 — 긴 문장은 종목별 탭으로
 
     def test_headline(self):

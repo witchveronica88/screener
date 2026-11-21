@@ -3,6 +3,7 @@
 판정 규칙이 아니라 계산 도구만 둔다. 자주 바뀌는 판정은 desk.py에 둔다.
 그래서 desk.py가 깨져도 prices.py는 이 파일만으로 종가를 받는다.
 """
+import statistics
 import urllib.request, urllib.parse, csv, io, json, os, time, datetime
 from zoneinfo import ZoneInfo
 
@@ -12,6 +13,7 @@ CACHE_HOURS = 3
 TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰는 운영 설정
 TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
 DIP_DAYS = 60             # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
+DIP_FAST = 20             # 짧게 보는 기간 — +10%가 이 안에 닿았는지도 따로 센다 (화면 추천순의 기준)
 
 
 # ───────────── 자료 받기 ─────────────
@@ -232,9 +234,11 @@ def dip_past(B, I, P):
     """과거 노란 점 결과. 며칠 연달아 켜진 노란 점은 한 번으로 묶고, 묶음의 첫날 다음 거래일 시가에
        관찰 상품(P)을 샀다고 가정한다. DIP_DAYS 안에 장중 고가가 목표에 닿았는지,
        닿기 전 가장 깊은 하락, 못 닿았을 때 기간이 끝난 날 종가 기준 손익을 센다.
-       두 번째 목표(TARGET2)는 닿은 비율·걸린 날만 센다. 기간이 안 끝났고 아직 못 닿은 건은 그 비율에서 뺀다"""
+       두 번째 목표(TARGET2)는 닿은 비율·걸린 날만 센다. 기간이 안 끝났고 아직 못 닿은 건은 그 비율에서 뺀다.
+       짧은 기간(DIP_FAST) 안에 +10%에 닿았는지도 따로 센다(hitF). 20거래일이 지났으면 60거래일이 안 끝났어도 센다"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     rows = []
+    fast = []                                          # (DIP_FAST 안에 닿음, 못 닿았으면 DIP_FAST 뒤 종가 손익 %)
     for i in range(len(B)):
         if not is_dip(I, i) or (i > 0 and is_dip(I, i - 1)):
             continue                                   # 묶음의 첫날만
@@ -251,6 +255,9 @@ def dip_past(B, I, P):
             if P[j]['h'] >= entry * (1 + TARGET2 / 100):
                 hit2 = j - pi
                 break
+        okF = hit is not None and hit <= DIP_FAST
+        if okF or pi + DIP_FAST <= len(P) - 1:
+            fast.append((okF, None if okF else (P[pi + DIP_FAST]['c'] / entry - 1) * 100))
         done = end - pi >= DIP_DAYS
         if hit is None and not done:
             continue                                   # 아직 기간이 안 끝난 최근 건은 세지 않는다
@@ -269,7 +276,11 @@ def dip_past(B, I, P):
             'maeMax': round(min(r[1] for r in rows), 1),
             'hit20': round(len(h2) / len(r2) * 100) if r2 else None, 'n20': len(r2),
             'medD20': round(med(h2)) if h2 else None,
-            'miss': len(miss), 'missAvg': round(sum(miss) / len(miss), 1) if miss else None}
+            'miss': len(miss), 'missAvg': round(sum(miss) / len(miss), 1) if miss else None,
+            'daysF': DIP_FAST, 'nF': len(fast),
+            'hitF': round(sum(1 for f in fast if f[0]) / len(fast) * 100) if fast else None,
+            'missF': sum(1 for f in fast if not f[0]),
+            'missAvgF': round(statistics.fmean(f[1] for f in fast if not f[0]), 1) if any(not f[0] for f in fast) else None}
 
 
 def dip_targets(B, I, P, since):

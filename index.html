@@ -170,8 +170,9 @@ details.fold[open]>summary::after{content:'－'}
 .pb span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
 .pb .g{background:var(--up)}.pb .r{background:var(--dn);justify-content:flex-end}
 .dul a[data-dt]{color:var(--on);font-weight:700;text-decoration:underline;cursor:pointer}
-.pbr{display:grid;grid-template-columns:3.2em 1fr;align-items:center;gap:8px}
-.pbr>span{font-size:var(--fs-s);font-weight:700;color:var(--ink2)}
+.pbr{display:grid;grid-template-columns:5.4em 1fr;align-items:center;gap:8px}
+.pbr>span{font-size:var(--fs-s);font-weight:700;color:var(--ink2);white-space:nowrap}
+.pbr>span small{font-size:var(--fs-s);font-weight:400;color:var(--ink3);margin-left:4px}
 .pbr .pb{margin:3px 0}
 .pbl{display:flex;gap:14px;font-size:var(--fs-s);color:var(--ink3);margin-bottom:6px}
 .pbl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
@@ -218,7 +219,7 @@ details.fold[open]>summary::after{content:'－'}
 .bx .bv{white-space:normal;margin-right:2px}
 .bx i{font-style:normal;font-size:var(--fs-s);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
 .dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:6px 0 8px;border-top:1px solid var(--s2)}
-/* 노란 점 켜진 종목 표: 이름 | +10% | +20% | 최소 시드, 둘째 줄에 켜진 지·과거 횟수·경고 */
+/* 노란 점 켜진 종목 표: 이름 | +10% 20일 | +10% 60일 | 최소 시드, 둘째 줄에 켜진 지·과거 횟수·경고 */
 .tkb,.tkp{display:inline-block;font-size:var(--fs-s);font-weight:700;line-height:var(--lh-t);border-radius:5px;padding:0 5px;
   font-family:var(--mono);letter-spacing:.02em;vertical-align:1px;white-space:nowrap}
 .tkb{color:var(--on);background:var(--onDim)}.tkp{color:var(--ink2);background:var(--s3)}
@@ -581,11 +582,11 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>노란 점</h4>
     <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 — 매수 기회 표시</div>
-      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 켜진 종목은 <b>추천순</b>으로 놓습니다: 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 과거 +10% 도달률이 높은 순 → +20% 도달률이 높은 순. 과거 노란 점이 10번보다 적으면 비율을 믿기 어려워 경고 하나로 셉니다. 목록 정렬의 '노란 점 추천순'도 같은 순서입니다. 순서는 고르는 참고일 뿐이고 판단은 직접 합니다. 표의 +10% · +20% 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율이고, 80% 이상은 진한 초록, 60~79%는 옅은 초록입니다. 과거 횟수가 10번보다 적으면 점선 테두리를 둘러 믿기 어렵다고 표시합니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
+      <div class="hdef">세 지표가 모두 '많이 빠짐'에 들어간 날. <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 노란 점과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 켜진 종목은 <b>추천순</b>으로 놓습니다: 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 20거래일 안 +10% 도달률이 높은 순 → 60거래일 안 +10% 도달률이 높은 순. 과거 노란 점이 10번보다 적으면 비율을 믿기 어려워 경고 하나로 셉니다. 목록 정렬의 '노란 점 추천순'도 같은 순서입니다. 순서는 고르는 참고일 뿐이고 판단은 직접 합니다. 표의 20일 · 60일 칸은 과거에 노란 점 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율이고, 80% 이상은 진한 초록, 60~79%는 옅은 초록입니다. 과거 횟수가 10번보다 적으면 점선 테두리를 둘러 믿기 어렵다고 표시합니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">무엇으로 판정하나</div>
       <div class="hdef">레버리지 ETF는 상황판처럼 <b>기초자산</b>(참조 ETF)으로 판정하고, 남색 꼬리표(예: <span class="tkb">IWM</span>)로 표시합니다. 회색 꼬리표(예: <span class="tkp">TNA</span>)는 상품 자체 가격으로 잰 값입니다. 레버리지 상품은 감가 때문에 자기 가격의 지표가 왜곡되기 쉽습니다. 과거 결과는 기초자산에 노란 점이 찍힌 다음 날 그 상품을 샀다고 가정합니다. 개별주, 일반 ETF, 맞는 기초자산이 없는 AIBU는 그 종목 자체의 가격으로 판정합니다. 참조 ETF는 기초지수와 완전히 같지 않을 수 있는 근사치입니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">과거 결과</div>
-      <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, 60거래일 안에 +10%에 닿았는지와 가는 길에 얼마나 더 빠졌는지를 셉니다. 며칠 연달아 켜지면 첫날 한 번만 세고, 못 닿았으면 60거래일 뒤 종가로 손익을 적습니다. +20%도 같은 방식으로 세되, 기간이 아직 안 끝났고 못 닿은 건은 +20% 비율에서 뺍니다. 그래프의 <b>초록 점선</b>은 그 목표가(다음 날 시가의 +10%)이고, <b>✓</b>는 장중 고가가 처음 목표가에 닿은 날입니다. 취소선 없이 기다린 결과라 상황판의 반등 신호 결과와 비율을 그대로 견주면 안 됩니다. 종목마다 따로 계산합니다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나옵니다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있습니다.</div></div>
+      <div class="hdef">그 종목에서 노란 점이 찍힌 다음 날 시가에 샀다고 가정하고, +10%에 <b>20거래일</b> 안에 닿았는지와 <b>60거래일</b> 안에 닿았는지, 가는 길에 얼마나 더 빠졌는지를 셉니다. 20일은 빨리 튀는지, 60일은 결국 돌아오는지를 봅니다. 20일로 줄이면 비율은 낮아지지만 못 닿았을 때의 손실도 작습니다(2026-11 전체 종목 합산: 닿은 비율 62% · 60일은 77%, 못 닿은 건 평균 −12.6% · 60일은 −22.4%). 며칠 연달아 켜지면 첫날 한 번만 세고, 못 닿았으면 그 기간이 끝난 날 종가로 손익을 적습니다. +20%는 60거래일만 같은 방식으로 세되, 기간이 아직 안 끝났고 못 닿은 건은 +20% 비율에서 뺍니다. 그래프의 <b>초록 점선</b>은 그 목표가(다음 날 시가의 +10%)이고, <b>✓</b>는 장중 고가가 처음 목표가에 닿은 날입니다. 취소선 없이 기다린 결과라 상황판의 반등 신호 결과와 비율을 그대로 견주면 안 됩니다. 종목마다 따로 계산합니다. 많이 출렁이지 않는 종목은 +10%에 닿는 비율이 낮게 나옵니다. 횟수가 적으면 믿기 어렵고, 개별주는 한 회사의 사정으로 돌아오지 않을 수 있습니다.</div></div>
   </div>
 
   <div class="hcard">
@@ -748,11 +749,11 @@ function warnTags(tk,L){
 }
 /* 노란 점 (세 지표가 모두 '많이 빠짐') — 레버리지 ETF는 기초자산, 나머지는 자기 가격으로 판정 */
 const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
-/* 노란 점 추천순 — 걸리는 것 적은 순 → 과거 +10% 도달률 높은 순 → +20% 도달률 높은 순 → 오래 켜진 순.
+/* 노란 점 추천순 — 걸리는 것 적은 순 → 20거래일 안 +10% 도달률 높은 순 → 60거래일 안 +10% 높은 순 → 오래 켜진 순.
    걸리는 것 = 경고 칩 수 + 과거 노란 점이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
 const DIP_FEW=10;
-const dipKey=tk=>{const d=dipOf(tk), p=d.past;
-  return [warnTags(tk,LIVE[tk]).length+(!p||p.n<DIP_FEW?1:0), -(p&&p.hit!=null?p.hit:0), -(p&&p.hit20!=null?p.hit20:0), -(d.run||0)];};
+const dipKey=tk=>{const d=dipOf(tk), p=d.past, nF=p?(p.nF??p.n):0;
+  return [warnTags(tk,LIVE[tk]).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
 const keyCmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
 /* 목록 정렬 '노란 점 추천순': 켜진 종목을 추천순으로 → 최근에 꺼진 순 → 노란 점 기록 없음 */
 const dipCmp=(a,b)=>{const x=dipOf(a), y=dipOf(b);
@@ -894,16 +895,17 @@ function dipBlock(d,tk){
     `</div><div class="cc">${d.base?tkB(d.base)+' 기준 · ':''}세 막대가 모두 노란 칸에 들어가면 켜집니다 <small>(%K · CCI · RSI)</small></div></div>`;
   return st+cond+dipPast(d.past,d.base?tk+eul(tk):'');
 }
-/* 노란 점 과거 결과 — 다음 날 샀다면 60거래일 안에 +10% · +20%에 닿은 비율 (종목 탭과 상황판 SOXL·TQQQ 탭이 같이 쓴다) */
+/* 노란 점 과거 결과 — 다음 날 샀다면 +10%에 20거래일 · 60거래일 안에, +20%에 60거래일 안에 닿은 비율 (종목 탭과 상황판 탭이 같이 쓴다) */
 function dipPast(p,who){
   if(!p)return '<div class="cc">과거 노란 점이 없어 결과를 낼 수 없습니다</div>';
   const bar=(lab,v)=>v==null?'':`<div class="pbr"><span>${lab}</span><div class="pb"><span class="g" style="width:${v}%">${v>=18?v+'%':''}</span>`+
     `<span class="r" style="width:${100-v}%">${100-v>=18?(100-v)+'%':''}</span></div></div>`;   /* 칸이 좁으면 숫자가 잘리므로 18% 미만은 숫자를 빼고 색만 */
-  return `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${who?who+' ':''}샀다면 ${p.days}거래일 안에</div>`+
-    bar('+10%',p.hit)+bar('+20%',p.hit20)+
+  return `<div class="pbt">과거 노란 점 ${p.n}번 — 다음 날 ${who?who+' ':''}샀다면</div>`+
+    (p.hitF!=null?bar(`+10%<small>${p.daysF}일</small>`,p.hitF):'')+bar(`+10%<small>${p.days}일</small>`,p.hit)+bar(`+20%<small>${p.days}일</small>`,p.hit20)+
     `<div class="pbl"><span><i class="g"></i>닿음</span><span><i class="r"></i>못 닿음</span></div>`+
     ul([`가는 길에 더 빠진 폭: 평균 <b>${p.maeAvg}%</b> · 최악 ${p.maeMax}%`,
-        p.miss?`+10%에 못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
+        p.missF?`${p.daysF}거래일 안에 +10%에 못 닿은 ${p.missF}번은 ${p.daysF}거래일 뒤 평균 <b>${p.missAvgF>0?'+':''}${p.missAvgF}%</b>`:null,
+        p.miss?`${p.days}거래일 안에 +10%에 못 닿은 ${p.miss}번은 ${p.days}거래일 뒤 평균 <b>${p.missAvg>0?'+':''}${p.missAvg}%</b>`:null,
         p.medD?`닿기까지 보통 +10%는 ${p.medD}거래일${p.medD20?`, +20%는 ${p.medD20}거래일`:''}`:null,
         `<small>${p.from.slice(0,4)}년부터 · 며칠 연달아 켜지면 첫날 한 번만 셈${p.n<10?' · 횟수가 적어 믿기 어려움':''}${
           p.hit20!=null&&p.n20<p.n?` · +20%는 아직 기다리는 ${p.n-p.n20}번을 빼고 셈`:''}</small>`]);
@@ -1148,10 +1150,10 @@ function render(){
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
     const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">노란 점 켜진 종목 ${on.length} ${qBtn('dip')}</div>${qBox('dip')}
-      ${on.length?`<div class="dtb"><div class="dtc">추천순: 경고 적은 순 → 과거 +10% 도달률 높은 순 (과거 ${DIP_FEW}번 미만도 경고 하나로 셈)<br>칸은 과거에 다음 날 샀다면 60거래일 안에 닿은 비율</div><div class="dth"><span></span><span>+10%</span><span>+20%</span></div>`+
+      ${on.length?`<div class="dtb"><div class="dtc">추천순: 경고 적은 순 → 20거래일 안 +10% 도달률 높은 순 (과거 ${DIP_FEW}번 미만도 경고 하나로 셈)<br>칸은 과거에 다음 날 샀다면 +10%에 닿은 비율</div><div class="dth"><span></span><span>20일</span><span>60일</span></div>`+
         on.map(x=>{const p=x.d.past;
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${x.d.base?' '+tkB(x.d.base):''}</div>`+
-            pctCell(p&&p.hit,p&&p.n)+pctCell(p&&p.hit20,p&&p.n20)+
+            pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
             `<div class="dtm"><span>${x.r[1]} · ${x.d.run>1?x.d.run+'일째':'오늘'} · ${p?`과거 ${p.n}번${p.n<10?' (적음)':''}`:'과거 기록 없음'}</span>`+
             `<span class="dts">최소 시드 <b>${x.p?money(seedMin(x.p)):'—'}</b></span></div>`+
             (x.w.length?`<div class="dtw">${x.w.map(w=>`<i>${w}</i>`).join('')}</div>`:'')+`</div>`;}).join('')+`</div>`
@@ -1522,10 +1524,10 @@ function dipRules(){
   const C=DESK.cards.filter(c=>c.dip); if(!C.length)return '';
   return dsec('b','노란 점(매수 기회)은 이렇게 켜집니다',ul([
     "흐름 막대의 <b>노란 점</b> 단계입니다. 세 지표가 모두 '많이 빠짐'에 들어간 날 켜집니다",
-    `켜진 날 그 줄의 <b>과거 +10% · +20% 도달</b> 초록 칸은 과거에 노란 점 다음 날 샀다면 60거래일 안에 닿은 비율입니다 (진할수록 높음). 자세한 결과는 ${C.filter(c=>c.dip.past).map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭의 '노란 점 과거 결과'에 있습니다. 줄 이름 옆 회색 꼬리표는 그 결과를 셀 때 샀다고 본 상품입니다 (SPY는 SPY 그대로)`,
+    `켜진 날 그 줄의 <b>과거 +10%</b> 초록 칸은 과거에 노란 점 다음 날 샀다면 20거래일 · 60거래일 안에 +10%에 닿은 비율입니다 (진할수록 높음). 자세한 결과는 ${C.filter(c=>c.dip.past).map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭의 '노란 점 과거 결과'에 있습니다. 줄 이름 옆 회색 꼬리표는 그 결과를 셀 때 샀다고 본 상품입니다 (SPY는 SPY 그대로)`,
     '반등 신호(🟢)보다 먼저 켜집니다. 바닥을 확인하기 전이라 더 싸게 살 수 있지만, 산 뒤에 더 빠질 수 있습니다',
     '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다',
-    '노란 점 결과는 취소선 없이 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
+    '노란 점 결과는 취소선 없이 20거래일 · 60거래일을 기다린 결과입니다. 반등 신호 결과(종목별 탭 · 과거 신호 결과)는 취소선 아래로 가면 실패로 세므로 두 비율을 그대로 견주면 안 됩니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. SOXL·TQQQ는 3배 상품이라 가는 길의 하락이 크고, SPY는 1배라 +10% · +20%에 닿는 비율이 낮게 나옵니다</small>']));
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
@@ -1572,9 +1574,9 @@ function flowBody(c,g,track){
   const ref=s&&(g.stats||[]).some(x=>x[2]==='ref')?s.low:null;   /* 취소선은 줄에 그 숫자가 있을 때만 (기호가 범례) */
   const chart=mini&&H.length>2?miniChart(H.map(x=>x.c),{label:'1개월',ref,dots:H.map((x,i)=>x.marks.includes('ro')?i:-1).filter(i=>i>=0)}):'';
   const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,v,ic])=>`<div class="fsv">${statIcon(ic)}<span>${k}</span> <b>${v}</b></div>`).join('');
-  /* 노란 점이 켜진 날: 과거에 다음 날 샀다면 +10% · +20%에 닿은 비율 — 그래프 아래 한 줄, 색 칸 */
+  /* 노란 점이 켜진 날: 과거에 다음 날 샀다면 +10%에 20거래일 · 60거래일 안에 닿은 비율 — 그래프 아래 한 줄, 색 칸 */
   const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
-  const past=v?`<div class="fpast"><div class="fpv"><span>과거 +10% 도달</span>${pctCell(v[0])}</div>${v[1]!=null?`<div class="fpv"><span>과거 +20% 도달</span>${pctCell(v[1])}</div>`:''}</div>`:'';
+  const past=v?`<div class="fpast">${v[0]!=null?`<div class="fpv"><span>과거 +10% · 20일 안</span>${pctCell(v[0])}</div>`:''}${v[1]!=null?`<div class="fpv"><span>과거 +10% · 60일 안</span>${pctCell(v[1])}</div>`:''}</div>`:'';
   return `<div class="fbody"><div class="fst">${track}${st}${past}</div>${chart}</div>`;
 }
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · 종목별 흐름 단계 · 시장 한 줄. 근거는 종목별 탭으로 */
@@ -1723,7 +1725,7 @@ function secRules(){
     blk('원문(블로그)에서 온 것',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14)','장이 끝나 확정된 종가로만 판단',
       'UVIX: 저점에서 +10% 넘게 반등한 뒤 다시 사상 최저가를 깨면 1일차','그 뒤 최저가를 또 깨도 1일차는 그대로']))+
     blk('운영 설정 <small>원문에 확정된 규칙이 아님</small>',ul(['되살아남 인정 기간: 10거래일','신호 취소: 기준자산 <b>종가</b>가 취소선 아래로 갈 때',
-      `목표 +${D.target}% · +20%: 과거 결과를 셀 때 쓰는 기준`,'UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
+      `목표 +${D.target}% · +20%: 과거 결과를 셀 때 쓰는 기준`,'노란 점 과거 결과를 기다리는 기간: +10%는 20거래일과 60거래일, +20%는 60거래일','UVIX 최저가와 +10% 반등은 <b>종가</b> 기준',
       'UVIX의 +10%는 한 사이클이 끝났다는 뜻일 뿐, 팔 때를 알려 주는 기준이 아님','새 신호로 보는 기간: 3거래일',
       "노란 점(매수 기회): 세 지표가 모두 '많이 빠짐'인 날 켜짐. 🟢🟡 판정과는 따로 움직임"]))+
     blk('과거 자료로 고친 것',ul(['v2.1: 주·월 단위로 꺾인 상태는 보류 사유가 아니라 조심할 점으로만 표시',
