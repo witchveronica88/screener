@@ -23,6 +23,7 @@
   --fs-l:calc(17px*var(--fs));    /* 소제목(칸 이름) */
   --fs-m:calc(15px*var(--fs));    /* 본문, 입력창 */
   --fs-s:calc(13px*var(--fs));    /* 보조 글(표, 탭, 꼬리표) */
+  --fs-xs:calc(12px*var(--fs));   /* 경고 칩만(변동성 부족·미회복 같은 상자) — 2026-11-23 사용자: 더 작게 */
   --sans:'Pretendard Variable',Pretendard,system-ui,-apple-system,'Apple SD Gothic Neo',Roboto,'Noto Sans KR','Malgun Gothic',sans-serif;
   --mono:var(--sans);   /* 숫자도 같은 글꼴(고정폭 숫자) — 한 줄에 글꼴이 섞이지 않게 */
   --lh-t:1.35;          /* 줄 간격: 제목·큰 숫자 */
@@ -210,8 +211,8 @@ details.fold[open]>summary::after{content:'－'}
 .pbl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .pbl i.g{background:var(--up)}.pbl i.r{background:var(--dn)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{background:var(--s1);border:1px solid var(--warn);color:var(--warn);border-radius:16px;padding:5px 12px;
-      font-size:var(--fs-s);font-weight:600;cursor:pointer;line-height:var(--lh-t)}
+.chip{background:var(--s1);border:1px solid var(--warn);color:var(--warn);border-radius:12px;padding:3px 9px;
+      font-size:var(--fs-xs);font-weight:600;cursor:pointer;line-height:var(--lh-t)}
 .chip.on{background:var(--warn);color:var(--onInk)}
 .cdesc{background:var(--s2);border-radius:11px;padding:11px 13px;margin-top:8px;font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh-l)}
 .secw>.cc:last-child{margin-top:6px}
@@ -250,7 +251,7 @@ details.fold[open]>summary::after{content:'－'}
 .dipbox .bl,.best .bl{flex-wrap:wrap;row-gap:3px;padding:8px 0}
 .bx{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px}
 .bx .bv{white-space:normal;margin-right:2px}
-.bx i{font-style:normal;font-size:var(--fs-s);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
+.bx i{font-style:normal;font-size:var(--fs-xs);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:4px;padding:1px 5px}
 .dipbox .none{font-size:var(--fs-m);color:var(--ink2);padding:6px 0 8px;border-top:1px solid var(--s2)}
 /* 옐로우닷 켜진 종목 표: 이름 | +10% 20일 | +10% 60일 | 최소 시드, 둘째 줄에 켜진 지·과거 횟수·경고 */
 /* 기초자산(tkB)·상품(tkP) 티커 — 칸 없이 회색 굵은 글자. 큰 티커 옆에 붙는 작은 티커 */
@@ -280,7 +281,7 @@ details.fold[open]>summary::after{content:'－'}
 .dpc.na{color:var(--ink3)}
 .dpc.few{text-decoration:underline dotted var(--ink3);text-underline-offset:3px}
 .dtm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t)}
-.dtm>i{font-style:normal;color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
+.dtm>i{font-style:normal;font-size:var(--fs-xs);color:var(--warn);background:var(--s2);border-radius:4px;padding:1px 5px}
 .dts{margin-left:auto;white-space:nowrap}.dts b{color:var(--ink);font-family:var(--mono)}
 .dth>span:first-child{text-align:left;font-weight:400;color:var(--ink3)}
 .dgl{font-size:var(--fs-s);font-weight:700;color:var(--ink2);padding:8px 0 0}
