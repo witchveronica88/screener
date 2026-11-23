@@ -461,7 +461,14 @@ details.fold[open]>summary::after{content:'－'}
 .dbr i.r{background:var(--dn)}.dbr i.r.m{opacity:.45}.dbr i.g{background:var(--up)}
 .dbr b{text-align:right;color:var(--ink)}
 .dbars .dnt{font-size:var(--fs-s);font-weight:700;color:var(--ink);margin-top:4px}
-.dread .rt{font-size:var(--fs-l);font-weight:700;line-height:var(--lh-t);word-break:keep-all;margin-bottom:8px}
+.dread .rt{font-size:var(--fs-m);font-weight:700;line-height:var(--lh);word-break:keep-all;margin-bottom:12px}
+/* 오늘의 해석 — 결론 한 줄은 본문 크기, 불렛은 작은 글씨로 줄 사이를 넉넉히(2026-11-23 사용자: 다닥다닥 붙어 보임) */
+.dread .rh{margin-bottom:8px}
+.dread .dbars{margin:0 0 14px;padding:12px 14px}
+.dread .dbr{margin-bottom:8px}
+.dread .dul li{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh-l);margin-top:9px}
+.dread .dul li:first-child{margin-top:0}
+.dread .dul li b{color:var(--ink)}
 /* 요약 탭 첫 화면: 결론 한 문장 · 흐름 단계 막대 · 시장 한 줄 */
 .dhead1{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--on);border-radius:14px;padding:10px 16px;
         margin-bottom:6px;font-size:var(--fs-m);font-weight:700;line-height:var(--lh-t);word-break:keep-all;overflow-wrap:anywhere}
