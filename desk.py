@@ -5,9 +5,9 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
   남긴 것은 우리 방법 둘뿐이다.
   - 옐로우닷: 기준자산(SPY·QQQ·SOXX)의 세 지표가 모두 바닥권인 날. 바닥권 = 빠르기 %K ≤ 20 · CCI ≤ −100 · RSI ≤ 30
     (짧은 사이에 너무 많이 빠졌다는 뜻 · 예전 이름 '노란 점'). 계산은 종가 수집과 같은 market.is_dip.
-  - 옐로우업다운: 옐로우닷 다음 거래일 장 마감에 1포트로 시작하는 예비 자금 운용(market.updown_past).
-    SPY 칸은 UPRO, QQQ 칸은 TQQQ, SOXX 칸은 SOXL로 센다(옐로우업다운 9종목 가운데 그 기준자산의 3배 상품).
-    과거 +10%·+20% 도달률도 같은 3배 상품으로 센다(2026-11-23 사용자: SPY 3배는 주가가 낮은 UPRO로 — 그전에는 SPXL,
+  - 옐로우업다운: 옐로우닷 다음 거래일 장 마감에 1포트로 시작하는 예비 자금 운용(market.updown_past) — 종목 탭에서만 보인다.
+    상황판은 2026-11-23 사용자 말대로 옐로우업다운을 쓰지 않는다('그날의 상황만 알고 싶다, 옐로우업다운 매수·매도는 빼고 옐로우닷이 떴다 정도만').
+    과거 +10%·+20% 도달률은 SPY→UPRO · QQQ→TQQQ · SOXX→SOXL 3배 상품으로 센다(2026-11-23 사용자: SPY 3배는 주가가 낮은 UPRO로 — 그전에는 SPXL,
     도달률은 SPY 1배로 세어 세 줄의 숫자를 견줄 수 없었다).
   뺀 것: 원문(블로그) 🟢🟡 판정, 반등 신호·취소선, VIX 완화 단계, 주·월 단위 흐름, UVIX 새 최저가 사이클,
          반등 신호 성적표·기록, 지난 판정 기록.
@@ -21,11 +21,10 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
   desk_log.json은 v2.x 원문 판정을 화면에 보인 그대로 남긴 기록(2026-11-23까지)이다. 더 쓰지 않고 고치지도 않는다.
 """
 import urllib.request, csv, io, json, time, datetime, sys
-from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST,
-                    updown_past)
+from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST)
 
 RULE = '옐로우닷 v3.0'
-PAIRS = [('UPRO', 'SPY', 'UPRO'), ('TQQQ', 'QQQ', 'TQQQ'), ('SOXL', 'SOXX', 'SOXL')]   # (과거 결과를 셀 상품, 기준자산, 옐로우업다운 상품) — 화면 순서
+PAIRS = [('UPRO', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 3배 상품, 기준자산) — 화면 순서
 SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'UPRO', 'UVIX', '^VIX']
 NAMES = {'SPY': 'S&P500', 'QQQ': '나스닥', 'SOXX': '반도체'}   # 결론 문장에 쓰는 우리말 이름
 RECENT = 20       # 옐로우닷이 꺼진 지 이 거래일 안이면 결론 문장에 마지막 옐로우닷을 적는다
@@ -66,9 +65,9 @@ def bad_data(B):
     return abs(B[-1]['c'] / B[-2]['c'] - 1) > 0.25 or any(not (b['l'] <= b['c'] <= b['h']) for b in B[-5:])
 
 
-# ───────────── 옐로우닷 · 옐로우업다운 · 오늘의 해석 ─────────────
-def dip_card(base, prod, udp, bars, I, vix):
-    """옐로우닷 상태 · 과거 결과 · 옐로우업다운 · '오늘의 해석'(쉬운 말 한 문장과 불렛)"""
+# ───────────── 옐로우닷 · 오늘의 해석 ─────────────
+def dip_card(base, prod, bars, I, vix):
+    """옐로우닷 상태 · 과거 결과 · '오늘의 해석'(쉬운 말 한 문장과 불렛) — 그날의 상황만, 매수·매도 안내는 쓰지 않는다"""
     B = bars[base]; last = len(B) - 1
     P = [b for b in bars[prod] if b['d'] <= B[-1]['d']]
     S = {b['d']: b['c'] for b in bars['SPY']}
@@ -80,9 +79,6 @@ def dip_card(base, prod, udp, bars, I, vix):
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
          'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
-    U = [b for b in bars.get(udp) or [] if b['d'] <= B[-1]['d']]
-    if len(U) > 60:
-        r['ud'] = updown_past(B, I, U); r['udProd'] = udp
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),
@@ -98,34 +94,24 @@ def dip_card(base, prod, udp, bars, I, vix):
     if days and drop <= -3 and spy is not None:
         r['drop']['note'] = '시장 전체가 함께 빠진 하락입니다' if spy <= drop / 3 else '시장보다 이 종목군이 유독 많이 빠졌습니다'
 
-    ud = r.get('ud'); n = ud and ud.get('now'); lastd = r.get('last')
+    lastd = r.get('last')
     ok = lambda v: ' ✓' if v else ''
     cond = (f"옐로우닷 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 벗어난 정도 {r['cci']} (−100 이하{ok(r['cci'] <= -100)})"
             f" · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})")
-    if not ud:
-        udl = None
-    elif n and n.get('pending'):
-        udl = f"옐로우업다운: 다음 거래일 장 마감 LOC로 {udp} 1포트 (종가가 ${n['lim']} 이하면 체결)"
-    elif n:
-        udl = (f"옐로우업다운: {md(n['since'])}에 시작한 {udp} 사이클이 도는 중 ({n['n']}포트{' · 평단 +5%면 전부 매도' if n['out'] else ''})"
-               ' — 끝나기 전에 켜진 옐로우닷은 건너뜁니다')
-    else:
-        udl = f'옐로우업다운: 쉬는 중 — 다음 옐로우닷에서 {udp}로 시작합니다'
     vl = f"참고: 시장 불안(VIX) {vix['c']} (전날보다 {vix['chg']:+.1f}%) — 판정에는 쓰지 않음" if vix else None
     if on:
         # 켜진 날수는 결론 문장에만 — 불렛에서 다시 말하지 않는다
         head = (f'오늘 옐로우닷이 켜졌습니다. {base}가 급하게 내려 세 지표가 모두 바닥권에 들어갔습니다.' if run <= 1 else
                 f'옐로우닷이 {run}일째 켜져 있습니다. {base}의 세 지표가 모두 바닥권에 머물러 있습니다.')
-        why = ['바닥권: 빠르기·벗어난 정도·힘 세 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다', udl,
-               '바닥을 확인하고 사는 것이 아니라 내려오는 중에 사는 자리입니다' +
-               ('. 더 빠지면 옐로우업다운이 1포트씩 더 삽니다' if ud else ''), vl]
+        why = ['바닥권: 빠르기·벗어난 정도·힘 세 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다',
+               '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다', vl]
     elif lastd and lastd['age'] <= RECENT:
         head = f"옐로우닷은 {lastd['age']}거래일 전({md(lastd['date'])})에 꺼졌습니다. 그 뒤 {base} {lastd['mv']:+.1f}%입니다."
-        why = [udl, cond, vl]
+        why = [cond, vl]
     else:
         head = '옐로우닷이 꺼져 있습니다. 세 지표가 모두 바닥권에 들어가야 켜집니다.'
         why = [cond, f"마지막 옐로우닷은 {md(lastd['date'])} ({lastd['age']}거래일 전), 그 뒤 {base} {lastd['mv']:+.1f}%"
-               if lastd else None, udl, vl]
+               if lastd else None, vl]
     r['head'] = head; r['why'] = [x for x in why if x]
     return r
 
@@ -147,55 +133,41 @@ def history(base, prod, bars, I, n=21):
 
 
 def stage_of(c):
-    """요약 줄 상태 — 옐로우닷(켜짐·꺼짐) · 옐로우업다운(첫 매수·도는 중·쉬는 중) · 짧은 숫자(stats)"""
+    """요약 줄 상태 — 옐로우닷(켜짐·꺼짐) · 짧은 숫자(stats)"""
     if c['state'] == 'wait':
-        return {'on': False, 'cls': 'wait', 'text': '자료 확인 중', 'ud': None, 'up': None, 'stats': []}
-    d = c['dip']; last = d.get('last'); u = d.get('ud'); n = u and u.get('now'); up = d.get('udProd')
+        return {'on': False, 'cls': 'wait', 'text': '자료 확인 중', 'stats': []}
+    d = c['dip']; last = d.get('last')
     if d['on']:
         text, cls = (f"옐로우닷 {d['run']}일째" if d['run'] > 1 else '옐로우닷 오늘'), 'on'
     else:
         text, cls = '옐로우닷 꺼짐', 'off'                # 마지막 날짜는 stats('옐로우닷(10/14) 뒤')가 말한다
-    udt = None
-    if u:
-        udt = ('다음 거래일 첫 매수' if n and n.get('pending') else (f"도는 중 · {n['n']}포트" + (' · 평단 +5% 기다림' if n.get('out') else '')) if n else '쉬는 중')
     stats = []
     past = d.get('past')
     if d['on'] and past:                               # 켜진 날: 과거에 다음 날 샀다면 +10%에 15·30거래일 안(DIP_FAST·DIP_DAYS) — 화면이 색 칸으로
         stats.append(('과거', [past.get('hitF'), past['hit']], 'past'))
     elif last and last.get('pmv') is not None:
         stats.append((f"옐로우닷({md(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
-    return {'on': d['on'], 'cls': cls, 'text': text, 'ud': udt, 'up': up, 'stats': stats}
+    return {'on': d['on'], 'cls': cls, 'text': text, 'stats': stats}
 
 
 def headline(cards):
-    """요약 첫 줄 — 옐로우닷이 켜진 곳과 옐로우업다운이 할 일 (두 문장 안)"""
+    """요약 첫 줄 — 옐로우닷이 켜진 곳 (그날의 상황만 · 매수·매도 안내는 쓰지 않는다)"""
     live = [c for c in cards if c['state'] != 'wait']
     if not live:
         return '자료를 확인하는 중입니다.'
     nm = lambda cs: '·'.join(NAMES.get(c['base'], c['base']) for c in cs) + (' 모두' if len(cs) == len(live) > 1 else '')
     on = [c for c in live if c['dip']['on']]
-    now = lambda c: (c['dip'].get('ud') or {}).get('now')
     out = []
-    if on:
+    if on:                                             # 켜진 날수·꺼진 곳은 아래 세 줄이 보여 준다 — 여기서 다시 말하지 않는다
         out.append(f'{nm(on)} 옐로우닷이 켜졌습니다.')
-        pend = [c['dip']['udProd'] for c in on if now(c) and now(c).get('pending')]
-        busy = [c['dip']['udProd'] for c in on if now(c) and not now(c).get('pending')]
-        if pend:
-            out.append(f"옐로우업다운은 다음 거래일 장 마감에 {'·'.join(pend)} 첫 매수입니다"
-                       + (f"({'·'.join(busy)} 사이클은 이미 도는 중)." if busy else '.'))
-        elif busy:
-            out.append(f"옐로우업다운 {'·'.join(busy)} 사이클은 이미 도는 중이라 새로 시작하지 않습니다.")
     else:
         rec = sorted((c for c in live if c['dip'].get('last') and c['dip']['last']['age'] <= RECENT),
                      key=lambda c: c['dip']['last']['age'])
         out.append('옐로우닷이 모두 꺼져 있습니다.' + (f" 마지막은 {rec[0]['base']} {md(rec[0]['dip']['last']['date'])}입니다." if rec else ''))
-        run = [f"{c['dip']['udProd']} {now(c)['n']}포트" for c in live if now(c) and not now(c).get('pending')]
-        if run:
-            out.append(f"옐로우업다운은 {'·'.join(run)} 사이클이 도는 중입니다.")
     return ' '.join(out)
 
 
-def card(prod, base, udp, bars, vix):
+def card(prod, base, bars, vix):
     B = bars[base]; asof = B[-1]['d']
     P = [b for b in bars.get(prod) or [] if b['d'] <= asof]
     c0 = {'prod': prod, 'base': base}
@@ -209,7 +181,7 @@ def card(prod, base, udp, bars, vix):
                  'rsi': round(I['rsi'][-1], 1), 'disp': round(I['disp'][-1], 1),
                  'close': round(c, 2), 'pclose': round(P[-1]['c'], 2),
                  'chg': pct(c, B[-2]['c']), 'pchg': pct(P[-1]['c'], P[-2]['c'])}}
-    r['dip'] = dip_card(base, prod, udp, bars, I, vix)
+    r['dip'] = dip_card(base, prod, bars, I, vix)
     r['hist'] = history(base, prod, bars, I)
     r['stage'] = stage_of(r)
     return r
@@ -312,8 +284,8 @@ def main():
         vxf = {**fut, 'back': fut['vx1'] < spot or fut['vx2'] < fut['vx1']}
     mk = market_card(bars['SPY'], bars['^VIX'], vxf)
     cards = []
-    for prod, base, udp in PAIRS:
-        c = card(prod, base, udp, bars, mk['vix'])
+    for prod, base in PAIRS:
+        c = card(prod, base, bars, mk['vix'])
         cards.append(c)
         print(f"{base}({prod}): {(c.get('stage') or {}).get('text', c.get('line'))}")
     out = {'rule': RULE, 'asof': asof, 'target': TARGET,

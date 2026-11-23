@@ -485,7 +485,6 @@ details.fold[open]>summary::after{content:'－'}
 .flow .fn{font-size:var(--fs-m);font-weight:700;line-height:var(--lh-t)}
 .fn.on::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2);margin-right:6px;vertical-align:0}
 .fn.off,.fn.wait{color:var(--ink2)}
-.fud{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh);margin-top:2px}.fud b{color:var(--ink)}
 .flow .dpx{margin-left:auto;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2)}
 .flow .dpx.g{color:var(--up)}.flow .dpx.r{color:var(--dn)}
 .flow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:3px;line-height:var(--lh)}
@@ -1584,27 +1583,17 @@ function futBars(m){
 const uvixSpark=(u,h)=>spark(u.spark.map(x=>x.c),h,{ref:u.allLow})+`<div class="spkc"><span>UVIX 1개월</span><span>점선: 사상 최저 $${u.allLow}</span></div>`;
 const vixSpark=(m,h)=>spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<div class="spkc"><span>VIX 1개월</span><span>점선: 5일 평균</span></div>`;
 
-/* 요약 탭 아래 — 옐로우닷이란 · 옐로우업다운이란 · 이 상황판의 기준 */
+/* 요약 탭 아래 — 옐로우닷이란 · 이 상황판의 기준 (상황판은 그날의 상황만 — 옐로우업다운 매수·매도는 종목 탭에만 · 2026-11-23 사용자) */
 function dotRules(){
   const C=DESK.cards.filter(c=>c.dip);
   return dsec('b','옐로우닷이란',ul([
     '세 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
     '<b>바닥권</b>: 빠르기(%K) 20 이하 · 벗어난 정도(CCI) −100 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
-    '종가로 계산하므로, 켜진 것을 보고 살 수 있는 때는 다음 거래일 장 마감입니다',
+    '장 마감 종가로 계산합니다. 한국 아침 6시 20분쯤 <small>(서머타임 5시 20분쯤)</small> 켜졌는지 나옵니다',
     `켜진 날 줄의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
-    '바닥을 확인하고 사는 것이 아니라 내려오는 중에 사는 자리입니다. 그래서 한 번에 다 사지 않고 옐로우업다운으로 나눠 삽니다',
+    '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 세 줄 모두 3배 상품(UPRO · TQQQ · SOXL)으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
     '세 지표가 모두 바닥권에 들어간 날 · 과거 결과 보는 법');
-}
-function udRules(){
-  return dsec('w','옐로우업다운이란',ul([
-    '옐로우닷이 켜진 다음 거래일 장 마감 LOC로 시작 금액의 1/10(1포트)을 사며 시작합니다',
-    '그 뒤 하루 한 번 장 마감 LOC: 마지막 체결가보다 <b>5%</b> 넘게 빠지면 1포트 더 사고, <b>10%</b> 넘게 오르면 보유 ÷ 포트 수만큼 팝니다 <small>(포트가 늘수록 0.2%씩 좁힘)</small>',
-    '돈이 바닥나면(10포트를 다 쓰거나 남은 돈이 1포트에 못 미침) 더 사지도 나눠 팔지도 않고, 종가가 <b>평단 +5%</b> 이상인 날 장 마감에 전부 팝니다. 다 팔면 끝나고 다음 옐로우닷까지 쉽니다',
-    '여유 자금이 있을 때만 합니다. 최소 금액 = 주가 × 5주 × 10포트 (1포트로 5주)',
-    '9종목만: TQQQ · UPRO · UDOW · TNA · MIDU · HIBL · QQQU · SOXL · TECL. 이 상황판은 SPY→UPRO · QQQ→TQQQ · SOXX→SOXL로 보여 줍니다',
-    '<small>실제 매매 기록은 Finance 트래커의 옐로우업다운 종목에 적습니다</small>']),
-    '다음 날 1포트 · 빠지면 더 사고 오르면 나눠 팔기 · 여유 자금으로만');
 }
 function secRules(){
   return dsec('r','이 상황판의 기준',
@@ -1612,15 +1601,12 @@ function secRules(){
     blk('옐로우닷',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14), 기준자산(SPY · QQQ · SOXX) 확정 종가로 계산',
       '바닥권: %K 20 이하 · CCI −100 이하 · RSI 30 이하가 모두 맞는 날',
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
-    blk('옐로우업다운',ul(['옐로우닷 다음 날 장 마감 LOC로 1포트, 매수 −5% · 매도 +10% (포트마다 0.2%씩 좁힘), 10포트',
-      '돈이 바닥나면 더 사지도 나눠 팔지도 않고, 종가가 평단 +5% 이상인 날 전부 매도',
-      '과거 결과: 한 종목에 한 사이클씩, 매매 비용 0.1%, 250거래일 안에 안 끝나면 그날 종가로 셈']))+
     blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷은 보여 주기만 합니다',
-      '2026-11 백테스트(9종목, 3종목까지 동시에): VIX가 오르는 날을 거르면 연 +9.7% → +6.5%, 반등을 확인하고 사면 낙폭 −29% → −37%로 나아지지 않았습니다']))+
+      '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
       '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 그날은 계산을 멈춤'])),
-    `${DESK.rule} · 옐로우닷 · 옐로우업다운 · 시장 참고 · 가격`);
+    `${DESK.rule} · 옐로우닷 · 시장 참고 · 가격`);
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
 const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
@@ -1651,7 +1637,6 @@ const fhead=(c,g)=>`<div class="fh"><span class="tk">${c.base}</span>`+
   (g.on&&c.dip?ydot(c.dip.run):g.cls==='wait'?`<span class="fn wait">${g.text}</span>`:'')+
   (c.prod!==c.base?tkP(c.prod):'')+
   (c.ind?`<span class="dpx ${sc(c.ind.chg)}">${sg(c.ind.chg)}</span>`:'')+`</div>`;
-const fud=(c,g)=>g.ud?`<div class="fud">옐로우업다운 ${g.up&&g.up!==c.prod?tkP(g.up)+' ':''}${g.ud}</div>`:'';
 /* 요약 줄 — 옐로우닷 상태 · 과거 결과(켜진 날) 또는 마지막 옐로우닷 뒤 · 옐로우업다운 · 1개월 작은 그래프 */
 function sumRow(c){
   const g=c.stage||{cls:'wait',text:c.line||'자료 확인 중',stats:[]}, H=c.hist||[];
@@ -1659,7 +1644,7 @@ function sumRow(c){
   const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
   const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,val,icn])=>`<div class="fsv">${statIcon(icn)}<span>${k}</span> <b>${val}</b></div>`).join('');
   const past=v?`<div class="fpast"><div class="fpv">${v[0]!=null?`<span class="fg">15일 ${pctCell(v[0])}</span>`:''}${v[1]!=null?`<span class="fg">30일 ${pctCell(v[1])}</span>`:''}</div></div>`:'';
-  return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${past}${st}</div>${chart}</div>${fud(c,g)}</div>`;
+  return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${past}${st}</div>${chart}</div></div>`;
 }
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · SPY·QQQ·SOXX 세 줄 · VIX 한 줄. 아래는 접는 칸 */
 function deskSum(){
@@ -1672,18 +1657,17 @@ function deskSum(){
       v.hi1m?'1개월 가운데 가장 높음':v.lo1m?'1개월 가운데 가장 낮음':`5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,
       x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
-  return h+dotRules()+udRules()+secRules();
+  return h+dotRules()+secRules();
 }
-/* 종목별 탭 — 상태 줄과 오늘의 해석만 펼치고, 나머지는 접는 칸: 차트 → 옐로우닷 과거 결과 → 옐로우업다운 → 지표 값 */
+/* 종목별 탭 — 상태 줄과 오늘의 해석만 펼치고, 나머지는 접는 칸: 차트 → 옐로우닷 과거 결과 → 지표 값 */
 function deskCard(c){
   if(c.state==='wait')return `<div class="dcard wait"><div class="dhead"><span class="tk">${c.base}</span></div><div class="dline">${c.line}</div></div>`;
-  const g=c.stage, p=c.dip.past, up=c.dip.udProd, T=(DESK.table||[]).find(r=>r.sym===up), upx=T&&!T.na?T.close:null;
-  let h=`<div class="flow">${fhead(c,g)}${fud(c,g)}</div>`+readCard(c);
+  const g=c.stage, p=c.dip.past;
+  let h=`<div class="flow">${fhead(c,g)}</div>`+readCard(c);
   h+=dsec('c','차트',deskChart(c),`${c.base} 최근 1개월 · 날짜를 누르면 그날 값`);
   h+=dsec('p','옐로우닷 과거 결과',dipPast(p,c.prod+eul(c.prod)),
     p?`다음 날 ${c.prod} · +10% 15일 <b>${p.hitF??'—'}%</b> · 30일 <b>${p.hit}%</b>`:'과거 옐로우닷 없음');
-  if(c.dip.ud)h+=dsec('u','옐로우업다운',udFold(c.dip.ud,up,upx),`${up} · `+udSumTxt(c.dip.ud,upx));
-  return h+secTable([...new Set([c.base,c.prod,up].filter(Boolean))]);
+  return h+secTable([c.base,c.prod]);
 }
 /* UVIX 옐로우닷 — 참고용. 시장이 갑자기 아주 조용해진 날. 판정에는 쓰지 않는다(desk.py uvix_dip) */
 function uvixDipBody(x){
@@ -1747,10 +1731,8 @@ function renderDesk(){
 }
 /* 계산 기준 — 종목별 탭은 '계산 기준' 칸으로, 요약 탭은 '이 상황판의 기준' 맨 위에 한 번만 */
 function metaLines(){
-  const ups=DESK.cards.map(c=>c.dip&&c.dip.udProd).filter(Boolean);
-  return [`${DESK.rule} · 자동매매가 아니라 판단 참고용`,'하루 한 번, 한국 아침 6시 반쯤 확정 종가로 계산 (늦어지면 오후 2시쯤까지 다시 시도)',
-    `옐로우닷은 ${DESK.cards.map(c=>c.base).join(' · ')}로 판정하고, 과거 결과는 ${DESK.cards.map(c=>c.prod).join(' · ')}을 샀다고 보고 셈`,
-    ...(ups.length?[`옐로우업다운은 ${ups.join(' · ')}로 셈`]:[])];
+  return [`${DESK.rule} · 그날의 상황을 보여 주는 참고용`,'하루 한 번, 미국 장 마감 16분 뒤(한국 아침 6시 16분 · 서머타임 5시 16분) 확정 종가로 계산 <small>(늦어지면 오후 2시쯤까지 다시 시도)</small>',
+    `옐로우닷은 ${DESK.cards.map(c=>c.base).join(' · ')}로 판정하고, 과거 결과는 ${DESK.cards.map(c=>c.prod).join(' · ')}을 샀다고 보고 셈`];
 }
 document.getElementById('vDesk').onclick=e=>{
   const t=e.target.closest('[data-dt]');

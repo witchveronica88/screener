@@ -321,9 +321,9 @@ class EtfList(unittest.TestCase):
 
 
 class DeskStatus(unittest.TestCase):
-    """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다)"""
-    def card(self, base='SOXX', prod='SOXL', up='SOXL', on=False, run=1, last=None, now=None, past=None):
-        d = {'on': on, 'run': run, 'udProd': up, 'ud': {'n': 3, 'now': now}}
+    """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다 · 옐로우업다운 매수·매도도 쓰지 않는다)"""
+    def card(self, base='SOXX', prod='SOXL', on=False, run=1, last=None, past=None):
+        d = {'on': on, 'run': run}
         if last: d['last'] = last
         if past: d['past'] = past
         c = {'base': base, 'prod': prod, 'state': 'ok', 'dip': d}
@@ -332,32 +332,28 @@ class DeskStatus(unittest.TestCase):
 
     def test_on_shows_past_results(self):
         past = {'n': 26, 'hit': 92, 'hitF': 76}
-        g = self.card(on=True, past=past, now={'pending': True, 'lim': 33.97})['stage']
+        g = self.card(on=True, past=past)['stage']
         self.assertEqual((g['cls'], g['text']), ('on', '옐로우닷 오늘'))
         self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])          # [15거래일 안 +10%, 30거래일 안 +10%] 색 칸
-        self.assertEqual((g['ud'], g['up']), ('다음 거래일 첫 매수', 'SOXL'))
+        self.assertNotIn('ud', g)
         self.assertEqual(self.card(on=True, run=3)['stage']['text'], '옐로우닷 3일째')
 
     def test_off(self):
-        g = self.card(last={'date': '2026-10-14', 'age': 27, 'pmv': -17.8}, now={'n': 4, 'out': False})['stage']
+        g = self.card(last={'date': '2026-10-14', 'age': 27, 'pmv': -17.8})['stage']
         self.assertEqual((g['cls'], g['text']), ('off', '옐로우닷 꺼짐'))
         self.assertEqual(g['stats'], [('옐로우닷(10/14) 뒤', '-17.8%', 'dot')])
-        self.assertEqual(g['ud'], '도는 중 · 4포트')
-        self.assertEqual(self.card()['stage']['ud'], '쉬는 중')
         self.assertEqual(desk.stage_of({'state': 'wait'})['cls'], 'wait')
 
     def test_headline(self):
-        pend = {'pending': True, 'lim': 1}
-        cs = [self.card('SPY', 'UPRO', 'UPRO', on=True, now=pend), self.card('QQQ', 'TQQQ', 'TQQQ', on=True, now=pend),
-              self.card(on=True, now={'n': 2, 'out': False})]
+        cs = [self.card('SPY', 'UPRO', on=True), self.card('QQQ', 'TQQQ', on=True), self.card(on=True, run=3)]
+        self.assertEqual(desk.headline(cs), 'S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.')
+        cs = [self.card('SPY', 'UPRO', on=True), self.card('QQQ', 'TQQQ'), self.card()]
+        self.assertEqual(desk.headline(cs), 'S&P500 옐로우닷이 켜졌습니다.')
+        cs = [self.card('SPY', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}), self.card('QQQ', 'TQQQ'), self.card()]
         h = desk.headline(cs)
-        self.assertTrue(h.startswith('S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.'), h)
-        self.assertIn('UPRO·TQQQ 첫 매수입니다(SOXL 사이클은 이미 도는 중).', h)
-        cs = [self.card('SPY', 'UPRO', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}),
-              self.card('QQQ', 'TQQQ', 'TQQQ'), self.card(now={'n': 4, 'out': False})]
-        h = desk.headline(cs)
-        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 마지막은 SPY 10/14입니다. 옐로우업다운은 SOXL 4포트 사이클이 도는 중입니다.')
+        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 마지막은 SPY 10/14입니다.')
         self.assertNotIn('반등', h)                                          # 원문(블로그) 말은 쓰지 않는다
+        self.assertNotIn('옐로우업다운', h)                                  # 상황판은 그날의 상황만 (2026-11-23 사용자)
 
 
 if __name__ == '__main__':
