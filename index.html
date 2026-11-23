@@ -515,7 +515,8 @@ details.fold[open]>summary::after{content:'－'}
 .lv .lvh .lvp{font-family:var(--mono);font-size:var(--fs-m);font-weight:600}
 .lv .lvh .dpx{margin-left:auto;font-family:var(--mono);font-size:var(--fs-s)}
 .lv .lvh .dpx.g{color:var(--up)}.lv .lvh .dpx.r{color:var(--dn)}
-.lv .lvs{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh);margin-top:2px}
+.lv .lvs,.flow .lvs{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh);margin-top:2px}
+.flow .lvs b{color:var(--ink)}.flow .lvs b.on{color:var(--warn)}
 .lv .lvs b{color:var(--ink)}.lv .lvs b.on{color:var(--warn)}
 .lv .lvk{display:flex;gap:7px;margin-top:8px}
 .lv .lvk input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--bd2);color:var(--ink);border-radius:8px;
@@ -1660,6 +1661,17 @@ async function liveGo(){
       :{err:e.message==='busy'?'요청이 많습니다. 1분 뒤 다시 눌러 주세요.':'시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요.'};
   }
 }
+const lvOf=b=>LVQ&&LVQ.rows?LVQ.rows.find(r=>r.base===b&&r.chg!=null)||null:null;
+const lvOn=()=>!!(LVQ&&LVQ.rows&&LVQ.rows.some(r=>r.chg!=null));
+const LV_NM={SPY:'S&P500',QQQ:'나스닥',SOXX:'반도체'};
+function lvHead(){
+  const ok=LVQ.rows.filter(r=>r.chg!=null), on=ok.filter(r=>r.on);
+  const nm=on.map(r=>LV_NM[r.base]||r.base).join('·')+(on.length===ok.length&&on.length>1?' 모두':'');
+  return on.length?`장중 지금 가격으로는 ${nm} 옐로우닷이 켜집니다.`:'장중 지금 가격으로는 옐로우닷이 모두 꺼집니다.';
+}
+const lvText=r=>r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
+  :r.th?`<b>꺼짐</b> — $${r.th.toFixed(2)} 아래로 끝나면 켜집니다 <small>(지금보다 ${sg((r.th/r.c-1)*100)})</small>`
+  :`<b>꺼짐</b> — 오늘은 켜지기 어렵습니다`;
 function liveBox(){
   if(!LVQ)return `<button class="lvbtn" id="lvGo">장중 지금 가격으로 보기</button>`;
   if(LVQ.loading)return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><span>가져오는 중…</span></div></div>`;
@@ -1669,6 +1681,11 @@ function liveBox(){
   if(LVQ.err)return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><button id="lvGo">다시</button></div><div class="lvn err">${LVQ.err}</div></div>`;
   const t=LVQ.t, done=LVQ.rows.some(r=>r.chg!=null&&r.done), R=LVQ.rows;
   if(R.length&&R.every(r=>r.old))return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><button id="lvGo">다시</button></div><div class="lvn">${R[0].msg}</div></div>`;
+  if(lvOn()){
+    const bad=R.filter(r=>r.chg==null&&r.msg);
+    return `<div class="lv"><div class="lvt"><b>${done?'장 마감 · 종가 수집 전':'장중'}</b>${t?`<span>뉴욕 ${hhmm(t,'America/New_York')} · 한국 ${hhmm(t,'Asia/Seoul')}</span>`:''}<button id="lvGo">다시</button><button id="lvX">종가로</button></div>`+
+      bad.map(r=>`<div class="lvn err">${r.base}: ${r.msg}</div>`).join('')+`</div>`;
+  }
   const row=r=>{
     const head=`<div class="lvh"><span class="tk">${r.base}</span>${r.on?ydot(1):''}${r.c?`<span class="lvp">$${r.c.toFixed(2)}</span>`:''}${r.chg!=null?`<span class="dpx ${sc(r.chg)}">${sg(r.chg)}</span>`:''}</div>`;
     const txt=r.msg?r.msg:r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
@@ -1723,7 +1740,7 @@ function secRules(){
     `${DESK.rule} · 옐로우닷 · 장중 · 시장 참고 · 가격`);
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
-const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
+const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · ${lvOf(c.base)?md(DESK.asof)+' 종가 해석':'오늘의 해석'}</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
 /* 최근 한 달 고점에서 저점까지 — 이 종목군과 시장 전체(SPY), 그 뒤 되오른 폭 */
 function dropBars(c){
   const d=c.dip&&c.dip.drop; if(!d||!d.days||d.pct>-3)return '';
@@ -1747,13 +1764,26 @@ function miniChart(vals,o={}){
 }
 const statIcon=c=>c==='dot'?'<i class="sdot"></i>':'';
 /* 상태 줄 머리 — 기준자산 · 과거 결과 상품 · 옐로우닷 상태 · 오늘 등락 (desk.py stage_of) */
-const fhead=(c,g)=>`<div class="fh"><span class="tk">${c.base}</span>`+
+const fhead=(c,g)=>{
+  const r=lvOf(c.base);
+  if(r)return `<div class="fh"><span class="tk">${c.base}</span>`+(r.on?ydot(c.dip&&c.dip.on?c.dip.run+1:1):'')+
+    (c.prod!==c.base?tkP(c.prod):'')+`<span class="dpx ${sc(r.chg)}">$${r.c.toFixed(2)} ${sg(r.chg)}</span></div>`;
+  return `<div class="fh"><span class="tk">${c.base}</span>`+
   (g.on&&c.dip?ydot(c.dip.run):g.cls==='wait'?`<span class="fn wait">${g.text}</span>`:'')+
   (c.prod!==c.base?tkP(c.prod):'')+
-  (c.ind?`<span class="dpx ${sc(c.ind.chg)}">${sg(c.ind.chg)}</span>`:'')+`</div>`;
+  (c.ind?`<span class="dpx ${sc(c.ind.chg)}">${sg(c.ind.chg)}</span>`:'')+`</div>`;};
 /* 요약 줄 — 옐로우닷 상태 · 과거 결과(켜진 날) 또는 마지막 옐로우닷 뒤 · 옐로우업다운 · 1개월 작은 그래프 */
 function sumRow(c){
-  const g=c.stage||{cls:'wait',text:c.line||'자료 확인 중',stats:[]}, H=c.hist||[];
+  const g=c.stage||{cls:'wait',text:c.line||'자료 확인 중',stats:[]}, H=c.hist||[], r=lvOf(c.base);
+  if(r&&c.dip){
+    const dots=H.map((x,i)=>x.dot?i:-1).filter(i=>i>=0).concat(r.on?[H.length]:[]);
+    const ch=H.length>2?miniChart(H.map(x=>x.c).concat(r.c),{label:'1개월 · 지금',dots}):'';
+    const p=c.dip.past;
+    const body=r.on&&p?`<div class="fpast"><div class="fpv">${p.hitF!=null?`<span class="fg">15일 ${pctCell(p.hitF)}</span>`:''}${p.hit!=null?`<span class="fg">30일 ${pctCell(p.hit)}</span>`:''}</div></div>`
+      :r.on?'':r.th?`<div class="fsv"><span>켜지는 가격</span> <b>$${r.th.toFixed(2)}</b> <small>(${sg((r.th/r.c-1)*100)})</small></div>`
+      :`<div class="fsv"><span>오늘은 켜지기 어렵습니다</span></div>`;
+    return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${body}</div>${ch}</div></div>`;
+  }
   const chart=H.length>2?miniChart(H.map(x=>x.c),{label:'1개월',dots:H.map((x,i)=>x.dot?i:-1).filter(i=>i>=0)}):'';
   const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
   const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,val,icn])=>`<div class="fsv">${statIcon(icn)}<span>${k}</span> <b>${val}</b></div>`).join('');
@@ -1763,7 +1793,8 @@ function sumRow(c){
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · SPY·QQQ·SOXX 세 줄 · VIX 한 줄. 아래는 접는 칸 */
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, x=D.uvixDip;
-  let h=D.headline?`<div class="dhead1">${D.headline}</div>`:'';
+  const hd=lvOn()?lvHead():D.headline;
+  let h=hd?`<div class="dhead1">${hd}</div>`:'';
   h+=liveBox();
   h+=`<div class="fsum">${D.cards.map(sumRow).join('')}</div>`;
   h+=`<div class="mrow" data-dt="VIX"><div class="mh"><span class="tk">VIX</span><b class="mst">시장 불안 ${v.c}</b>`+
@@ -1777,8 +1808,8 @@ function deskSum(){
 /* 종목별 탭 — 상태 줄과 오늘의 해석만 펼치고, 나머지는 접는 칸: 차트 → 옐로우닷 과거 결과 → 지표 값 */
 function deskCard(c){
   if(c.state==='wait')return `<div class="dcard wait"><div class="dhead"><span class="tk">${c.base}</span></div><div class="dline">${c.line}</div></div>`;
-  const g=c.stage, p=c.dip.past;
-  let h=`<div class="flow">${fhead(c,g)}</div>`+readCard(c);
+  const g=c.stage, p=c.dip.past, r=lvOf(c.base);
+  let h=(lvOn()?liveBox():'')+`<div class="flow">${fhead(c,g)}${r?`<div class="lvs">${lvText(r)}</div>`:''}</div>`+readCard(c);
   h+=dsec('c','차트',deskChart(c),`${c.base} 최근 1개월 · 날짜를 누르면 그날 값`);
   h+=dsec('p','옐로우닷 과거 결과',dipPast(p,c.prod+eul(c.prod)),
     p?`다음 날 ${c.prod} · +10% 15일 <b>${p.hitF??'—'}%</b> · 30일 <b>${p.hit}%</b>`:'과거 옐로우닷 없음');
