@@ -247,6 +247,43 @@ class DipPastFast(unittest.TestCase):
         self.assertTrue(0 <= p['hitF'] <= 100)
 
 
+class UpDown(unittest.TestCase):
+    """업다운(노란 점 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
+    def P(self, closes):
+        return [{'d': f'2026-01-{i + 1:02d}', 'o': c, 'h': c, 'l': c, 'c': c} for i, c in enumerate(closes)]
+
+    def test_buy_then_sell_out(self):
+        # 1번 10에 1포트 → 2번 9.4(≤ 10×0.948=9.48) 매수, 2포트 → 3번 10.4(≥ 9.4×1.096=10.30) 매도 → 4번 11.5(≥ 10.4×1.098) 매도, 끝
+        x = market.updown_cycle(self.P([10, 10, 9.4, 10.4, 11.5]), 1)
+        self.assertTrue(x['done']); self.assertEqual((x['days'], x['peak']), (3, 2))
+        self.assertGreater(x['ret'], 0)
+
+    def test_no_trade_inside_band(self):
+        # 9.5는 매수가 9.48보다 높고, 10.9는 매도가 10×1.098=10.98보다 낮다 — 아무것도 안 하고 도는 중
+        x = market.updown_cycle(self.P([10, 10, 9.5, 10.9]), 1)
+        self.assertEqual(x['run']['n'], 1)
+        self.assertEqual((x['run']['buy'], x['run']['sell']), (9.48, 10.98))
+
+    def test_exhausted_never_negative(self):
+        # 계속 7%씩 빠지면 10포트를 다 쓰고 매도만 남는다. 돈은 0 아래로 가지 않는다
+        c = [10, 10]
+        for _ in range(40):
+            c.append(round(c[-1] * 0.93, 4))
+        x = market.updown_cycle(self.P(c), 1)
+        self.assertTrue(x['run']['out'])
+        self.assertIsNone(x['run']['buy'])
+        self.assertGreater(x['run']['ret'], -100)
+
+    def test_skip_overlap_and_pending(self):
+        with open('test_data.json', encoding='utf-8') as f:
+            fx = json.load(f)
+        B = [{'d': d, 'o': c, 'h': h, 'l': l, 'c': c} for d, h, l, c in fx['SOXX']]
+        u = market.updown_past(B, market.indicators(B), B)
+        self.assertTrue(0 <= u['win'] <= 100 and 1 <= u['used'] <= market.UD_POTS)
+        starts = sum(1 for i in range(len(B)) if market.is_dip(market.indicators(B), i))
+        self.assertLessEqual(u['n'], starts)
+
+
 class UvixDip(unittest.TestCase):
     """UVIX 노란 점(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
     def test_shape(self):

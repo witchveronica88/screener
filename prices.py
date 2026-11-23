@@ -24,6 +24,7 @@ TICKERS = BASE + EXTRA
 # etfs.json의 base·mult와, 종목 탭에는 개별주로 보이지만 기초자산이 있는 상품(extra)
 REF = {e['tk']: (e['base'], e['mult']) for e in ETF['etfs'] if e.get('base')}
 REF.update({t: (x['base'], x['mult']) for t, x in ETF.get('extra', {}).items()})
+UD = market.ud_set()      # 업다운 과거 결과를 붙이는 종목 (etfs.json "ud": true)
 
 RISK_N = 750   # 급락 위험을 재는 공통 구간: 최근 3년(750거래일)
 
@@ -111,10 +112,10 @@ def soxl_crash(a, b, days):
     return mx * 100, my * 100, (sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None), n
 
 
-def yellow(B, P=None, base=None):
+def yellow(B, P=None, base=None, ud=False):
     """노란 점 계산이 실패해도 종가 수집은 계속한다"""
     try:
-        return market.yellow(B, P, base)
+        return market.yellow(B, P, base, ud)
     except Exception as e:
         print(f'  노란 점 계산 실패: {e}')
         return None
@@ -244,7 +245,7 @@ def main():
             time.sleep(0.4)
         if not refH[ref]:
             continue                       # 기초자산을 못 받으면 상품 자체 판정을 그대로 둔다
-        y = yellow(refH[ref], hist[tk], ref)
+        y = yellow(refH[ref], hist[tk], ref, tk in UD)
         if y:
             data[tk]['dip'] = y
         refh = {b['d']: b['a'] for b in refH[ref][-260:]}

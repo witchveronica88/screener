@@ -7,7 +7,8 @@
   "corr 마스터 SOXL 상관 · warns 경고(종목 집중 · 액면병합 · 논리 반례 · ETN 구조처럼 계산으로 알 수 없는 것만) · type 구성 · desc 설명 · scen 시나리오",
   "base 기초자산(노란 점 판정 · 회복 여부 · 기초자산 대비 비교에 씀) · mult 일일 배수",
   "extra: 종목 탭에는 개별주로 보이지만 기초자산이 있는 상품(tickers.txt에 넣은 것)",
-  "회복 여부는 손으로 적지 않는다. 매일 기초자산의 역대 고점 대비로 계산한다(prices.py → data.json rec)."
+  "회복 여부는 손으로 적지 않는다. 매일 기초자산의 역대 고점 대비로 계산한다(prices.py → data.json rec).",
+  "ud: true면 업다운(노란 점 다음 날 1포트로 시작, 매수 −5% · 매도 +10%) 과거 결과를 붙인다. 미국 넓은 지수 + SOXL·TECL만 (업종 ETF·개별주는 업종 하나가 무너지면 결과가 운에 달려 뺐다)"
  ],
  "etfs": [
   {
@@ -35,7 +36,8 @@
     "AI 인프라"
    ],
    "base": "SOXX",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "TQQQ",
@@ -65,7 +67,8 @@
     "디스인플레이션"
    ],
    "base": "QQQ",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "TNA",
@@ -95,7 +98,8 @@
     "달러 강세"
    ],
    "base": "IWM",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "TMF",
@@ -459,7 +463,8 @@
     "위험선호 확대"
    ],
    "base": "DIA",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "HIBL",
@@ -485,7 +490,8 @@
     "골디락스"
    ],
    "base": "SPHB",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "MIDU",
@@ -512,7 +518,8 @@
     "위험선호 확대"
    ],
    "base": "IJH",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "FAS",
@@ -840,7 +847,8 @@
     "디스인플레이션"
    ],
    "base": "XLK",
-   "mult": 3
+   "mult": 3,
+   "ud": true
   },
   {
    "tk": "WEBL",
@@ -944,7 +952,8 @@
     "위험선호 확대"
    ],
    "base": "MAGS",
-   "mult": 2
+   "mult": 2,
+   "ud": true
   },
   {
    "tk": "RAM",

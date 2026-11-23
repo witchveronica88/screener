@@ -14,6 +14,13 @@ TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰�
 TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
 DIP_DAYS = 60             # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
 DIP_FAST = 20             # 짧게 보는 기간 — +10%가 이 안에 닿았는지도 따로 센다 (화면 추천순의 기준)
+# 업다운(노란 점 다음 날 1포트로 시작) — 운영 설정. 2026-11 백테스트로 정함(CLAUDE.md '업다운' 참고)
+UD_POTS = 10              # 예비 자금 한 칸을 몇 포트로 나누나
+UD_D = 0.05               # 매수 LOC: LP × (1 − UD_D − 보유 포트 × UD_STEP)   원래 규칙은 0
+UD_U = 0.10               # 매도 LOC: LP × (1 + UD_U − 보유 포트 × UD_STEP)   원래 규칙은 0.02
+UD_STEP = 0.002
+UD_COST = 0.001           # 매매마다 비용 0.1%
+UD_MAXD = 250             # 이 거래일 안에 안 끝나면 그날 종가로 평가(못 끝남)
 
 
 # ───────────── 자료 받기 ─────────────
@@ -307,9 +314,10 @@ def dip_targets(B, I, P, since):
     return out
 
 
-def yellow(B, P=None, base=None):
+def yellow(B, P=None, base=None, ud=False):
     """종목 카드의 노란 점. B: 판정에 쓰는 일봉. P가 있으면 B는 기초자산이고 P가 실제로 사는 상품이다
-       (상황판의 SOXX→SOXL과 같은 방식). 종가가 고가·저가 밖으로 나간 봉은 범위를 종가까지 넓혀 계산한다"""
+       (상황판의 SOXX→SOXL과 같은 방식). 종가가 고가·저가 밖으로 나간 봉은 범위를 종가까지 넓혀 계산한다.
+       ud: 업다운으로 시작했다면의 과거 결과도 붙인다(etfs.json "ud")"""
     fix = lambda b: {**b, 'h': max(b['h'], b['c']), 'l': min(b['l'], b['c'])}
     B = [fix(b) for b in B]
     if P:
@@ -346,7 +354,89 @@ def yellow(B, P=None, base=None):
         pc = next((x['c'] for x in P if x['d'] == d), None) if P is not B else None
         if pc:
             r['last']['pmv'] = round((P[-1]['c'] / pc - 1) * 100, 1)
+    if ud:
+        r['ud'] = updown_past(B, I, P)
     return r
+
+
+# ───────────── 업다운 (노란 점 시작) ─────────────
+def ud_set():
+    """업다운 과거 결과를 붙이는 종목 — etfs.json에서 "ud": true인 것"""
+    try:
+        with open('etfs.json', encoding='utf-8') as f:
+            return {e['tk'] for e in json.load(f)['etfs'] if e.get('ud')}
+    except (OSError, ValueError, KeyError):
+        return set()
+
+
+def updown_cycle(P, s):
+    """P[s] 종가에 1포트 첫 매수(전날 종가 ×1.1 이하일 때). 원금 1.
+       매일 장 마감 LOC: 매수 LP×(1−D−n×STEP), 매도 LP×(1+U−n×STEP), 매도 수량 = 보유 ÷ n. LP = 마지막 체결가(종가).
+       금액 소진(포트를 다 쓰거나 남은 돈이 한 포트에 못 미침): LP를 매일 전날 종가로 바꿔 매도만.
+       반환: 끝났거나 UD_MAXD가 지났으면 결과, 자료가 끝날 때까지 도는 중이면 'run'에 지금 상태. 시작 못 하면 None"""
+    if s < 1 or s >= len(P) or P[s]['c'] > P[s - 1]['c'] * 1.1:
+        return None
+    N, D, U, st, cost = UD_POTS, UD_D, UD_U, UD_STEP, UD_COST
+    pot = 1.0 / N
+    cash = 1.0 - pot; sh = pot * (1 - cost) / P[s]['c']; n = 1; LP = P[s]['c']; low = 1.0; peak = 1
+    end = min(s + UD_MAXD, len(P))
+    for j in range(s + 1, end):
+        c = P[j]['c']
+        if n >= N or cash < pot * 0.999:
+            LP = P[j - 1]['c']
+            if c >= LP * (1 + U - n * st):
+                q = sh / n; sh -= q; cash += q * c * (1 - cost); n -= 1; LP = c
+        elif c <= LP * (1 - D - n * st):
+            cash -= pot; sh += pot * (1 - cost) / c; n += 1; LP = c
+        elif c >= LP * (1 + U - n * st):
+            q = sh / n; sh -= q; cash += q * c * (1 - cost); n -= 1; LP = c
+        peak = max(peak, n); low = min(low, cash + sh * c)
+        if n == 0:
+            return {'ret': (cash - 1) * 100, 'end': j, 'days': j - s, 'low': (low - 1) * 100, 'peak': peak, 'done': True}
+    j = end - 1
+    eq = cash + sh * P[j]['c'] * (1 - cost)
+    if s + UD_MAXD > len(P):                           # 아직 도는 중 — 다음 거래일에 걸 LOC
+        out = n >= N or cash < pot * 0.999
+        base = P[j]['c'] if out else LP
+        return {'run': {'since': P[s]['d'], 'n': n, 'out': out, 'ret': round((eq - 1) * 100, 1),
+                        'buy': None if out else round(base * (1 - D - n * st), 2),
+                        'sell': round(base * (1 + U - n * st), 2)}, 'end': j}
+    return {'ret': (eq - 1) * 100, 'end': j, 'days': UD_MAXD, 'low': (low - 1) * 100, 'peak': peak, 'done': False}
+
+
+def updown_past(B, I, P):
+    """노란 점(B로 판정) 다음 거래일에 P로 업다운을 시작했다면 — 한 종목에 한 사이클씩(도는 중에 켜진 노란 점은 건너뜀).
+       반환: 과거 결과 요약과 지금 상태(now: 도는 중이면 다음 LOC, 오늘 노란 점이 켜졌으면 내일 첫 매수 기준)"""
+    pidx = {b['d']: i for i, b in enumerate(P)}
+    rows = []; busy = -1; now = None
+    for i in range(len(B)):
+        if not is_dip(I, i) or (i > 0 and is_dip(I, i - 1)):
+            continue
+        pi = pidx.get(B[i]['d'])
+        if pi is None or pi + 1 <= busy:
+            continue
+        if pi + 1 >= len(P):                           # 오늘 켜짐 — 첫 매수는 다음 거래일 장 마감 LOC
+            now = {'pending': True, 'lim': round(P[pi]['c'] * 1.1, 2)}
+            continue
+        x = updown_cycle(P, pi + 1)
+        if not x:
+            continue
+        busy = x['end']
+        if 'run' in x:
+            now = x['run']
+        else:
+            rows.append(x)
+    if not rows:
+        return {'n': 0, 'now': now} if now else None
+    ret = [x['ret'] for x in rows]
+    return {'n': len(rows), 'from': P[0]['d'], 'D': UD_D, 'U': UD_U, 'pots': UD_POTS,
+            'mean': round(statistics.fmean(ret), 1), 'med': round(statistics.median(ret), 1),
+            'win': round(sum(r > 0 for r in ret) / len(ret) * 100), 'worst': round(min(ret), 1),
+            'days': round(statistics.median(x['days'] for x in rows)),
+            'used': round(statistics.fmean(x['peak'] for x in rows), 1),
+            'full': round(sum(x['peak'] >= UD_POTS for x in rows) / len(rows) * 100),
+            'low': round(min(x['low'] for x in rows), 1),
+            'undone': sum(not x['done'] for x in rows), 'now': now}
 
 
 # ───────────── 회복 여부 ─────────────

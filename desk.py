@@ -20,7 +20,7 @@ SPY는 SPY 자체로 센다(판정 규칙은 그대로 — 2026-11 사용자 결
 """
 import urllib.request, csv, io, json, time, datetime, sys
 from market import (UA, fetch, sma, stoch_k, cci, rsi_w, boll, indicators,   # 가격 받기 · 지표 · 노란 점은 종가 수집과 같이 쓴다
-                    is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS)
+                    is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, updown_past, ud_set)
 
 RULE = 'Rule v2.3'
 PAIRS = [('SPY', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 상품, 신호를 판정하는 기준자산) — 화면 순서
@@ -805,6 +805,8 @@ def dip_card(t, base, prod, bars):
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
          'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
+    if prod in ud_set():                               # 업다운으로 시작했다면 — 종목 탭과 같은 계산
+        r['ud'] = updown_past(B, I, P)
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),
