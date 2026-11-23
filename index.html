@@ -1266,7 +1266,7 @@ function render(){
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
             `<div class="dtm">${w.map(t=>`<i>${t}</i>`).join('')}`+
-            (UD.has(x.tk)?`<span class="dts">옐로우업다운 최소 <b>${x.p?money(udSlot(x.p)):'—'}</b></span>`:'')+`</div></div>`;};
+            (UD.has(x.tk)?`<span class="dts"><b>${x.p?money(udSlot(x.p)):'—'}</b></span>`:'')+`</div></div>`;};
           const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
           const fold=(t,a)=>a.length?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>${t}</summary>${a.map(row).join('')}</details>`:'';
           return ud.length?`<div class="dgl">옐로우업다운 ${ud.length}</div>`+ud.map(row).join('')+fold(`그 밖 ${etc.length}종목`,etc)
@@ -1299,7 +1299,7 @@ function render(){
         ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
     const udm=UD.has(tk), udTop=udm&&L&&L.dip&&L.dip.ud;   /* 옐로우업다운 칸을 카드 맨 위에 펼칠 수 있나 */
-    const rr=!p?'<div class="nopx">주가 입력</div>':udm?`<div class="a">${money(udSlot(p))}</div><div class="k">옐로우업다운 최소</div>`:'';
+    const rr=!p?'<div class="nopx">주가 입력</div>':udm?`<div class="a">${money(udSlot(p))}</div>`:'';   /* 필요 시드(옐로우업다운 최소 금액) — 이름 없이 금액만 (2026-11-23 사용자) */
 
     /* 시드 */
     let seed;
