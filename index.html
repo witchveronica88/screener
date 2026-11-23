@@ -854,10 +854,13 @@ let SCENS=[];
 
 let LIVE={}, STAMP=null, Q='';
 let DESK=null;
-let st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{},view:'desk'};
-try{const s=JSON.parse(localStorage.getItem(KEY));if(s)st={...st,...s,open:null,view:'desk'};}catch(e){}
+/* sort 'auto' = 직접 고르지 않음 → 옐로우닷이 켜진 종목이 있으면 추천순, 없으면 스위치 시드순.
+   예전에 저장된 기본값 'need'(직접 고른 표시 sortPick 없음)도 auto로 본다 */
+let st={grp:'all',sort:'auto',sortPick:0,px:{},open:null,help:0,fs:1,cust:{},view:'desk'};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s){st={...st,...s,open:null,view:'desk'};if(!s.sortPick)st.sort='auto';}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,
-  JSON.stringify({grp:st.grp,sort:st.sort,px:st.px,help:st.help,fs:st.fs,cust:st.cust,view:st.view}));}catch(e){}};
+  JSON.stringify({grp:st.grp,sort:st.sort,sortPick:st.sortPick,px:st.px,help:st.help,fs:st.fs,cust:st.cust,view:st.view}));}catch(e){}};
+const sortNow=()=>st.sort!=='auto'?st.sort:Object.values(LIVE).some(x=>x.dip&&x.dip.on)?'dip':'need';
 
 const priceOf=t=>{const v=st.px[t];
   if(v!==undefined&&v!==null&&v!=='')return parseFloat(v);
@@ -1171,14 +1174,15 @@ function render(){
   const nDip=rows.filter(r=>dipOf(r[0]).on).length;
   if(c)c.textContent=`${rows.length}종목`+(nDip?` · 옐로우닷 ${nDip}`:'');
 
+  const S=sortNow(), sel=document.getElementById('sort'); if(sel&&sel.value!==S)sel.value=S;
   const vis=[...withPx].sort((a,b)=>
-      st.sort==='tk'?a.r[0].localeCompare(b.r[0])
-     :st.sort==='sig'?sigOf(b.r[0],b.r[9])-sigOf(a.r[0],a.r[9])
-     :st.sort==='dip'?dipCmp(a.r[0],b.r[0])
-     :st.sort==='rsi'?(rsiOf(LIVE[a.r[0]])??999)-(rsiOf(LIVE[b.r[0]])??999)
-     :st.sort==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
-     :st.sort==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
-     :st.sort==='price'?(a.p??1e9)-(b.p??1e9)
+      S==='tk'?a.r[0].localeCompare(b.r[0])
+     :S==='sig'?sigOf(b.r[0],b.r[9])-sigOf(a.r[0],a.r[9])
+     :S==='dip'?dipCmp(a.r[0],b.r[0])
+     :S==='rsi'?(rsiOf(LIVE[a.r[0]])??999)-(rsiOf(LIVE[b.r[0]])??999)
+     :S==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
+     :S==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
+     :S==='price'?(a.p??1e9)-(b.p??1e9)
      :a.need-b.need);
 
   const tok=ghTok();
@@ -1289,7 +1293,7 @@ function render(){
       <div class="rmain">
         <div class="rl">
           <div class="rtop"><span class="tk">${tk}</span>${L&&L.dip&&L.dip.on?ydot(L.dip.run):''}${lev==='1x'?'':`<span class="lev">${lev.replace('x','배')}</span>`}${baseOf(L)?tkB(baseOf(L)):''}
-            <span class="nm">${nm}</span></div>
+            ${cus?'':`<span class="nm">${nm}</span>`}</div>
           ${met}
         </div>
         <div class="rr">${rr}</div>
@@ -1347,7 +1351,7 @@ ${secFold('about','종목 설명',`
             :(L&&L.mddCalc!=null)?`<span class="u">${L.mddCalc}%</span> <span class="q">${L.bars.toLocaleString()}일 실제 기록</span>`
             :'미검증'}</div></div>
           <div><div class="sk">${cus?'종목 정보':'구성 조회'}</div><div class="sv">${
-            cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>`
+            cus?`<a href="https://stockanalysis.com/stocks/${tk}/" target="_blank" rel="noopener">${tk}</a>${nm!==CUSTOM?` <span class="q">${nm}</span>`:''}`
             :ref&&ref!=='—'?`<a href="https://stockanalysis.com/etf/${ref}/holdings/" target="_blank" rel="noopener">${ref}</a>`
             :'<span class="q">없음</span>'}</div></div>
           ${cus?'':`<div class="wide"><div class="sk">구성</div><div class="sv">${cd[1]}</div></div>`}
@@ -1420,12 +1424,12 @@ const hb=document.getElementById('helpbtn'), hp=document.getElementById('help');
 function syncHelp(){hp.classList.toggle('show',!!st.help);hb.classList.toggle('on',!!st.help);}
 hb.onclick=()=>{st.help=st.help?0:1;save();syncHelp();};
 syncHelp();
-document.getElementById('sort').value=st.sort;
-document.getElementById('sort').onchange=e=>{st.sort=e.target.value;save();render();};
+document.getElementById('sort').value=sortNow();
+document.getElementById('sort').onchange=e=>{st.sort=e.target.value;st.sortPick=1;save();render();};
 document.getElementById('reset').onclick=()=>{
   try{localStorage.removeItem(KEY);}catch(e){}
-  st={grp:'all',sort:'need',px:{},open:null,help:0,fs:1,cust:{},view:st.view};
-  document.getElementById('sort').value='need';applyFs();syncHelp();tabs();render();
+  st={grp:'all',sort:'auto',sortPick:0,px:{},open:null,help:0,fs:1,cust:{},view:st.view};
+  document.getElementById('sort').value=sortNow();applyFs();syncHelp();tabs();render();
 };
 const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const qi=document.getElementById('q'), qx=document.getElementById('qx');
