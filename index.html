@@ -103,7 +103,8 @@ input,select,button{font-family:inherit}
 .met{display:flex;gap:4px 10px;margin-top:7px;font-family:var(--mono);
      font-size:var(--fs-s);color:var(--ink3);flex-wrap:wrap}
 .met .g{color:var(--up)}.met .r{color:var(--dn)}.met .w{color:var(--warn)}
-.met .dip{background:var(--st-watch);color:var(--ink);border-radius:20px;padding:0 9px;font-family:var(--sans);font-weight:600}
+.yd{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2);flex-shrink:0;align-self:center}
+.ydn{font-size:var(--fs-s);font-weight:600;color:var(--ink2);margin-left:-4px;font-family:var(--mono)}
 .rr{text-align:right;flex-shrink:0}
 .rr .a{font-family:var(--mono);font-size:var(--fs-l);font-weight:600;color:var(--ink)}
 .rr .b{font-family:var(--mono);font-size:var(--fs-m);color:var(--ink2);margin-top:2px}
@@ -126,6 +127,7 @@ input,select,button{font-family:inherit}
 details.fold>summary.sec::after{margin-left:auto}
 .bdg{font-style:normal;font-size:var(--fs-s);font-weight:700;border-radius:5px;padding:1px 7px;background:var(--s2);color:var(--ink2);flex-shrink:0}
 .bdg.on{background:var(--st-watch);color:var(--ink)}
+.ydw{display:inline-flex;align-items:center;gap:4px}.ydw .ydn{margin-left:0}
 /* 읽는 법 — 칸 맨 아래 작은 접는 줄 */
 details.more{margin-top:10px}
 details.more>summary{list-style:none;cursor:pointer;font-size:var(--fs-s);color:var(--ink3);padding:6px 0}
@@ -268,17 +270,18 @@ details.fold[open]>summary::after{content:'－'}
 .dtr{padding:9px 0;border-top:1px solid var(--s2);cursor:pointer;row-gap:4px}
 .dtn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dtn .nm{font-size:var(--fs-s);color:var(--ink3)}
-.dpc{display:block;text-align:center;font-size:var(--fs-s);font-weight:700;line-height:var(--lh-t);padding:2px 0;border-radius:5px;font-family:var(--mono)}
-.dpc.hi{background:var(--up);color:var(--onInk)}
-.dpc.mid{background:var(--upDim);color:var(--up)}
-.dpc.lo{background:var(--s2);color:var(--ink2)}
-.dpc.na{color:var(--ink3);font-weight:400}
-.dpc.few{outline:1.5px dashed var(--ink3);outline-offset:-1.5px}
+/* 20일·60일 비율 — 칸 없이 글자색만: 80% 이상 굵은 초록 · 60~79% 초록 · 그 아래 회색. 과거 10번 미만은 점선 밑줄 */
+.dpc{display:block;text-align:center;font-size:var(--fs-s);font-weight:500;line-height:var(--lh-t);font-family:var(--mono);color:var(--ink2)}
+.dpc.hi{color:var(--up);font-weight:700}
+.dpc.mid{color:var(--up)}
+.dpc.na{color:var(--ink3)}
+.dpc.few{text-decoration:underline dotted var(--ink3);text-underline-offset:3px}
 .dtm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t)}
 .dts{margin-left:auto;white-space:nowrap}.dts b{color:var(--ink);font-family:var(--mono)}
 .dtw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:3px 6px}
 .dtw i{font-style:normal;font-size:var(--fs-s);line-height:var(--lh-t);color:var(--warn);background:var(--s2);border-radius:5px;padding:1px 6px}
 .dth>span:first-child{text-align:left;font-weight:400;color:var(--ink3)}
+.dgl{font-size:var(--fs-s);font-weight:700;color:var(--ink2);padding:8px 0 0}
 .dmore>summary{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--s2);font-size:var(--fs-s);font-weight:700;color:var(--ink2)}
 .dmore[open]>summary{border-bottom:1px solid var(--s2)}
 .dnear{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 0;border-top:1px solid var(--s2);font-size:var(--fs-s);color:var(--ink3)}
@@ -473,8 +476,8 @@ details.fold[open]>summary::after{content:'－'}
 /* 요약: 세 줄의 단계 막대는 칸이 같으므로 이름(평소·옐로우닷…)은 첫 줄에만 — 나머지는 점만 */
 .fsum .flow{padding:10px 16px 8px;margin-bottom:6px}
 .fsum .flow .fh .tk{line-height:var(--lh-t)}
-.fsum .fbody{align-items:flex-end;margin-top:2px}
-.fsum .fpv{margin:1px 0}.fsum .fpast .dpc{padding:0 6px}
+.fsum .fbody{align-items:center;margin-top:2px}
+.fsum .fpv{margin:1px 0}
 .mrow{display:block;background:var(--s1);border:1px solid var(--bd);border-radius:14px;
       padding:12px 16px 9px;margin-bottom:12px;overflow-wrap:anywhere}
 .mrow .mh{display:flex;align-items:center;gap:10px}
@@ -488,7 +491,8 @@ details.fold[open]>summary::after{content:'－'}
 .fsv b{color:var(--ink)}
 .fpast{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh-t)}
 .fpv{display:flex;align-items:center;gap:6px;margin:2px 0}
-.fpast .dpc{display:inline-block;font-size:var(--fs-s);padding:1px 7px}
+.fpast .dpc{display:inline}
+.fpv{flex-wrap:wrap;column-gap:7px}.fpv .fg{white-space:nowrap}
 .sdot{display:inline-block;margin-right:5px;vertical-align:middle}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2)}
 svg.mini{display:block}
@@ -608,6 +612,8 @@ svg.mini{display:block}
 
   <div class="hcard">
     <h4>옐로우닷</h4>
+    <div class="hitem" data-k="dip chart"><div class="hterm">노란 점 아이콘 · +N · 상자 차례</div>
+      <div class="hdef">목록·상자·상황판의 노란 점 아이콘은 옐로우닷이 켜졌다는 뜻입니다. 옆의 <b>+N</b>은 켜진 뒤 N거래일째 계속 켜져 있다는 뜻이고, 처음 켜진 날은 숫자 없이 점만 보입니다. 종목 탭 맨 위 상자는 옐로우업다운을 할 수 있는 9종목을 먼저 모두 보여 주고, 나머지는 '그 밖 N종목'에 접어 둡니다. 20일 · 60일 숫자는 과거에 다음 날 샀다면 +10%에 닿은 비율로, 굵은 초록은 80% 이상, 초록은 60~79%, 점선 밑줄은 과거 횟수가 10번보다 적어 믿기 어렵다는 뜻입니다. 기초자산(남색 꼬리표, 예: SOXL의 SOXX)은 목록 줄 머리에 한 번만 적습니다. 옐로우닷·RSI·회복 여부는 기초자산으로, 변동성·유동성·SOXL 상관·그래프·시드·급락 위험은 그 종목 자체 가격으로 잽니다.</div></div>
     <div class="hitem" data-k="dip chart"><div class="hterm">옐로우닷 — 매수 기회 표시 <small>(예전 이름: 노란 점)</small></div>
       <div class="hdef">세 지표가 모두 <b>바닥권</b>에 들어간 날. 바닥권은 지표마다 기준선 아래라는 뜻으로, 짧은 사이에 너무 많이 빠졌다는 신호입니다(과매도): <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 옐로우닷과 같은 계산입니다. 종목 탭 맨 위 상자에는 지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 누르면 그 종목으로 갑니다. 켜진 종목은 <b>추천순</b>으로 위 5개만 펼쳐 두고 나머지는 '나머지 N종목'을 누르면 보입니다. 추천순은 이렇습니다: 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 20거래일 안 +10% 도달률이 높은 순 → 60거래일 안 +10% 도달률이 높은 순. 과거 옐로우닷이 10번보다 적으면 비율을 믿기 어려워 경고 하나로 셉니다. 목록 정렬의 '옐로우닷 추천순'도 같은 순서입니다. 순서는 고르는 참고일 뿐이고 판단은 직접 합니다. 표의 20일 · 60일 칸은 과거에 옐로우닷 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율이고, 80% 이상은 진한 초록, 60~79%는 옅은 초록입니다. 과거 횟수가 10번보다 적으면 점선 테두리를 둘러 믿기 어렵다고 표시합니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="ud"><div class="hterm">옐로우업다운</div>
@@ -742,13 +748,13 @@ function priceChart(d,tk){
   const ch=d&&d.chart; if(!ch||ch.c.length<5)return '';
   const c=ch.c, n=c.length, W=300, H=96, tg=ch.tg||[], all=c.concat(tg.map(t=>t.y)), lo=Math.min(...all), hi=Math.max(...all);
   const X=i=>6+(W-12)*i/(n-1), Y=v=>8+(H-16)*(1-(v-lo)/(hi-lo||1)), m=x=>`${+x.slice(5,7)}/${+x.slice(8)}`;
-  return `<div class="pchart"><div class="cap"><span>$${hi}</span><span>${d.base&&tk?tkP(tk)+' ':''}최근 3개월 종가</span></div>
+  return `<div class="pchart"><div class="cap"><span>$${hi}</span><span>최근 3개월 종가</span></div>
     <svg viewBox="0 0 ${W} ${H}"><path class="ln" d="${c.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('')}"/>${
       ch.dot.map(i=>`<circle class="dot" cx="${X(i).toFixed(1)}" cy="${Y(c[i]).toFixed(1)}" r="3.4"/>`).join('')+
       tg.map(t=>`<line class="tgl" x1="${X(t.a).toFixed(1)}" x2="${X(t.b).toFixed(1)}" y1="${Y(t.y).toFixed(1)}" y2="${Y(t.y).toFixed(1)}"/>`+
         (t.hit!=null?`<path class="tgk" d="${ckPath(X(t.hit),Y(t.y)-6)}"/>`:'')).join('')}</svg>
     <div class="cap"><span>$${Math.min(...c)}</span><span>${m(ch.from)} ~ ${m(ch.to)}</span></div>
-    <div class="pl"><i></i>${ch.dot.length?'이 기간 옐로우닷 '+ch.dot.length+'일':'이 기간 옐로우닷 없음'}${d.base?' · '+tkB(d.base)+' 기준으로 판정':''}</div>${
+    <div class="pl"><i></i>${ch.dot.length?'이 기간 옐로우닷 '+ch.dot.length+'일':'이 기간 옐로우닷 없음'}</div>${
     tg.length?`<div class="pl"><b class="tgi"></b>+10% 목표가 <small>(옐로우닷 다음 날 샀다면)</small></div>`+
       (tg.some(t=>t.hit!=null)?`<div class="pl"><svg class="ck" viewBox="0 0 14 14"><path class="tgk" d="${ckPath(7,8)}"/></svg>목표가에 닿은 날</div>`:''):''}</div>`;
 }
@@ -783,7 +789,7 @@ const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
    걸리는 것 = 경고 칩 수 + 과거 옐로우닷이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
 const DIP_FEW=10, DIP_TOP=5;   /* 옐로우닷 상자는 추천순 위 5개만 펼쳐 두고 나머지는 '나머지 N종목'으로 접는다 */
 const dipKey=tk=>{const d=dipOf(tk), p=d.past, nF=p?(p.nF??p.n):0;
-  return [warnTags(tk,LIVE[tk]).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
+  return ['ud' in d?0:1, warnTags(tk,LIVE[tk]).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
 const keyCmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
 /* 목록 정렬 '옐로우닷 추천순': 켜진 종목을 추천순으로 → 최근에 꺼진 순 → 옐로우닷 기록 없음 */
 const dipCmp=(a,b)=>{const x=dipOf(a), y=dipOf(b);
@@ -836,7 +842,7 @@ const RECCLS={'회복':'r-ok','부분회복':'r-part','미회복':'r-no','이력
    개별주는 자기 가격으로 판정한다 */
 const recOf=(L,cus)=>cus?((L&&L.dd!=null)?(L.dd>=-10?'회복':L.dd>=-40?'부분회복':'미회복'):'—'):(L&&L.rec?L.rec.v:'—');
 const recNote=(L,cus)=>cus?(L&&L.dd!=null?'고점 대비 '+L.dd+'%':''):
-  L&&L.rec?(L.rec.by?tkB(L.rec.by)+' ':'')+'고점 대비 '+L.rec.dd+'%'+(L.rec.v==='이력부족'?' · '+L.rec.bars+'거래일':''):'';
+  L&&L.rec?'고점 대비 '+L.rec.dd+'%'+(L.rec.v==='이력부족'?' · '+L.rec.bars+'거래일':''):'';
 /* 최대낙폭 — 3년 넘게 쌓인 실측이 있으면 그걸, 없으면 마스터 값 */
 const mddLive=L=>L&&L.mddCalc!=null&&L.bars>=750;
 let SCENS=[];
@@ -896,7 +902,7 @@ const okIcon=ok=>`<i class="${ok===true?'y':ok===false?'n':''}">${ok===true?'✓
 function critTiles(crit,r,L,live,cus,sig){
   const [cv,cr,cl,cc]=crit, tile=(c,name,val,bar,cap)=>
     `<div class="cti"><div class="ch">${okIcon(c[0])}<span>${name}</span><b>${val}</b></div>${bar}${cap?`<div class="cc">${cap}</div>`:''}</div>`;
-  const b=baseOf(L), me=b?tkP(r[0])+' ':'';   /* 레버리지 상품이면 상품 자체 값에 회색 꼬리표 */
+  const me='';   /* 어느 가격으로 쟀는지는 목록 줄 머리의 기초자산 꼬리표 하나와 '읽는 법'으로 — 타일마다 되풀이하지 않는다 */
   const s1=Math.round(sig*10)/10, rv=recOf(L,cus), rdd=cus?(L&&L.dd):(L&&L.rec?L.rec.dd:null),
         lv=lqOf(r,L), co=L&&L.corr!=null?L.corr:null;
   return `<div class="ctg">`+
@@ -949,7 +955,7 @@ function dipBlock(d,tk){
   const off=d.on?'':`<div class="dst">${d.last?`마지막 ${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)} · 그 뒤 ${pc(d.last.pmv??d.last.mv)}`:'최근 1년 없음'}</div>`;
   const col=(nm,v,lo,hi,th)=>`<div><div class="dmr"><span>${nm}</span><b class="${v<=th?'y':''}">${v<=th?'✓ ':''}${Math.round(v)}</b></div>${meter(v,lo,hi,{zones:[[lo,th,'y']]})}</div>`;
   const cond=`<div class="dcd"><div class="d3">`+col('빠르기',d.k,0,100,20)+col('벗어남',d.cci,-250,250,-100)+col('힘',d.rsi,0,100,30)+
-    `</div>${d.base?`<div class="cc">${tkB(d.base)} 기준</div>`:''}</div>`;
+    `</div></div>`;
   return off+cond+dipPast(d.past,d.base?tk+eul(tk):'');
 }
 /* 옐로우업다운 과거 결과 — 옐로우닷 다음 날 1포트로 시작, 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%).
@@ -1222,14 +1228,16 @@ function render(){
     const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">옐로우닷 켜진 종목 ${on.length}</div>
       ${on.length?`<div class="dtb"><div class="dth"><span>추천순 · +10% 닿은 비율</span><span>20일</span><span>60일</span></div>`+
-        on.map((x,k)=>{const p=x.d.past;
-          return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${x.d.base?' '+tkB(x.d.base):''}</div>`+
+        (()=>{const row=x=>{const p=x.d.past;
+          return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${x.d.run>1?`<small class="ydn">+${x.d.run-1}</small>`:''}${x.d.base?' '+tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
-            `<div class="dtm"><span>${x.r[1]} · ${x.d.run>1?x.d.run+'일째':'오늘'} · ${p?`과거 ${p.n}번${p.n<10?' (적음)':''}`:'과거 기록 없음'}</span>`+
+            `<div class="dtm"><span>${x.r[1]}${p&&p.n<10?' · 과거 적음':''}</span>`+
             `<span class="dts">스위치 시드 <b>${x.p?money(seedMin(x.p)):'—'}</b></span></div>`+
-            (x.w.length?`<div class="dtw">${x.w.map(w=>`<i>${w}</i>`).join('')}</div>`:'')+`</div>`+
-            (k===DIP_TOP-1&&on.length>DIP_TOP?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>나머지 ${on.length-DIP_TOP}종목</summary>`:'')+
-            (k===on.length-1&&on.length>DIP_TOP?'</details>':'');}).join('')+`</div>`
+            (x.w.length?`<div class="dtw">${x.w.map(w=>`<i>${w}</i>`).join('')}</div>`:'')+`</div>`;};
+          const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
+          const fold=(t,a)=>a.length?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>${t}</summary>${a.map(row).join('')}</details>`:'';
+          return ud.length?`<div class="dgl">옐로우업다운 ${ud.length}</div>`+ud.map(row).join('')+fold(`그 밖 ${etc.length}종목`,etc)
+            :etc.slice(0,DIP_TOP).map(row).join('')+fold(`나머지 ${etc.length-DIP_TOP}종목`,etc.slice(DIP_TOP));})()+`</div>`
         :'<div class="none">지금 켜진 종목이 없습니다.</div>'}
       ${near.length?`<div class="dnear"><span>최근 3거래일 안에 꺼짐 · 그 뒤</span>${
         near.map(x=>`<b data-go="${x.tk}">${x.tk} <em class="${mv(x)>0?'up':mv(x)<0?'dn':''}">${mv(x)>0?'+':''}${mv(x)}%</em></b>`).join('')}</div>`:''}
@@ -1254,14 +1262,12 @@ function render(){
     const met=L?`<div class="met">
         <span>$${L.price}</span>
         ${L.chg!=null?`<span class="${sgn(L.chg)}">${L.chg>0?'+':''}${L.chg}%</span>`:''}
-        ${rsi!=null?`<span class="${rsiC}">${rsiBy(L)?tkB(rsiBy(L).trim())+' ':''}RSI ${rsi}</span>`:''}
-        ${L.dd1y!=null?`<span>1년 ${L.dd1y}%</span>`:''}
-        ${L.dip&&L.dip.on?`<span class="dip">옐로우닷${L.dip.run>1?' '+L.dip.run+'일째':''}</span>`:''}
+        ${rsi!=null?`<span class="${rsiC}">RSI ${rsi}</span>`:''}
         ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
     const rr=(p?`<div class="a">${money(need)}</div>
         <div class="k">스위치 시드</div>`:'<div class="nopx">주가 입력</div>')
-        +`<div class="k cd4">${crit.map(([ok])=>`<i class="${ok===true?'y':ok===false?'n':''}"></i>`).join('')} ${pass}/4</div>`;
+        +`<div class="k cd4">${crit.map(([ok])=>`<i class="${ok===true?'y':ok===false?'n':''}"></i>`).join('')}</div>`;
 
     /* 시드 */
     let seed;
@@ -1276,16 +1282,16 @@ function render(){
     return `<div class="row${op?' open':''}" data-tk="${tk}">
       <div class="rmain">
         <div class="rl">
-          <div class="rtop"><span class="tk">${tk}</span>${lev==='1x'?'':`<span class="lev">${lev.replace('x','배')}</span>`}${baseOf(L)?tkB(baseOf(L)):''}
+          <div class="rtop"><span class="tk">${tk}</span>${L&&L.dip&&L.dip.on?ydot(L.dip.run):''}${lev==='1x'?'':`<span class="lev">${lev.replace('x','배')}</span>`}${baseOf(L)?tkB(baseOf(L)):''}
             <span class="nm">${nm}</span></div>
           ${met}
         </div>
         <div class="rr">${rr}</div>
       </div>
-      ${op?`<div class="det">${baseNote(tk,baseOf(L))}
+      ${op?`<div class="det">
 ${secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
 ${caut.length?secOpen('caut',`주의 ${caut.length}`,cautChips(tk,caut)):''}
-${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름',rangeBar(L,baseOf(L)?tk:'')+(L.dip?priceChart(L.dip,tk):'')):''}
+${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름',rangeBar(L,'')+(L.dip?priceChart(L.dip,tk):'')):''}
 ${(p?secFold:secOpen)('seed','스위치법',(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1회 주식 수</span><b>${R.n0}주</b></div><div><span>나눠 사기</span><b>${DIV}번</b></div></div>`+
           ul([`최소 시드 = 1회 매수금(시드 ÷ ${DIV})으로 ${MIN_SH}주를 살 수 있는 가장 작은 금액 <small>(주가 × ${MIN_SH}주 × ${DIV}분할, $100 단위 올림)</small>`,
             '시드는 고정이라 주가가 오르면 1회에 사는 주식 수가 줄어듭니다']))(rungOf(need,p)):seed)+`
@@ -1294,7 +1300,7 @@ ${(p?secFold:secOpen)('seed','스위치법',(p?(R=>`<div class="sd"><div><span>1
                  value="${p??''}" data-px="${tk}">
           ${isManual(tk)&&L?`<button class="autobtn" data-auto="${tk}">자동값</button>`
             :L?'<span class="auto">매일 종가로 자동</span>':'<span class="auto">직접 넣은 값</span>'}</div>`)}
-${L&&L.dip?secFold('dip','옐로우닷',dipBlock(L.dip,tk),L.dip.on?badge(L.dip.run>1?`켜짐 ${L.dip.run}일째`:'켜짐','on'):''):''}
+${L&&L.dip?secFold('dip','옐로우닷',dipBlock(L.dip,tk),L.dip.on?`<span class="ydw">${ydot(L.dip.run)}</span>`:''):''}
 ${L&&L.dip&&L.dip.ud?secFold('ud','옐로우업다운',udFold(L.dip.ud,tk,p)):''}
 ${cus&&FUND[tk]?(F=>secFold('fund','재무',(!F.na&&!F.self&&F.runway!=null?`<div class="dmr"><span>현금 여유 기간</span><b class="${runwayOf(F)<RUNWAY_MIN?'r':''}">${fmtMon(runwayOf(F))}</b></div>${meter(Math.min(runwayOf(F),36),0,36,{fill:1,cls:runwayOf(F)<RUNWAY_MIN?'r':'g',mark:RUNWAY_MIN})}<div class="cc">${RUNWAY_MIN}개월보다 짧으면 주의${F.runwayAfter!=null?` · 조달 전 ${fmtMon(F.runway)}`:''}</div>`:'')+`
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
@@ -1454,6 +1460,8 @@ function showRow(tk){
 }
 /* 티커 꼬리표 — 남색(tkB)은 기초자산으로 판정한 값, 회색(tkP)은 상품 자체 가격으로 잰 값 */
 const tkB=t=>`<span class="tkb">${t}</span>`, tkP=t=>`<span class="tkp">${t}</span>`;
+/* 옐로우닷 — 글자 대신 노란 점 아이콘 하나. 연달아 켜져 있으면 +N(켜진 뒤 지난 거래일 수) */
+const ydot=run=>`<i class="yd" aria-label="옐로우닷"></i>${run>1?`<small class="ydn">+${run-1}</small>`:''}`;
 const baseOf=L=>L&&((L.dip&&L.dip.base)||(L.rec&&L.rec.by))||null;
 /* 레버리지 상품 펼친 칸 맨 위: 무엇을 어느 가격으로 계산했는지 */
 /* 범례 한 줄 — 무엇을 어느 가격으로 쟀는지 자세한 목록은 용어 설명 '무엇으로 판정하나'에 */
@@ -1494,7 +1502,7 @@ function deskChart(c){
     if(d.marks.includes('ro')){seen.add('ro');g+=`<circle class="mk-ro" cx="${X(i)}" cy="${Y(d.l)+7}" r="2.5"/>`;}
     if(d.marks.includes('tg')){seen.add('tg');g+=`<path class="tgk" d="${ckPath(X(i),Y(d.h)-10)}"/>`;}
   });
-  let h=`<div class="dchart" data-p="${c.prod}"><div class="cap"><span>${tkB(c.base)} 최근 1개월 가격</span>`+
+  let h=`<div class="dchart" data-p="${c.prod}"><div class="cap"><span>최근 1개월 가격</span>`+
     `<span class="mono">$${lo.toFixed(0)}~${hi.toFixed(0)}</span></div>`+svg(PH,g);
   /* 옐로우닷 띠 */
   h+=`<div class="cap"><span>날짜별 옐로우닷 (누르면 그날 값)</span><span class="mono">${md(H[0].d)}~${md(H[n-1].d)}</span></div>`+
@@ -1604,16 +1612,17 @@ function miniChart(vals,o={}){
 }
 const statIcon=c=>c==='dot'?'<i class="sdot"></i>':'';
 /* 상태 줄 머리 — 기준자산 · 과거 결과 상품 · 옐로우닷 상태 · 오늘 등락 (desk.py stage_of) */
-const fhead=(c,g)=>`<div class="fh"><span class="tk">${c.base}</span>${c.prod!==c.base?tkP(c.prod):''}<span class="fn ${g.cls}">${g.text}</span>`+
-  (c.ind?`<span class="dpx ${sc(c.ind.chg)}">오늘 ${sg(c.ind.chg)}</span>`:'')+`</div>`;
-const fud=(c,g)=>g.ud?`<div class="fud"><span>옐로우업다운</span> ${g.up&&g.up!==c.prod?tkP(g.up)+' ':''}<b>${g.ud}</b></div>`:'';
+const fhead=(c,g)=>`<div class="fh"><span class="tk">${c.base}</span>${c.prod!==c.base?tkP(c.prod):''}`+
+  (g.on&&c.dip?`<span class="ydw">${ydot(c.dip.run)}</span>`:g.cls==='wait'?`<span class="fn wait">${g.text}</span>`:'')+
+  (c.ind?`<span class="dpx ${sc(c.ind.chg)}">${sg(c.ind.chg)}</span>`:'')+`</div>`;
+const fud=(c,g)=>g.ud?`<div class="fud">옐로우업다운 ${g.up&&g.up!==c.prod?tkP(g.up)+' ':''}${g.ud}</div>`:'';
 /* 요약 줄 — 옐로우닷 상태 · 과거 결과(켜진 날) 또는 마지막 옐로우닷 뒤 · 옐로우업다운 · 1개월 작은 그래프 */
 function sumRow(c){
   const g=c.stage||{cls:'wait',text:c.line||'자료 확인 중',stats:[]}, H=c.hist||[];
   const chart=H.length>2?miniChart(H.map(x=>x.c),{label:'1개월',dots:H.map((x,i)=>x.dot?i:-1).filter(i=>i>=0)}):'';
   const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
   const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,val,icn])=>`<div class="fsv">${statIcon(icn)}<span>${k}</span> <b>${val}</b></div>`).join('');
-  const past=v?`<div class="fpast">${v[0]!=null?`<div class="fpv"><span>과거 +10% · 20일 안</span>${pctCell(v[0])}</div>`:''}${v[1]!=null?`<div class="fpv"><span>과거 +10% · 60일 안</span>${pctCell(v[1])}</div>`:''}</div>`:'';
+  const past=v?`<div class="fpast"><div class="fpv"><span>+10%</span>${v[0]!=null?`<span class="fg">20일 ${pctCell(v[0])}</span>`:''}${v[1]!=null?`<span class="fg">60일 ${pctCell(v[1])}</span>`:''}</div></div>`:'';
   return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${past}${st}</div>${chart}</div>${fud(c,g)}</div>`;
 }
 /* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · SPY·QQQ·SOXX 세 줄 · VIX 한 줄. 아래는 접는 칸 */
