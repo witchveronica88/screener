@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """계산 시험 — `python3 tests.py`. 인터넷 없이 돈다.
 
-지표(%K·CCI·RSI), 노란 점, 회복 여부, SCR 신호, VIX 상태, etfs.json 형식을 확인한다.
+지표(%K·CCI·RSI), 옐로우닷(예전 옐로우닷), 회복 여부, 옐로우업다운, 상황판 상태·결론 문장, etfs.json 형식을 확인한다.
 GitHub에서는 .py·etfs.json·test_data.json이 바뀔 때마다 자동으로 돈다(.github/workflows/test.yml).
 """
 import json, unittest
@@ -65,7 +65,7 @@ class YellowDot(unittest.TestCase):
         self.assertFalse(market.is_dip(I, 3))     # 값이 없으면 꺼짐
 
     def test_dip_past_counts_runs_once(self):
-        # 노란 점이 사흘 연달아 켜지면 한 번으로 센다. 그다음 날 시가에 사서 +10%에 닿으면 도달
+        # 옐로우닷이 사흘 연달아 켜지면 한 번으로 센다. 그다음 날 시가에 사서 +10%에 닿으면 도달
         n = 80
         on = [5, 6, 7]
         I = ind([10 if i in on else 50 for i in range(n)], [-150 if i in on else 0 for i in range(n)],
@@ -113,47 +113,6 @@ class Recovery(unittest.TestCase):
         self.assertIsNone(market.recovery([]))
 
 
-class ScrSignals(unittest.TestCase):
-    def test_strict_recovery(self):
-        # 전날 세 지표가 모두 과매도, 오늘 모두 기준선 위 → 엄격 동시 회복
-        I = ind([50, 10, 30], [0, -150, -50], [50, 25, 35])
-        sigs, setup = desk.scr_signals(bars([100, 90, 92]), I)
-        self.assertEqual([(s['side'], s['i'], s['strict']) for s in sigs], [('up', 2, True)])
-        self.assertEqual(sigs[0]['ext'], 90)     # 관찰 저점 = 준비~회복 구간의 최저 종가
-        self.assertIsNone(setup['up'])
-
-    def test_sequential_recovery(self):
-        # 세 지표가 며칠에 걸쳐 차례로 올라오면 순차 회복
-        I = ind([10, 30, 30, 30], [-150, -150, -50, -50], [25, 25, 25, 35])
-        sigs, _ = desk.scr_signals(bars([100, 95, 96, 97]), I)
-        self.assertEqual([(s['i'], s['strict']) for s in sigs], [(3, False)])
-
-    def test_setup_expires(self):
-        # 준비 뒤 10거래일 안에 회복하지 못하면 만료
-        n = 14
-        I = ind([10] + [30] * (n - 1), [-150] * n, [25] * n)
-        sigs, setup = desk.scr_signals(bars([100.0] * n), I)
-        self.assertEqual(sigs, [])
-        self.assertIsNone(setup['up'])
-
-
-class Vix(unittest.TestCase):
-    def V(self, closes):
-        return [{'d': str(i), 'o': c, 'h': c, 'l': c, 'c': c} for i, c in enumerate(closes)]
-
-    def test_spike_is_worse(self):
-        self.assertEqual(desk.vix_state(self.V([20] * 8 + [22.1]))['st'], 'worse')     # 하루 +10.5%
-
-    def test_two_up_above_avg_is_worse(self):
-        self.assertEqual(desk.vix_state(self.V([20] * 6 + [21, 22]))['st'], 'worse')
-
-    def test_two_down_below_avg_is_confirm(self):
-        self.assertEqual(desk.vix_state(self.V([20] * 5 + [25, 19, 18]))['st'], 'confirm')
-
-    def test_flat_is_neutral(self):
-        self.assertEqual(desk.vix_state(self.V([20] * 9))['st'], 'neutral')
-
-
 class FillLast(unittest.TestCase):
     """야후 일봉이 아직 안 올라왔을 때 시세 요약(meta)으로 마지막 하루만 채운다"""
     def setUp(self):
@@ -185,7 +144,7 @@ class FillLast(unittest.TestCase):
 
 
 class DipTargets(unittest.TestCase):
-    """노란 점 다음 날 시가에 샀다면 +10% 목표가와 처음 닿은 날"""
+    """옐로우닷 다음 날 시가에 샀다면 +10% 목표가와 처음 닿은 날"""
     def test_hit_day(self):
         B = bars([100] * 10)
         I = ind([50, 50, 10, 50, 50, 50, 50, 50, 50, 50], [0, 0, -150] + [0] * 7, [50, 50, 20] + [50] * 7)
@@ -204,7 +163,7 @@ class DipPast20(unittest.TestCase):
     def test_both_targets(self):
         P = bars([10, 10, 10, 10, 10.5, 11.2, 12.2, 12, 12, 12], spread=0.1)   # 산 값 10 → 5번 +10%, 6번 +20%
         p = market.dip_past(bars([100] * 10), self.I, P)
-        self.assertEqual((p['hit'], p['medD'], p['hit20'], p['medD20'], p['n20']), (100, 3, 100, 4, 1))   # 노란 점 날부터 센 거래일
+        self.assertEqual((p['hit'], p['medD'], p['hit20'], p['medD20'], p['n20']), (100, 3, 100, 4, 1))   # 옐로우닷 날부터 센 거래일
 
     def test_pending_second_target_left_out(self):
         P = bars([10, 10, 10, 10, 10.5, 11.2, 11.2, 11, 11, 11], spread=0.1)   # +10%만 닿았고 기간은 진행 중
@@ -224,11 +183,11 @@ class DipPastFast(unittest.TestCase):
     """20거래일 안 +10%(hitF): 20일이 지났으면 60일이 안 끝났어도 세고, 21일째 닿은 건은 20일 기준으로는 못 닿음"""
     def run_case(self, closes):
         n = len(closes)
-        I = ind([10] + [50] * (n - 1), [-150] + [0] * (n - 1), [20] + [50] * (n - 1))   # 0번 날만 노란 점
+        I = ind([10] + [50] * (n - 1), [-150] + [0] * (n - 1), [20] + [50] * (n - 1))   # 0번 날만 옐로우닷
         return market.dip_past(bars([100] * n), I, bars(closes, spread=0.1))
 
     def test_late_hit_counts_only_for_60(self):
-        p = self.run_case([10] * 22 + [11.5] + [11] * 50)           # 산 값 10, 22번(노란 점 뒤 22거래일)에 +10%
+        p = self.run_case([10] * 22 + [11.5] + [11] * 50)           # 산 값 10, 22번(옐로우닷 뒤 22거래일)에 +10%
         self.assertEqual((p['hit'], p['hitF'], p['nF'], p['missF']), (100, 0, 1, 1))
         self.assertEqual(p['missAvgF'], 0.0)                         # 20거래일 뒤 종가 10 → 0%
 
@@ -248,7 +207,7 @@ class DipPastFast(unittest.TestCase):
 
 
 class UpDown(unittest.TestCase):
-    """옐로우업다운(노란 점 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
+    """옐로우업다운(옐로우닷 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
     def P(self, closes):
         return [{'d': f'2026-01-{i + 1:02d}', 'o': c, 'h': c, 'l': c, 'c': c} for i, c in enumerate(closes)]
 
@@ -285,7 +244,7 @@ class UpDown(unittest.TestCase):
 
 
 class UvixDip(unittest.TestCase):
-    """UVIX 노란 점(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
+    """UVIX 옐로우닷(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
     def test_shape(self):
         with open('test_data.json', encoding='utf-8') as f:
             fx = json.load(f)
@@ -318,19 +277,6 @@ class UpToDate(unittest.TestCase):
         self.assertTrue(self.check(['2026-11-20'], '2026-11-21T05:17+00:00'))        # 토요일 → 금요일 종가
 
 
-class UvixCycle(unittest.TestCase):
-    def test_low_day_high_is_not_a_rebound(self):
-        """새 최저가를 찍은 날의 장중 고가는 저점보다 먼저 나온 값 — +10% 닿음으로 치지 않는다"""
-        U = bars([50] * 40 + [60] * 5 + [45])
-        U[-1]['h'] = 55                                   # 45 × 1.1 = 49.5 넘음
-        cy = desk.uvix_card(U, [])['cycle']
-        self.assertEqual((cy['day'], cy['low']), (1, 45))
-        self.assertFalse(cy['hiHit'])
-        U2 = bars([50] * 40 + [60] * 5 + [45, 46])
-        U2[-2]['h'], U2[-1]['h'] = 55, 50                 # 다음 날 장중 50 ≥ 49.5
-        self.assertTrue(desk.uvix_card(U2, [])['cycle']['hiHit'])
-
-
 class EtfList(unittest.TestCase):
     def test_etfs_json(self):
         with open('etfs.json', encoding='utf-8') as f:
@@ -355,57 +301,44 @@ class EtfList(unittest.TestCase):
         self.assertEqual([e['tk'] for e in j['etfs'] if not e.get('base')], ['AIBU'])
 
 
-class FlowStage(unittest.TestCase):
-    def card(self, state, sig=None, dip=None, setup=None, weak=False, prod='SOXL'):
-        return {'prod': prod, 'base': 'SOXX', 'state': state, 'sig': sig, 'dip': dip or {'on': False},
-                'setupUp': setup, 'weak': weak, 'easy': {'head': '어제와 같은 판단', 'why': []}}
+class DeskStatus(unittest.TestCase):
+    """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다)"""
+    def card(self, base='SOXX', prod='SOXL', up='SOXL', on=False, run=1, last=None, now=None, past=None):
+        d = {'on': on, 'run': run, 'udProd': up, 'ud': {'n': 3, 'now': now}}
+        if last: d['last'] = last
+        if past: d['past'] = past
+        c = {'base': base, 'prod': prod, 'state': 'ok', 'dip': d}
+        c['stage'] = desk.stage_of(c)
+        return c
 
-    def sig(self, age=1, valid=True):
-        return {'age': age, 'new': age < 3, 'valid': valid, 'low': 100.0, 'dist': 5.0}
+    def test_on_shows_past_results(self):
+        past = {'n': 26, 'hit': 92, 'hitF': 76}
+        g = self.card(on=True, past=past, now={'pending': True, 'lim': 33.97})['stage']
+        self.assertEqual((g['cls'], g['text']), ('on', '옐로우닷 오늘'))
+        self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])          # [20거래일 안 +10%, 60거래일 안 +10%] 색 칸
+        self.assertEqual((g['ud'], g['up']), ('다음 거래일 첫 매수', 'SOXL'))
+        self.assertEqual(self.card(on=True, run=3)['stage']['text'], '옐로우닷 3일째')
 
-    def test_stages(self):
-        self.assertEqual(desk.stage_of(self.card('neutral'))['i'], 0)
-        self.assertEqual(desk.stage_of(self.card('watch', dip={'on': True, 'run': 2}))['i'], 1)
-        self.assertEqual(desk.stage_of(self.card('watch', setup={'left': 4}))['i'], 1)
-        b = desk.stage_of(self.card('buy', self.sig()))
-        self.assertEqual((b['i'], b['cls']), (2, 'buy'))
-        self.assertEqual(b['stats'][-1][:2], ('반등 취소까지', '-5.0%'))
-        self.assertEqual(desk.stage_of(self.card('warn', self.sig()))['cls'], 'warn')
-        self.assertEqual(desk.stage_of(self.card('neutral', self.sig(age=10)))['i'], 2)   # 새 신호는 없지만 반등이 이어짐
-        self.assertEqual(desk.stage_of(self.card('hot'))['i'], 3)
-        self.assertEqual(desk.stage_of(self.card('sell'))['i'], 4)
-        self.assertIsNone(desk.stage_of(self.card('wait'))['i'])
-
-    def test_recently_cancelled_signal(self):
-        """최근 1개월 안에 취소된 신호는 '뚜렷한 신호 없음' 대신 취소됐다고 보여 준다"""
-        s = dict(self.sig(age=7, valid=False), brokeDate='2026-11-19', dist=-0.3)
-        c = dict(self.card('neutral', s), hist=[{'d': '2026-10-22'}, {'d': '2026-11-19'}])
-        g = desk.stage_of(c)
-        self.assertEqual((g['i'], g['text']), (0, '반등 신호 취소(11/19)'))
-        self.assertEqual(g['stats'][-1][:2], ('취소선보다', '0.3% 아래'))
-        c['hist'] = [{'d': '2026-11-20'}]                       # 1개월보다 오래전 취소
-        self.assertEqual(desk.stage_of(c)['text'], '뚜렷한 신호 없음')
-
-    def test_dip_shows_past_results(self):
-        past = {'n': 26, 'hit': 92, 'hit20': 77, 'days': 60, 'maeAvg': -17.1, 'hitF': 76, 'nF': 27, 'daysF': 20}
-        g = desk.stage_of(self.card('watch', dip={'on': True, 'run': 1, 'past': past}, setup={'left': 4}))
-        self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])   # [20거래일 안 +10%, 60거래일 안 +10%]   # 색 칸 두 개 ('노란 점 1일째'는 줄 제목에)
-        self.assertEqual(g['lines'], [])          # 첫 화면 한 장 — 긴 문장은 종목별 탭으로
+    def test_off(self):
+        g = self.card(last={'date': '2026-10-14', 'age': 27, 'pmv': -17.8}, now={'n': 4, 'out': False})['stage']
+        self.assertEqual((g['cls'], g['text']), ('off', '옐로우닷 꺼짐'))
+        self.assertEqual(g['stats'], [('옐로우닷(10/14) 뒤', '-17.8%', 'dot')])
+        self.assertEqual(g['ud'], '도는 중 · 4포트')
+        self.assertEqual(self.card()['stage']['ud'], '쉬는 중')
+        self.assertEqual(desk.stage_of({'state': 'wait'})['cls'], 'wait')
 
     def test_headline(self):
-        last = {'date': '2026-11-05', 'pmv': 61.6}
-        cs = [self.card('buy', self.sig(), dip={'on': False, 'last': last}, weak=True, prod=p) for p in ('SOXL', 'TQQQ')]
-        for c in cs:
-            c['stage'] = desk.stage_of(c)
-        h = desk.headline(cs, {'st': 'confirm'})
-        self.assertTrue(h.startswith('반도체·나스닥 모두 급락 뒤 반등이 확인됐습니다.'), h)
-        # '다만 …'은 한 문장: 앞은 '…고', 마지막은 '…니다'
-        self.assertIn('다만 가장 싸게 살 수 있던 자리(11/5)는 지났고, 큰 흐름(주·월 단위)은 아직 약세입니다.', h)
-        cs[1] = self.card('neutral', prod='TQQQ'); cs[1]['stage'] = desk.stage_of(cs[1])
-        h = desk.headline(cs, {'st': 'worse'})
-        self.assertIn('반도체는 급락 뒤', h)
-        self.assertIn('나스닥은 뚜렷한 신호가 없습니다', h)
-        self.assertNotIn('시장 불안', h)          # 시장 줄 제목과 겹치므로 결론 문장에는 넣지 않는다
+        pend = {'pending': True, 'lim': 1}
+        cs = [self.card('SPY', 'SPY', 'SPXL', on=True, now=pend), self.card('QQQ', 'TQQQ', 'TQQQ', on=True, now=pend),
+              self.card(on=True, now={'n': 2, 'out': False})]
+        h = desk.headline(cs)
+        self.assertTrue(h.startswith('S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.'), h)
+        self.assertIn('SPXL·TQQQ 첫 매수입니다(SOXL 사이클은 이미 도는 중).', h)
+        cs = [self.card('SPY', 'SPY', 'SPXL', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}),
+              self.card('QQQ', 'TQQQ', 'TQQQ'), self.card(now={'n': 4, 'out': False})]
+        h = desk.headline(cs)
+        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 마지막은 SPY 10/14입니다. 옐로우업다운은 SOXL 4포트 사이클이 도는 중입니다.')
+        self.assertNotIn('반등', h)                                          # 원문(블로그) 말은 쓰지 않는다
 
 
 if __name__ == '__main__':

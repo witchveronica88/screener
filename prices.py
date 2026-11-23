@@ -2,7 +2,7 @@
 """종가 수집 — data.json 생성 (종목 탭)
 
 종목 목록은 etfs.json(레버리지 ETF) + tickers.txt(직접 추가한 종목)이다.
-가격 받기·지표·노란 점 계산은 market.py에 있고, 상황판(desk.py)도 같은 것을 쓴다.
+가격 받기·지표·옐로우닷 계산은 market.py에 있고, 상황판(desk.py)도 같은 것을 쓴다.
 desk.py를 불러오지 않으므로 상황판 코드가 깨져도 종가는 저장된다.
 """
 import json, math, time, datetime, os, sys
@@ -113,11 +113,11 @@ def soxl_crash(a, b, days):
 
 
 def yellow(B, P=None, base=None, ud=False):
-    """노란 점 계산이 실패해도 종가 수집은 계속한다"""
+    """옐로우닷 계산이 실패해도 종가 수집은 계속한다"""
     try:
         return market.yellow(B, P, base, ud)
     except Exception as e:
-        print(f'  노란 점 계산 실패: {e}')
+        print(f'  옐로우닷 계산 실패: {e}')
         return None
 
 
@@ -190,7 +190,7 @@ def main():
 
     data = {}
     series = {}   # 상관 계산용 {티커: {날짜: 종가}}
-    hist = {}     # 노란 점을 기초자산으로 다시 판정할 때 쓰는 상품 일봉
+    hist = {}     # 옐로우닷을 기초자산으로 다시 판정할 때 쓰는 상품 일봉
     adj = {}      # 기초자산 대비 비교용 {티커: {날짜: 수정종가}} 최근 1년 남짓
     for tk in TICKERS:
         h = market.fetch(tk)
@@ -235,7 +235,7 @@ def main():
                 data[tk]['crash'] = {'me': round(x[0], 1), 'soxl': round(x[1], 1),
                                      'corr': round(x[2], 2) if x[2] is not None else None, 'n': x[3]}
 
-    # 기초자산 — 노란 점 판정, 회복 여부, 최근 1년 수익률 비교(수정종가 기준, 두 종목 모두 값이 있는 날만)
+    # 기초자산 — 옐로우닷 판정, 회복 여부, 최근 1년 수익률 비교(수정종가 기준, 두 종목 모두 값이 있는 날만)
     refH = {}
     for tk, (ref, lev) in REF.items():
         if tk not in adj:
@@ -263,7 +263,7 @@ def main():
             continue
         ref = REF.get(tk, (None,))[0]
         data[tk]['rec'] = market.recovery(refH.get(ref), ref) if ref and refH.get(ref) else market.recovery(hist[tk])
-    print('노란 점 켜짐:', ' '.join(t for t in data if (data[t].get('dip') or {}).get('on')) or '없음')
+    print('옐로우닷 켜짐:', ' '.join(t for t in data if (data[t].get('dip') or {}).get('on')) or '없음')
     print('기초자산 대비:', ' '.join(f"{t} {data[t]['ref']['gap']:+}%p" for t in data if 'ref' in data[t]))
     print('회복 여부:', ' '.join(f"{t} {data[t]['rec']['v']}" for t in BASE if data.get(t, {}).get('rec')))
 

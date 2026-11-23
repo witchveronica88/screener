@@ -1,4 +1,4 @@
-"""가격 받기 · 지표 · 노란 점 — 종가 수집(prices.py)과 상황판(desk.py)이 같이 쓰는 부분
+"""가격 받기 · 지표 · 옐로우닷 — 종가 수집(prices.py)과 상황판(desk.py)이 같이 쓰는 부분
 
 판정 규칙이 아니라 계산 도구만 둔다. 자주 바뀌는 판정은 desk.py에 둔다.
 그래서 desk.py가 깨져도 prices.py는 이 파일만으로 종가를 받는다.
@@ -12,9 +12,9 @@ CACHE = '.cache'          # 같은 실행(워크플로 한 번) 안에서 prices
 CACHE_HOURS = 3
 TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰는 운영 설정
 TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
-DIP_DAYS = 60             # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
+DIP_DAYS = 60             # 옐로우닷 뒤 목표 도달을 기다려 보는 기간 (거래일)
 DIP_FAST = 20             # 짧게 보는 기간 — +10%가 이 안에 닿았는지도 따로 센다 (화면 추천순의 기준)
-# 옐로우업다운(노란 점 다음 날 1포트로 시작) — 운영 설정. 2026-11 백테스트로 정함(CLAUDE.md '옐로우업다운' 참고)
+# 옐로우업다운(옐로우닷 다음 날 1포트로 시작) — 운영 설정. 2026-11 백테스트로 정함(CLAUDE.md '옐로우업다운' 참고)
 UD_POTS = 10              # 예비 자금 한 칸을 몇 포트로 나누나
 UD_D = 0.05               # 매수 LOC: LP × (1 − UD_D − 보유 포트 × UD_STEP)   원래 규칙은 0
 UD_U = 0.10               # 매도 LOC: LP × (1 + UD_U − 보유 포트 × UD_STEP)   원래 규칙은 0.02
@@ -230,15 +230,15 @@ def indicators(B):
             'disp': [c[i] / m50[i] * 100 if m50[i] else None for i in range(len(c))]}
 
 
-# ───────────── 노란 점 ─────────────
+# ───────────── 옐로우닷 ─────────────
 def is_dip(I, i):
-    """노란 점: 세 지표가 모두 '많이 빠짐' (%K ≤ 20 · CCI ≤ -100 · RSI ≤ 30)"""
+    """옐로우닷: 세 지표가 모두 '많이 빠짐' (%K ≤ 20 · CCI ≤ -100 · RSI ≤ 30)"""
     k, cc, rs = I['k'][i], I['cci'][i], I['rsi'][i]
     return None not in (k, cc, rs) and k <= 20 and cc <= -100 and rs <= 30
 
 
 def dip_past(B, I, P):
-    """과거 노란 점 결과. 며칠 연달아 켜진 노란 점은 한 번으로 묶고, 묶음의 첫날 다음 거래일 시가에
+    """과거 옐로우닷 결과. 며칠 연달아 켜진 옐로우닷은 한 번으로 묶고, 묶음의 첫날 다음 거래일 시가에
        관찰 상품(P)을 샀다고 가정한다. DIP_DAYS 안에 장중 고가가 목표에 닿았는지,
        닿기 전 가장 깊은 하락, 못 닿았을 때 기간이 끝난 날 종가 기준 손익을 센다.
        두 번째 목표(TARGET2)는 닿은 비율·걸린 날만 센다. 기간이 안 끝났고 아직 못 닿은 건은 그 비율에서 뺀다.
@@ -291,9 +291,9 @@ def dip_past(B, I, P):
 
 
 def dip_targets(B, I, P, since):
-    """그래프에 그릴 노란 점 목표 — dip_past와 같은 셈법: 묶음의 첫날 다음 거래일 시가에 P를 샀다고 보고,
+    """그래프에 그릴 옐로우닷 목표 — dip_past와 같은 셈법: 묶음의 첫날 다음 거래일 시가에 P를 샀다고 보고,
        DIP_DAYS 안에 장중 고가가 +TARGET%(목표가)에 닿은 첫날. 기간 끝이 since 이후인 것만.
-       반환 [{d0 노란 점 날, buy 산 날, tgt 목표가, hit 닿은 날(없으면 None), end 닿은 날·기간 끝·마지막 날, open 아직 기다리는 중}]"""
+       반환 [{d0 옐로우닷 날, buy 산 날, tgt 목표가, hit 닿은 날(없으면 None), end 닿은 날·기간 끝·마지막 날, open 아직 기다리는 중}]"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     out = []
     for i in range(len(B)):
@@ -315,7 +315,7 @@ def dip_targets(B, I, P, since):
 
 
 def yellow(B, P=None, base=None, ud=False):
-    """종목 카드의 노란 점. B: 판정에 쓰는 일봉. P가 있으면 B는 기초자산이고 P가 실제로 사는 상품이다
+    """종목 카드의 옐로우닷. B: 판정에 쓰는 일봉. P가 있으면 B는 기초자산이고 P가 실제로 사는 상품이다
        (상황판의 SOXX→SOXL과 같은 방식). 종가가 고가·저가 밖으로 나간 봉은 범위를 종가까지 넓혀 계산한다.
        ud: 옐로우업다운으로 시작했다면의 과거 결과도 붙인다(etfs.json "ud")"""
     fix = lambda b: {**b, 'h': max(b['h'], b['c']), 'l': min(b['l'], b['c'])}
@@ -334,12 +334,12 @@ def yellow(B, P=None, base=None, ud=False):
          'rsi': round(I['rsi'][-1], 1), 'past': dip_past(B, I, P)}
     if base:
         r['base'] = base
-    # 종목 상세의 작은 그래프: 최근 3개월 종가와 노란 점이 찍힌 날(기초자산으로 판정했으면 그 날짜를 상품 가격 위에 표시)
+    # 종목 상세의 작은 그래프: 최근 3개월 종가와 옐로우닷이 찍힌 날(기초자산으로 판정했으면 그 날짜를 상품 가격 위에 표시)
     dots = {B[i]['d'] for i in range(max(last - 70, 0), last + 1) if is_dip(I, i)}
     w = P[-63:]
     r['chart'] = {'from': w[0]['d'], 'to': w[-1]['d'], 'c': [round(x['c'], 2) for x in w],
                   'dot': [i for i, x in enumerate(w) if x['d'] in dots]}
-    # 노란 점 다음 날 샀다면의 +10% 목표가(a~b 구간 점선)와 닿은 날(hit) — 그래프 칸 번호로
+    # 옐로우닷 다음 날 샀다면의 +10% 목표가(a~b 구간 점선)와 닿은 날(hit) — 그래프 칸 번호로
     widx = {x['d']: k for k, x in enumerate(w)}
     tg = []
     for t in dip_targets(B, I, P, w[0]['d']):
@@ -359,7 +359,7 @@ def yellow(B, P=None, base=None, ud=False):
     return r
 
 
-# ───────────── 옐로우업다운 (노란 점 시작) ─────────────
+# ───────────── 옐로우업다운 (옐로우닷 시작) ─────────────
 def ud_set():
     """옐로우업다운 과거 결과를 붙이는 종목 — etfs.json에서 "ud": true인 것"""
     try:
@@ -405,8 +405,8 @@ def updown_cycle(P, s):
 
 
 def updown_past(B, I, P):
-    """노란 점(B로 판정) 다음 거래일에 P로 옐로우업다운을 시작했다면 — 한 종목에 한 사이클씩(도는 중에 켜진 노란 점은 건너뜀).
-       반환: 과거 결과 요약과 지금 상태(now: 도는 중이면 다음 LOC, 오늘 노란 점이 켜졌으면 내일 첫 매수 기준)"""
+    """옐로우닷(B로 판정) 다음 거래일에 P로 옐로우업다운을 시작했다면 — 한 종목에 한 사이클씩(도는 중에 켜진 옐로우닷은 건너뜀).
+       반환: 과거 결과 요약과 지금 상태(now: 도는 중이면 다음 LOC, 오늘 옐로우닷이 켜졌으면 내일 첫 매수 기준)"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     rows = []; busy = -1; now = None
     for i in range(len(B)):
