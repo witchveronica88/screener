@@ -296,6 +296,9 @@ details.fold[open]>summary::after{content:'－'}
 .dnear b em{font-style:normal;font-weight:400;font-family:var(--mono)}
 .dnear em.up{color:var(--up)}.dnear em.dn{color:var(--dn)}
 .best{background:var(--s1);border:1px solid var(--onDim);border-radius:13px;padding:12px 16px 4px;margin-bottom:10px}
+/* 스위치 후보 — 접어 둔다(옐로우업다운 먼저 · 2026-11-23 사용자) */
+.best>summary{display:flex;justify-content:space-between;align-items:center}
+.best:not([open]){padding-bottom:12px}.best:not([open])>.bt{margin-bottom:0}
 .bt{font-size:var(--fs-l);color:var(--on);font-weight:700}
 .bs{font-size:var(--fs-s);color:var(--ink3);margin:5px 0 4px;line-height:var(--lh)}
 .bl{display:flex;align-items:baseline;gap:8px;padding:10px 0;border-top:1px solid var(--s2);cursor:pointer}
@@ -600,8 +603,8 @@ svg.mini{display:block}
       <div class="hdef">하루에 평균 몇 퍼센트씩 움직이는지. 레버리지 상품은 <b>상품 자체 가격</b>으로 잽니다(기초자산보다 배수만큼 크게 나옵니다. 예: TNA는 IWM의 약 3배). 실제로 사고파는 것이 상품이라서입니다. 스위치법은 오르내림에서 수익을 만들기 때문에 이 값이 연료에 해당합니다. 매일 받아오는 종가로 다시 계산하며 1년치가 기준입니다. 60일치는 지금 국면이 평소와 다른지 보는 참고값입니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">들어가기 전 확인 4가지</div>
       <div class="hdef">변동성 5% 이상 · 회복 여부 · 유동성 보통 이상 · SOXL 상관 높음 아님. <b>통과 여부만 보여 주고 목록에서 빼지 않습니다.</b> 판단은 직접 합니다.</div></div>
-    <div class="hitem" data-k="best"><div class="hterm">기준 통과 상위 3</div>
-      <div class="hdef">✗가 하나라도 있는 종목은 빼고, 통과가 많은 순 → 변동성이 큰 순으로 고릅니다. 최근 1년 상관 0.7 이상으로 같이 움직이는 종목은 하나만 넣습니다. 타이밍은 보지 않습니다. 스위치법은 떨어지면 사는 구조이기 때문입니다. 고르는 참고일 뿐이고 판단은 직접 합니다.</div></div>
+    <div class="hitem" data-k="best"><div class="hterm">스위치 후보 3 (기준 통과 상위)</div>
+      <div class="hdef">스위치법(본 계좌)으로 SOXL 말고 다른 종목을 돌릴 때 고르는 참고입니다. ✗가 하나라도 있는 종목은 빼고, 통과가 많은 순 → 변동성이 큰 순으로 고릅니다. 최근 1년 상관 0.7 이상으로 같이 움직이는 종목은 하나만 넣습니다. 타이밍은 보지 않습니다. 스위치법은 떨어지면 사는 구조이기 때문입니다. 고르는 참고일 뿐이고 판단은 직접 합니다.</div></div>
   </div>
 
   <div class="hcard">
@@ -696,6 +699,7 @@ svg.mini{display:block}
 <div class="bar">
   <span id="cnt"></span>
   <select class="sortsel" id="sort">
+    <option value="ud">옐로우업다운 먼저</option>
     <option value="need">스위치 시드순</option>
     <option value="sig">변동성순</option>
     <option value="dip">옐로우닷 추천순</option>
@@ -799,13 +803,15 @@ function warnTags(tk,L){
   if(F&&!F.na&&F.sh!=null&&F.sh>SHARE_MAX) w.push('주식 수 증가');
   return w;
 }
+/* 옐로우업다운 종목에서는 스위치법 기준인 '변동성 부족'을 빼고 본다 (옐로우업다운은 −5%·+10%라 덜 출렁여도 돈다) */
+const swOnly=(tk,w)=>UD.has(tk)?w.filter(x=>x!=='변동성 부족'):w;
 /* 옐로우닷 (세 지표가 모두 바닥권) — 레버리지 ETF는 기초자산, 나머지는 자기 가격으로 판정 */
 const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
 /* 옐로우닷 추천순 — 걸리는 것 적은 순 → 15거래일 안 +10% 도달률 높은 순 → 30거래일 안 +10% 높은 순 → 오래 켜진 순.
    걸리는 것 = 경고 칩 수 + 과거 옐로우닷이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
 const DIP_FEW=10, DIP_TOP=5;   /* 과거 옐로우닷이 10번 미만이면 '과거 적음'(경고 하나로 셈). 옐로우업다운 종목이 하나도 안 켜졌으면 상자는 추천순 위 5개만 펼친다 */
 const dipKey=tk=>{const d=dipOf(tk), p=d.past, nF=p?(p.nF??p.n):0;
-  return ['ud' in d?0:1, warnTags(tk,LIVE[tk]).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
+  return ['ud' in d?0:1, swOnly(tk,warnTags(tk,LIVE[tk])).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
 const keyCmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
 /* 목록 정렬 '옐로우닷 추천순': 켜진 종목을 추천순으로 → 최근에 꺼진 순 → 옐로우닷 기록 없음 */
 const dipCmp=(a,b)=>{const x=dipOf(a), y=dipOf(b);
@@ -865,13 +871,13 @@ let SCENS=[];
 
 let LIVE={}, STAMP=null, Q='';
 let DESK=null;
-/* sort 'auto' = 직접 고르지 않음 → 옐로우닷이 켜진 종목이 있으면 추천순, 없으면 스위치 시드순.
+/* sort 'auto' = 직접 고르지 않음 → 옐로우닷이 켜진 종목이 있으면 추천순, 없으면 옐로우업다운 먼저(그다음 주가 낮은 순).
    예전에 저장된 기본값 'need'(직접 고른 표시 sortPick 없음)도 auto로 본다 */
 let st={grp:'all',sort:'auto',sortPick:0,px:{},open:null,help:0,fs:1,cust:{},view:'desk'};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s){st={...st,...s,open:null,view:'desk'};if(!s.sortPick)st.sort='auto';}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,
   JSON.stringify({grp:st.grp,sort:st.sort,sortPick:st.sortPick,px:st.px,help:st.help,fs:st.fs,cust:st.cust,view:st.view}));}catch(e){}};
-const sortNow=()=>st.sort!=='auto'?st.sort:Object.values(LIVE).some(x=>x.dip&&x.dip.on)?'dip':'need';
+const sortNow=()=>st.sort!=='auto'?st.sort:Object.values(LIVE).some(x=>x.dip&&x.dip.on)?'dip':'ud';
 
 const priceOf=t=>{const v=st.px[t];
   if(v!==undefined&&v!==null&&v!=='')return parseFloat(v);
@@ -884,6 +890,7 @@ const seedMin=p=>ceil100(p*MIN_SH*DIV);
 const sigOf=(tk,fb)=>{const L=LIVE[tk];return (L&&L.sig!=null)?L.sig:fb;};
 const sgn=v=>v>0?'g':v<0?'r':'';
 let KNOWN=new Set();
+let UD=new Set();   /* 옐로우업다운 9종목 (etfs.json "ud") — 종목 탭은 이 종목들을 옐로우업다운 먼저 보여 준다 */
 /* 개별주식 — data.json에 있는 미등록 티커 + 앱에서 직접 추가한 티커 */
 function customRows(){
   const set=new Set([...Object.keys(LIVE),...REPO.keys(),...Object.keys(st.cust||{})]
@@ -969,6 +976,9 @@ function udNow(u){
 }
 /* 옐로우업다운 접는 칸 내용: 지금 → 시드 → 과거 결과 */
 const udFold=(u,tk,p)=>(u.now?blk('지금',udNow(u)):'')+blk('시드',udSeed(p))+blk('과거 결과',udPast(u,tk));
+/* 종목 탭 펼친 카드 맨 위(펼침): 지금 → 시드, 과거 결과는 접는 줄 */
+const udOpen=(u,tk,p)=>(u.now?blk('지금',udNow(u)):'')+blk('시드',udSeed(p))+
+  `<details class="more"><summary>과거 결과</summary><div class="mbody">${udPast(u,tk)}</div></details>`;
 /* 옐로우닷 — 세 지표가 바닥권(노란 칸)에 있는지, 과거 결과. 켜졌으면 칸 이름 옆 배지, 꺼졌으면 맨 위 한 줄에 마지막 옐로우닷 */
 function dipBlock(d,tk){
   const pc=v=>(v>0?'+':'')+v+'%';
@@ -1196,6 +1206,7 @@ function render(){
      :S==='dd'?((LIVE[a.r[0]]||{}).dd??999)-((LIVE[b.r[0]]||{}).dd??999)
      :S==='dd1y'?((LIVE[a.r[0]]||{}).dd1y??999)-((LIVE[b.r[0]]||{}).dd1y??999)
      :S==='price'?(a.p??1e9)-(b.p??1e9)
+     :S==='ud'?((UD.has(a.r[0])?0:1)-(UD.has(b.r[0])?0:1)||(a.p??1e9)-(b.p??1e9))
      :a.need-b.need);
 
   const tok=ghTok();
@@ -1235,17 +1246,17 @@ function render(){
         w.map(t=>`<i>${t}</i>`).join('')}</span></div>`;
   /* 메인 화면 상위 3 — 전체 탭, 검색 안 할 때만 */
   const best=st.grp==='all'&&!q?bestPicks([...D,...cus]):[];
-  const bestHtml=best.length?`<div class="best">
-      <div class="bt">기준 통과 상위 ${best.length}</div>
+  const bestHtml=best.length?`<details class="best fold" data-f="best"${FOLD.has('best')?' open':''}>
+      <summary class="bt">스위치 후보 ${best.length}</summary>
       ${best.map(x=>boxLine(x.tk,baseOf(x.L),`변동성 ${x.sig.toFixed(1)}% · 통과 ${x.ok}/4`,money(seedMin(x.p)),warnTags(x.tk,x.L))).join('')}
       ${more('best')}
-    </div>`:'';
+    </details>`:'';
 
   /* 종목 첫 화면 맨 위 — 옐로우닷이 켜진 종목. 없으면 최근 3거래일 안에 꺼진 종목 */
   let dipHtml='';
   if(st.grp==='all'&&!q&&Object.values(LIVE).some(x=>x.dip)){
     const all=[...D,...cus].filter(r=>LIVE[r[0]]&&LIVE[r[0]].dip).map(r=>({r,tk:r[0],d:LIVE[r[0]].dip,p:priceOf(r[0])}));
-    all.forEach(x=>x.w=warnTags(x.tk,LIVE[x.tk]));
+    all.forEach(x=>x.w=swOnly(x.tk,warnTags(x.tk,LIVE[x.tk])));
     const on=all.filter(x=>x.d.on).sort((a,b)=>keyCmp(dipKey(a.tk),dipKey(b.tk)));
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
     const mv=x=>x.d.last.pmv??x.d.last.mv;
@@ -1256,7 +1267,7 @@ function render(){
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
             `<div class="dtm">${w.map(t=>`<i>${t}</i>`).join('')}`+
-            `<span class="dts">스위치 시드 <b>${x.p?money(seedMin(x.p)):'—'}</b></span></div></div>`;};
+            (UD.has(x.tk)?`<span class="dts">옐로우업다운 최소 <b>${x.p?money(udSlot(x.p)):'—'}</b></span>`:'')+`</div></div>`;};
           const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
           const fold=(t,a)=>a.length?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>${t}</summary>${a.map(row).join('')}</details>`:'';
           return ud.length?`<div class="dgl">옐로우업다운 ${ud.length}</div>`+ud.map(row).join('')+fold(`그 밖 ${etc.length}종목`,etc)
@@ -1288,9 +1299,8 @@ function render(){
         ${rsi!=null?`<span class="${rsiC}">RSI ${rsi}</span>`:''}
         ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
-    const rr=(p?`<div class="a">${money(need)}</div>
-        <div class="k">스위치 시드</div>`:'<div class="nopx">주가 입력</div>')
-        +`<div class="k cd4">${crit.map(([ok])=>`<i class="${ok===true?'y':ok===false?'n':''}"></i>`).join('')}</div>`;
+    const udm=UD.has(tk), udTop=udm&&L&&L.dip&&L.dip.ud;   /* 옐로우업다운 칸을 카드 맨 위에 펼칠 수 있나 */
+    const rr=!p?'<div class="nopx">주가 입력</div>':udm?`<div class="a">${money(udSlot(p))}</div><div class="k">옐로우업다운 최소</div>`:'';
 
     /* 시드 */
     let seed;
@@ -1312,10 +1322,10 @@ function render(){
         <div class="rr">${rr}</div>
       </div>
       ${op?`<div class="det">
-${secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
-${caut.length?secOpen(cus?'caut stock':'caut',`주의 ${caut.length}`,cautChips(tk,caut)):''}
+${udTop?secOpen('ud','옐로우업다운',udOpen(L.dip.ud,tk,p)):secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
+${(c=>c.length?secOpen(cus?'caut stock':'caut',`주의 ${c.length}`,cautChips(tk,c)):'')(udm?caut.filter(x=>x[0]!=='변동성 부족'):caut)}
 ${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름',rangeBar(L,'')+(L.dip?priceChart(L.dip,tk):'')):''}
-${(p?secFold:secOpen)('seed','스위치법',(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1회 주식 수</span><b>${R.n0}주</b></div><div><span>나눠 사기</span><b>${DIV}번</b></div></div>`+
+${(p?secFold:secOpen)(udTop?'seed crit':'seed','스위치법',(udTop?blk(`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig)):'')+(p?(R=>`<div class="sd"><div><span>1회 매수금</span><b>${money(R.unit)}</b></div><div><span>1회 주식 수</span><b>${R.n0}주</b></div><div><span>나눠 사기</span><b>${DIV}번</b></div></div>`+
           ul([`최소 시드 = 1회 매수금(시드 ÷ ${DIV})으로 ${MIN_SH}주를 살 수 있는 가장 작은 금액 <small>(주가 × ${MIN_SH}주 × ${DIV}분할, $100 단위 올림)</small>`,
             '시드는 고정이라 주가가 오르면 1회에 사는 주식 수가 줄어듭니다']))(rungOf(need,p)):seed)+`
         <div class="pxedit"><span class="pxl">주가 $</span>
@@ -1324,7 +1334,6 @@ ${(p?secFold:secOpen)('seed','스위치법',(p?(R=>`<div class="sd"><div><span>1
           ${isManual(tk)&&L?`<button class="autobtn" data-auto="${tk}">자동값</button>`
             :L?'<span class="auto">매일 종가로 자동</span>':'<span class="auto">직접 넣은 값</span>'}</div>`)}
 ${L&&L.dip?secFold('dip','옐로우닷',dipBlock(L.dip,tk),L.dip.on?ydot(L.dip.run):''):''}
-${L&&L.dip&&L.dip.ud?secFold('ud','옐로우업다운',udFold(L.dip.ud,tk,p)):''}
 ${cus&&FUND[tk]?(F=>secFold('fund','재무',(!F.na&&!F.self&&F.runway!=null?`<div class="dmr"><span>현금 여유 기간</span><b class="${runwayOf(F)<RUNWAY_MIN?'r':''}">${fmtMon(runwayOf(F))}</b></div>${meter(Math.min(runwayOf(F),36),0,36,{fill:1,cls:runwayOf(F)<RUNWAY_MIN?'r':'g',mark:RUNWAY_MIN})}<div class="cc">${RUNWAY_MIN}개월보다 짧으면 주의${F.runwayAfter!=null?` · 조달 전 ${fmtMon(F.runway)}`:''}</div>`:'')+`
         ${F.na?`<div class="gnote">미확인 — ${esc(F.na)}.</div>`:`<div class="spec">
           ${F.self||F.runway==null?`<div><div class="sk">현금 여유 기간</div><div class="sv">${F.self?'<span class="bg r-ok">현금 창출</span>'
@@ -1459,6 +1468,7 @@ fetch('./etfs.json?'+Date.now())
     C=Object.fromEntries(E.map(e=>[e.tk,['',e.type,e.desc,e.scen]]));
     SCENS=[...new Set(E.flatMap(e=>e.scen))];
     KNOWN=new Set(D.map(r=>r[0]));
+    UD=new Set(E.filter(e=>e.ud).map(e=>e.tk));
     READY=true;tabs();render();})
   .catch(()=>{document.getElementById('list').innerHTML='<div class="empty">종목 목록(etfs.json)을 불러오지 못했습니다. 새로고침해 주세요.</div>';});
 
