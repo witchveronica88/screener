@@ -6,6 +6,7 @@
 desk.py를 불러오지 않으므로 상황판 코드가 깨져도 종가는 저장된다.
 """
 import json, math, time, datetime, os, sys
+from zoneinfo import ZoneInfo
 import market
 
 ETF = json.load(open('etfs.json', encoding='utf-8'))
@@ -164,10 +165,12 @@ def record(h):
 
 def up_to_date(path='data.json', now=None):
     """모든 종목이 마지막 장의 종가를 이미 갖고 있으면 True — 예약 실행을 하루 세 번 걸어 두고 뒤의 것은 건너뛴다.
-       마지막 장은 21:15 UTC(뉴욕 16:15, 서머타임이면 17:15)가 지난 가장 최근 평일.
+       마지막 장은 뉴욕 시각 16:15(장 마감 15분 뒤, market.confirmed와 같은 기준)가 지난 가장 최근 평일 — 서머타임도 맞는다.
+       (2026-11-23까지는 21:15 UTC로 고정해 서머타임에는 17:15를 기다렸다 — 예약 수집을 뉴욕 16:16으로 당기며 바꿈)
        미국 공휴일은 모르므로 그날은 False — 한 번 더 받을 뿐 해는 없다"""
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    exp = (now - datetime.timedelta(hours=21, minutes=15)).date()
+    ny = now.astimezone(ZoneInfo('America/New_York'))
+    exp = (ny - datetime.timedelta(hours=16, minutes=15)).date()
     while exp.weekday() >= 5:
         exp -= datetime.timedelta(days=1)
     try:

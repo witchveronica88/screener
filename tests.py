@@ -288,6 +288,13 @@ class UpToDate(unittest.TestCase):
     def test_weekend_uses_friday(self):
         self.assertTrue(self.check(['2026-11-20'], '2026-11-21T05:17+00:00'))        # 토요일 → 금요일 종가
 
+    def test_ny_time_and_dst(self):
+        # 예약 수집은 뉴욕 16:16 — 겨울(EST)은 21:16 UTC, 서머타임(EDT)은 20:16 UTC
+        self.assertFalse(self.check(['2026-11-19'], '2026-11-20T21:16+00:00'))       # 겨울 16:16 → 그날 종가를 받아야 함
+        self.assertTrue(self.check(['2026-11-19'], '2026-11-20T21:10+00:00'))        # 16:10은 아직 전날 기준
+        self.assertFalse(self.check(['2026-07-14'], '2026-07-15T20:16+00:00'))       # 서머타임 16:16 → 받아야 함
+        self.assertTrue(self.check(['2026-07-14'], '2026-07-15T20:10+00:00'))
+
 
 class EtfList(unittest.TestCase):
     def test_etfs_json(self):
