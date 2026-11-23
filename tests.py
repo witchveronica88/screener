@@ -320,6 +320,25 @@ class EtfList(unittest.TestCase):
         self.assertEqual([e['tk'] for e in j['etfs'] if not e.get('base')], ['AIBU'])
 
 
+class DeskLive(unittest.TestCase):
+    """장중 지금 가격 — desk.live_state에 오늘 봉만 더한 셈(화면 lvCalc와 같은 식)이 market.indicators와 같다"""
+    def test_live_state_matches_indicators(self):
+        import math
+        B = [{'d': f'2026-01-{i:02d}', 'o': 0, 'h': 100 + 10 * math.sin(i / 3) + 2, 'l': 100 + 10 * math.sin(i / 3) - 2,
+              'c': 100 + 10 * math.sin(i / 3) + math.cos(i)} for i in range(1, 80)]
+        I = market.indicators(B)
+        s = desk.live_state(B[:-1]); b = B[-1]
+        hh = max(s['h4'] + [b['h']]); ll = min(s['l4'] + [b['l']]); k = (b['c'] - ll) / (hh - ll) * 100
+        tp = s['tp19'] + [(b['h'] + b['l'] + b['c']) / 3]; m = sum(tp) / 20; md = sum(abs(x - m) for x in tp) / 20
+        cci = (tp[-1] - m) / (0.015 * md)
+        d = b['c'] - s['pc']; g = (s['g'] * 13 + max(d, 0)) / 14; lo = (s['l'] * 13 + max(-d, 0)) / 14
+        rsi = 100 - 100 / (1 + g / lo)
+        self.assertAlmostEqual(k, I['k'][-1], places=3)
+        self.assertAlmostEqual(cci, I['cci'][-1], places=3)
+        self.assertAlmostEqual(rsi, I['rsi'][-1], places=3)
+        self.assertEqual((s['d'], len(s['h4']), len(s['tp19'])), (B[-2]['d'], 4, 19))
+
+
 class DeskStatus(unittest.TestCase):
     """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다 · 옐로우업다운 매수·매도도 쓰지 않는다)"""
     def card(self, base='SOXX', prod='SOXL', on=False, run=1, last=None, past=None):

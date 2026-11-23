@@ -501,6 +501,31 @@ details.fold[open]>summary::after{content:'－'}
 .mrow .mh .mv{margin-left:auto;white-space:nowrap}
 .mrow .lamp{width:18px;height:18px;border-width:2px}
 .mrow .fbody{margin-top:2px}
+/* 장중 지금 가격 (Finnhub) — 버튼 · 키 넣기 · 결과 상자 */
+.lvbtn{display:block;width:100%;background:var(--s1);border:1px solid var(--bd2);color:var(--on);border-radius:12px;
+       padding:10px 14px;margin:0 0 10px;font-size:var(--fs-m);font-weight:600;cursor:pointer;font-family:var(--sans)}
+.lv{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--st-watch);border-radius:14px;padding:10px 16px;margin:0 0 10px}
+.lv .lvt{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
+.lv .lvt b{color:var(--ink);font-size:var(--fs-m)}
+.lv .lvt button{margin-left:auto;background:transparent;border:1px solid var(--bd2);color:var(--ink2);border-radius:7px;
+                padding:4px 10px;font-size:var(--fs-s);cursor:pointer;flex-shrink:0;font-family:var(--sans)}
+.lv .lvr{padding:8px 0 2px;border-top:1px solid var(--s2);margin-top:8px}
+.lv .lvh{display:flex;align-items:baseline;gap:6px 8px;flex-wrap:wrap}
+.lv .lvh>.tk{color:var(--idx)}
+.lv .lvh .lvp{font-family:var(--mono);font-size:var(--fs-m);font-weight:600}
+.lv .lvh .dpx{margin-left:auto;font-family:var(--mono);font-size:var(--fs-s)}
+.lv .lvh .dpx.g{color:var(--up)}.lv .lvh .dpx.r{color:var(--dn)}
+.lv .lvs{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh);margin-top:2px}
+.lv .lvs b{color:var(--ink)}.lv .lvs b.on{color:var(--warn)}
+.lv .lvk{display:flex;gap:7px;margin-top:8px}
+.lv .lvk input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--bd2);color:var(--ink);border-radius:8px;
+               padding:9px 11px;font-size:var(--fs-m);outline:none;font-family:var(--mono)}
+.lv .lvk button{background:var(--on);border:none;color:var(--onInk);border-radius:8px;padding:9px 15px;font-size:var(--fs-m);
+                font-weight:600;cursor:pointer;flex-shrink:0;font-family:var(--sans)}
+.lv .lvn{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh);margin-top:8px}
+.lv .lvn a{color:var(--on)}.lv .lvn.err{color:var(--dn)}
+.lvdel{background:transparent;border:1px solid var(--bd2);color:var(--ink2);border-radius:7px;padding:2px 9px;
+       font-size:var(--fs-s);cursor:pointer;font-family:var(--sans);margin-left:4px}
 .fbody{display:flex;align-items:center;gap:10px;margin-top:4px}
 .fst{flex:1;min-width:0}
 .fsv{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
@@ -1583,6 +1608,91 @@ function futBars(m){
 const uvixSpark=(u,h)=>spark(u.spark.map(x=>x.c),h,{ref:u.allLow})+`<div class="spkc"><span>UVIX 1개월</span><span>점선: 사상 최저 $${u.allLow}</span></div>`;
 const vixSpark=(m,h)=>spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<div class="spkc"><span>VIX 1개월</span><span>점선: 5일 평균</span></div>`;
 
+/* 장중 지금 가격 (2026-11-23 사용자: 장중에 급변하는 날 버튼 하나로 지금 상황을)
+   Finnhub 무료 키(이 기기에만 저장)로 SPY·QQQ·SOXX의 현재가와 오늘 지금까지의 고가·저가를 받아,
+   desk.json의 live(마지막 확정 종가까지의 지표 상태)에 오늘 봉만 더해 세 지표를 다시 센다 — desk.py live_state와 같은 셈.
+   종가가 아니라 '지금 가격으로 끝나면'의 임시 값이고 저장하지 않는다. 켜지는 가격 = 남은 시간에 고가·저가가 더 넓어지지 않는다고 본 문턱 */
+const LV_KEY='scr_fh';
+let LVQ=null;
+const fhKey=()=>{try{return localStorage.getItem(LV_KEY)||'';}catch(e){return '';}};
+function lvCalc(s,h,l,c){
+  const hh=Math.max(...s.h4,h), ll=Math.min(...s.l4,l), k=hh===ll?50:(c-ll)/(hh-ll)*100;
+  const tp=[...s.tp19,(h+l+c)/3], m=tp.reduce((a,b)=>a+b,0)/20, mdv=tp.reduce((a,b)=>a+Math.abs(b-m),0)/20;
+  const cci=mdv===0?0:(tp[19]-m)/(0.015*mdv);
+  const d=c-s.pc, g=(s.g*13+Math.max(d,0))/14, lo=(s.l*13+Math.max(-d,0))/14, rsi=lo===0?100:100-100/(1+g/lo);
+  return {k,cci,rsi,on:k<=20&&cci<=-100&&rsi<=30};
+}
+function lvThresh(s,H,L){   // 지금까지의 고가 H·저가 L에서 이 값 이하로 끝나면 켜지는 가장 높은 종가 (없으면 null)
+  const ok=C=>lvCalc(s,Math.max(H,C),Math.min(L,C),C).on;
+  let lo=s.pc*0.5, hi=s.pc*1.05;
+  if(!ok(lo))return null; if(ok(hi))return hi;
+  for(let i=0;i<40;i++){const m=(lo+hi)/2; if(ok(m))lo=m; else hi=m;}
+  return lo;
+}
+const nyDay=t=>new Date(t*1000).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+const hhmm=(t,z)=>new Date(t*1000).toLocaleTimeString('en-GB',{timeZone:z,hour:'2-digit',minute:'2-digit',hour12:false});
+const nyHour=t=>+new Date(t*1000).toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',hour12:false});
+function wdAfter(a,b){   // a 뒤 b까지 평일 수
+  let n=0; const d=new Date(a+'T12:00:00Z'), e=new Date(b+'T12:00:00Z');
+  while(d<e){d.setUTCDate(d.getUTCDate()+1); const w=d.getUTCDay(); if(w&&w<6)n++;}
+  return n;
+}
+async function liveGo(){
+  const key=fhKey();
+  if(!key){LVQ={ask:true};return;}
+  const cs=(DESK.cards||[]).filter(c=>c.live);
+  try{
+    const qs=await Promise.all(cs.map(c=>fetch(`https://finnhub.io/api/v1/quote?symbol=${c.base}&token=${encodeURIComponent(key)}`)
+      .then(r=>{if(r.status===401||r.status===403)throw new Error('key');if(r.status===429)throw new Error('busy');if(!r.ok)throw new Error('net');return r.json();})));
+    const rows=cs.map((c,i)=>{
+      const q=qs[i], s=c.live, r={base:c.base};
+      if(!q||!(q.c>0))return {...r,msg:'시세를 받지 못했습니다'};
+      const d=nyDay(q.t); r.c=q.c; r.t=q.t;
+      if(d<=s.d)return {...r,msg:'새 장중 가격이 없습니다. 마지막 종가는 이미 반영돼 있고, 장이 열리면 다시 눌러 주세요',old:true};
+      if(wdAfter(s.d,d)>1)return {...r,msg:'상황판이 하루 넘게 늦어 계산하지 못했습니다'};
+      if(q.pc>0&&Math.abs(q.pc/s.pc-1)>0.01)return {...r,msg:'전날 종가가 상황판과 달라 계산하지 못했습니다'};
+      const H=Math.max(q.h||q.c,q.c), L=Math.min(q.l||q.c,q.c), v=lvCalc(s,H,L,q.c);
+      return {...r,chg:(q.c/s.pc-1)*100,on:v.on,th:v.on?null:lvThresh(s,H,L),done:nyHour(q.t)>=16};
+    });
+    LVQ={rows,t:Math.max(...rows.map(r=>r.t||0))};
+  }catch(e){
+    LVQ=e.message==='key'?{ask:true,err:'키가 맞지 않습니다. 다시 넣어 주세요.'}
+      :{err:e.message==='busy'?'요청이 많습니다. 1분 뒤 다시 눌러 주세요.':'시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요.'};
+  }
+}
+function liveBox(){
+  if(!LVQ)return `<button class="lvbtn" id="lvGo">장중 지금 가격으로 보기</button>`;
+  if(LVQ.loading)return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><span>가져오는 중…</span></div></div>`;
+  if(LVQ.ask)return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><button id="lvX">닫기</button></div>
+    <div class="lvk"><input id="lvKeyIn" type="password" placeholder="Finnhub API 키" autocomplete="off" spellcheck="false"><button id="lvKeySave">저장</button></div>
+    <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://finnhub.io/register" target="_blank" rel="noopener">Finnhub 무료 키 받기</a> · 키는 이 기기에만 저장됩니다'}</div></div>`;
+  if(LVQ.err)return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><button id="lvGo">다시</button></div><div class="lvn err">${LVQ.err}</div></div>`;
+  const t=LVQ.t, done=LVQ.rows.some(r=>r.chg!=null&&r.done), R=LVQ.rows;
+  if(R.length&&R.every(r=>r.old))return `<div class="lv"><div class="lvt"><b>장중 지금 가격</b><button id="lvGo">다시</button></div><div class="lvn">${R[0].msg}</div></div>`;
+  const row=r=>{
+    const head=`<div class="lvh"><span class="tk">${r.base}</span>${r.on?ydot(1):''}${r.c?`<span class="lvp">$${r.c.toFixed(2)}</span>`:''}${r.chg!=null?`<span class="dpx ${sc(r.chg)}">${sg(r.chg)}</span>`:''}</div>`;
+    const txt=r.msg?r.msg:r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
+      :r.th?`<b>꺼짐</b> — $${r.th.toFixed(2)} 아래로 끝나면 켜집니다 <small>(지금보다 ${sg((r.th/r.c-1)*100)})</small>`
+      :`<b>꺼짐</b> — 오늘은 켜지기 어렵습니다`;
+    return `<div class="lvr">${head}<div class="lvs">${txt}</div></div>`;
+  };
+  return `<div class="lv"><div class="lvt"><b>${done?'장 마감 · 종가 수집 전':'장중 지금 가격'}</b>${t?`<span>뉴욕 ${hhmm(t,'America/New_York')} · 한국 ${hhmm(t,'Asia/Seoul')}</span>`:''}<button id="lvGo">다시</button></div>${LVQ.rows.map(row).join('')}</div>`;
+}
+async function liveClick(e){
+  const y=window.scrollY, re=()=>{renderDesk();window.scrollTo(0,y);};
+  if(e.target.closest('#lvX')){LVQ=null;re();return;}
+  if(e.target.closest('#lvKeySave')){
+    const v=(document.getElementById('lvKeyIn').value||'').trim();
+    if(!v)return;
+    try{localStorage.setItem(LV_KEY,v);}catch(_){}
+    LVQ={loading:true};re();await liveGo();re();return;
+  }
+  if(e.target.closest('#lvDel')){try{localStorage.setItem(LV_KEY,'');}catch(_){}LVQ=null;re();return;}
+  if(e.target.closest('#lvGo')){
+    if(!fhKey()){LVQ={ask:true};re();return;}
+    LVQ={loading:true};re();await liveGo();re();
+  }
+}
 /* 요약 탭 아래 — 옐로우닷이란 · 이 상황판의 기준 (상황판은 그날의 상황만 — 옐로우업다운 매수·매도는 종목 탭에만 · 2026-11-23 사용자) */
 function dotRules(){
   const C=DESK.cards.filter(c=>c.dip);
@@ -1601,12 +1711,16 @@ function secRules(){
     blk('옐로우닷',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14), 기준자산(SPY · QQQ · SOXX) 확정 종가로 계산',
       '바닥권: %K 20 이하 · CCI −100 이하 · RSI 30 이하가 모두 맞는 날',
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
+    blk('장중 지금 가격',ul(['위 버튼을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 세 지표를 다시 셉니다',
+      '<b>지금 가격으로 장이 끝나면</b> 옐로우닷이 켜지는지 보여 주는 임시 값입니다. 확정은 장 마감 뒤 종가로 다시 계산합니다',
+      '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 세 지표가 모두 바닥권에 들어가는 가장 높은 종가',
+      '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
     blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷은 보여 주기만 합니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
       '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 그날은 계산을 멈춤'])),
-    `${DESK.rule} · 옐로우닷 · 시장 참고 · 가격`);
+    `${DESK.rule} · 옐로우닷 · 장중 · 시장 참고 · 가격`);
 }
 /* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
 const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · 오늘의 해석</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
@@ -1650,6 +1764,7 @@ function sumRow(c){
 function deskSum(){
   const D=DESK, m=D.market, v=m.vix, x=D.uvixDip;
   let h=D.headline?`<div class="dhead1">${D.headline}</div>`:'';
+  h+=liveBox();
   h+=`<div class="fsum">${D.cards.map(sumRow).join('')}</div>`;
   h+=`<div class="mrow" data-dt="VIX"><div class="mh"><span class="tk">VIX</span><b class="mst">시장 불안 ${v.c}</b>`+
     `<span class="mv"><span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
@@ -1734,7 +1849,8 @@ function metaLines(){
   return [`${DESK.rule} · 그날의 상황을 보여 주는 참고용`,'하루 한 번, 미국 장 마감 16분 뒤(한국 아침 6시 16분 · 서머타임 5시 16분) 확정 종가로 계산 <small>(늦어지면 오후 2시쯤까지 다시 시도)</small>',
     `옐로우닷은 ${DESK.cards.map(c=>c.base).join(' · ')}로 판정하고, 과거 결과는 ${DESK.cards.map(c=>c.prod).join(' · ')}을 샀다고 보고 셈`];
 }
-document.getElementById('vDesk').onclick=e=>{
+document.getElementById('vDesk').onclick=async e=>{
+  if(e.target.closest('#lvGo,#lvX,#lvKeySave,#lvDel')){await liveClick(e);return;}
   const t=e.target.closest('[data-dt]');
   if(t){if(t.dataset.dt!==DTAB)navGo(()=>{DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);});return;}
   const r=e.target.closest('.hit');if(!r)return;

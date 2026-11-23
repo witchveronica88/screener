@@ -167,6 +167,20 @@ def headline(cards):
     return ' '.join(out)
 
 
+def live_state(B, n=14):
+    """장중 '지금 가격으로 보기'용 — 마지막 확정 종가까지의 지표 상태(2026-11-23 사용자: 장중에 급변하는 날 버튼 하나로 지금 상황을).
+       화면이 오늘 봉(지금까지 고가·저가·현재가)만 더해 %K(5)·CCI(20)·RSI(14)를 market.indicators와 같은 셈으로 다시 센다"""
+    c = [b['c'] for b in B]
+    d = [c[i] - c[i-1] for i in range(1, len(c))]
+    g = sum(x for x in d[:n] if x > 0) / n; l = sum(-x for x in d[:n] if x < 0) / n
+    for i in range(n, len(d)):
+        g = (g * (n-1) + max(d[i], 0)) / n; l = (l * (n-1) + max(-d[i], 0)) / n
+    r6 = lambda v: round(v, 6)
+    return {'d': B[-1]['d'], 'pc': r6(c[-1]), 'g': r6(g), 'l': r6(l),
+            'h4': [r6(b['h']) for b in B[-4:]], 'l4': [r6(b['l']) for b in B[-4:]],
+            'tp19': [r6((b['h'] + b['l'] + b['c']) / 3) for b in B[-19:]]}
+
+
 def card(prod, base, bars, vix):
     B = bars[base]; asof = B[-1]['d']
     P = [b for b in bars.get(prod) or [] if b['d'] <= asof]
@@ -184,6 +198,7 @@ def card(prod, base, bars, vix):
     r['dip'] = dip_card(base, prod, bars, I, vix)
     r['hist'] = history(base, prod, bars, I)
     r['stage'] = stage_of(r)
+    r['live'] = live_state(B)
     return r
 
 
