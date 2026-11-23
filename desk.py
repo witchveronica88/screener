@@ -805,7 +805,7 @@ def dip_card(t, base, prod, bars):
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
          'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
-    if prod in ud_set():                               # 업다운으로 시작했다면 — 종목 탭과 같은 계산
+    if prod in ud_set():                               # 옐로우업다운으로 시작했다면 — 종목 탭과 같은 계산
         r['ud'] = updown_past(B, I, P)
     if li is not None:
         d = B[li]['d']

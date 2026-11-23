@@ -248,7 +248,7 @@ class DipPastFast(unittest.TestCase):
 
 
 class UpDown(unittest.TestCase):
-    """업다운(노란 점 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
+    """옐로우업다운(노란 점 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
     def P(self, closes):
         return [{'d': f'2026-01-{i + 1:02d}', 'o': c, 'h': c, 'l': c, 'c': c} for i, c in enumerate(closes)]
 

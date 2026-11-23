@@ -24,7 +24,7 @@ TICKERS = BASE + EXTRA
 # etfs.json의 base·mult와, 종목 탭에는 개별주로 보이지만 기초자산이 있는 상품(extra)
 REF = {e['tk']: (e['base'], e['mult']) for e in ETF['etfs'] if e.get('base')}
 REF.update({t: (x['base'], x['mult']) for t, x in ETF.get('extra', {}).items()})
-UD = market.ud_set()      # 업다운 과거 결과를 붙이는 종목 (etfs.json "ud": true)
+UD = market.ud_set()      # 옐로우업다운 과거 결과를 붙이는 종목 (etfs.json "ud": true)
 
 RISK_N = 750   # 급락 위험을 재는 공통 구간: 최근 3년(750거래일)
 

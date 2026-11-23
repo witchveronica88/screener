@@ -14,7 +14,7 @@ TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰�
 TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
 DIP_DAYS = 60             # 노란 점 뒤 목표 도달을 기다려 보는 기간 (거래일)
 DIP_FAST = 20             # 짧게 보는 기간 — +10%가 이 안에 닿았는지도 따로 센다 (화면 추천순의 기준)
-# 업다운(노란 점 다음 날 1포트로 시작) — 운영 설정. 2026-11 백테스트로 정함(CLAUDE.md '업다운' 참고)
+# 옐로우업다운(노란 점 다음 날 1포트로 시작) — 운영 설정. 2026-11 백테스트로 정함(CLAUDE.md '옐로우업다운' 참고)
 UD_POTS = 10              # 예비 자금 한 칸을 몇 포트로 나누나
 UD_D = 0.05               # 매수 LOC: LP × (1 − UD_D − 보유 포트 × UD_STEP)   원래 규칙은 0
 UD_U = 0.10               # 매도 LOC: LP × (1 + UD_U − 보유 포트 × UD_STEP)   원래 규칙은 0.02
@@ -317,7 +317,7 @@ def dip_targets(B, I, P, since):
 def yellow(B, P=None, base=None, ud=False):
     """종목 카드의 노란 점. B: 판정에 쓰는 일봉. P가 있으면 B는 기초자산이고 P가 실제로 사는 상품이다
        (상황판의 SOXX→SOXL과 같은 방식). 종가가 고가·저가 밖으로 나간 봉은 범위를 종가까지 넓혀 계산한다.
-       ud: 업다운으로 시작했다면의 과거 결과도 붙인다(etfs.json "ud")"""
+       ud: 옐로우업다운으로 시작했다면의 과거 결과도 붙인다(etfs.json "ud")"""
     fix = lambda b: {**b, 'h': max(b['h'], b['c']), 'l': min(b['l'], b['c'])}
     B = [fix(b) for b in B]
     if P:
@@ -359,9 +359,9 @@ def yellow(B, P=None, base=None, ud=False):
     return r
 
 
-# ───────────── 업다운 (노란 점 시작) ─────────────
+# ───────────── 옐로우업다운 (노란 점 시작) ─────────────
 def ud_set():
-    """업다운 과거 결과를 붙이는 종목 — etfs.json에서 "ud": true인 것"""
+    """옐로우업다운 과거 결과를 붙이는 종목 — etfs.json에서 "ud": true인 것"""
     try:
         with open('etfs.json', encoding='utf-8') as f:
             return {e['tk'] for e in json.load(f)['etfs'] if e.get('ud')}
@@ -405,7 +405,7 @@ def updown_cycle(P, s):
 
 
 def updown_past(B, I, P):
-    """노란 점(B로 판정) 다음 거래일에 P로 업다운을 시작했다면 — 한 종목에 한 사이클씩(도는 중에 켜진 노란 점은 건너뜀).
+    """노란 점(B로 판정) 다음 거래일에 P로 옐로우업다운을 시작했다면 — 한 종목에 한 사이클씩(도는 중에 켜진 노란 점은 건너뜀).
        반환: 과거 결과 요약과 지금 상태(now: 도는 중이면 다음 LOC, 오늘 노란 점이 켜졌으면 내일 첫 매수 기준)"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     rows = []; busy = -1; now = None
