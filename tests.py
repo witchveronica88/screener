@@ -329,12 +329,12 @@ class DeskStatus(unittest.TestCase):
 
     def test_headline(self):
         pend = {'pending': True, 'lim': 1}
-        cs = [self.card('SPY', 'SPY', 'SPXL', on=True, now=pend), self.card('QQQ', 'TQQQ', 'TQQQ', on=True, now=pend),
+        cs = [self.card('SPY', 'UPRO', 'UPRO', on=True, now=pend), self.card('QQQ', 'TQQQ', 'TQQQ', on=True, now=pend),
               self.card(on=True, now={'n': 2, 'out': False})]
         h = desk.headline(cs)
         self.assertTrue(h.startswith('S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.'), h)
-        self.assertIn('SPXL·TQQQ 첫 매수입니다(SOXL 사이클은 이미 도는 중).', h)
-        cs = [self.card('SPY', 'SPY', 'SPXL', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}),
+        self.assertIn('UPRO·TQQQ 첫 매수입니다(SOXL 사이클은 이미 도는 중).', h)
+        cs = [self.card('SPY', 'UPRO', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}),
               self.card('QQQ', 'TQQQ', 'TQQQ'), self.card(now={'n': 4, 'out': False})]
         h = desk.headline(cs)
         self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 마지막은 SPY 10/14입니다. 옐로우업다운은 SOXL 4포트 사이클이 도는 중입니다.')

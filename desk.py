@@ -6,8 +6,9 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
   - 옐로우닷: 기준자산(SPY·QQQ·SOXX)의 세 지표가 모두 바닥권인 날. 바닥권 = 빠르기 %K ≤ 20 · CCI ≤ −100 · RSI ≤ 30
     (짧은 사이에 너무 많이 빠졌다는 뜻 · 예전 이름 '노란 점'). 계산은 종가 수집과 같은 market.is_dip.
   - 옐로우업다운: 옐로우닷 다음 거래일 장 마감에 1포트로 시작하는 예비 자금 운용(market.updown_past).
-    SPY 칸은 SPXL, QQQ 칸은 TQQQ, SOXX 칸은 SOXL로 센다(옐로우업다운 9종목 가운데 그 기준자산의 상품).
-    과거 +10%·+20% 도달률은 예전처럼 SPY는 SPY, QQQ는 TQQQ, SOXX는 SOXL을 샀다고 보고 센다.
+    SPY 칸은 UPRO, QQQ 칸은 TQQQ, SOXX 칸은 SOXL로 센다(옐로우업다운 9종목 가운데 그 기준자산의 3배 상품).
+    과거 +10%·+20% 도달률도 같은 3배 상품으로 센다(2026-11-23 사용자: SPY 3배는 주가가 낮은 UPRO로 — 그전에는 SPXL,
+    도달률은 SPY 1배로 세어 세 줄의 숫자를 견줄 수 없었다).
   뺀 것: 원문(블로그) 🟢🟡 판정, 반등 신호·취소선, VIX 완화 단계, 주·월 단위 흐름, UVIX 새 최저가 사이클,
          반등 신호 성적표·기록, 지난 판정 기록.
   근거(2026-11-23 백테스트 — 9종목 · 옐로우업다운 −5%·+10% · 비용 0.1% · 예비 자금 칸 3개 · 2011~2026, 연 수익/최대 낙폭):
@@ -24,8 +25,8 @@ from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, T
                     updown_past)
 
 RULE = '옐로우닷 v3.0'
-PAIRS = [('SPY', 'SPY', 'SPXL'), ('TQQQ', 'QQQ', 'TQQQ'), ('SOXL', 'SOXX', 'SOXL')]   # (과거 결과를 셀 상품, 기준자산, 옐로우업다운 상품) — 화면 순서
-SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'SPXL', 'UVIX', '^VIX']
+PAIRS = [('UPRO', 'SPY', 'UPRO'), ('TQQQ', 'QQQ', 'TQQQ'), ('SOXL', 'SOXX', 'SOXL')]   # (과거 결과를 셀 상품, 기준자산, 옐로우업다운 상품) — 화면 순서
+SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'UPRO', 'UVIX', '^VIX']
 NAMES = {'SPY': 'S&P500', 'QQQ': '나스닥', 'SOXX': '반도체'}   # 결론 문장에 쓰는 우리말 이름
 RECENT = 20       # 옐로우닷이 꺼진 지 이 거래일 안이면 결론 문장에 마지막 옐로우닷을 적는다
 
