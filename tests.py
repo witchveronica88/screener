@@ -207,7 +207,7 @@ class DipPastFast(unittest.TestCase):
 
 
 class UpDown(unittest.TestCase):
-    """옐로우업다운(옐로우닷 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 금액 소진 땐 매도만, 돈이 마이너스가 되지 않음"""
+    """옐로우업다운(옐로우닷 시작): 매수 LP×(1−5%−n×0.2%) · 매도 LP×(1+10%−n×0.2%), 돈이 바닥나면 평단 +5%에 전부 매도, 돈이 마이너스가 되지 않음"""
     def P(self, closes):
         return [{'d': f'2026-01-{i + 1:02d}', 'o': c, 'h': c, 'l': c, 'c': c} for i, c in enumerate(closes)]
 
@@ -232,6 +232,18 @@ class UpDown(unittest.TestCase):
         self.assertTrue(x['run']['out'])
         self.assertIsNone(x['run']['buy'])
         self.assertGreater(x['run']['ret'], -100)
+
+    def test_exhausted_then_even_exit(self):
+        # 7%씩 빠지며 10포트를 다 쓴 뒤(돈이 바닥남): 하루 +9% 올라도 평단 +5% 밑이면 팔지 않고, 평단 +5%를 넘는 날 전부 판다
+        c = [10, 10]
+        for _ in range(9):
+            c.append(round(c[-1] * 0.93, 4))
+        x = market.updown_cycle(self.P(c + [round(c[-1] * 1.09, 4)]), 1)
+        self.assertTrue(x['run']['out']); self.assertEqual(x['run']['n'], 10)          # 나눠 팔지 않음
+        self.assertAlmostEqual(x['run']['sell'], x['run']['avg'] * 1.05, delta=0.01)
+        y = market.updown_cycle(self.P(c + [round(x['run']['sell'] * 1.001, 4)]), 1)
+        self.assertTrue(y['done']); self.assertEqual(y['peak'], 10)
+        self.assertGreater(y['ret'], 3)                                               # 평단 +5% − 비용
 
     def test_skip_overlap_and_pending(self):
         with open('test_data.json', encoding='utf-8') as f:

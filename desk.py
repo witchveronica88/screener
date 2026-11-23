@@ -107,7 +107,7 @@ def dip_card(base, prod, udp, bars, I, vix):
     elif n and n.get('pending'):
         udl = f"옐로우업다운: 다음 거래일 장 마감 LOC로 {udp} 1포트 (종가가 ${n['lim']} 이하면 체결)"
     elif n:
-        udl = (f"옐로우업다운: {md(n['since'])}에 시작한 {udp} 사이클이 도는 중 ({n['n']}포트{' · 팔기만' if n['out'] else ''})"
+        udl = (f"옐로우업다운: {md(n['since'])}에 시작한 {udp} 사이클이 도는 중 ({n['n']}포트{' · 평단 +5%면 전부 매도' if n['out'] else ''})"
                ' — 끝나기 전에 켜진 옐로우닷은 건너뜁니다')
     else:
         udl = f'옐로우업다운: 쉬는 중 — 다음 옐로우닷에서 {udp}로 시작합니다'
@@ -157,7 +157,7 @@ def stage_of(c):
         text, cls = '옐로우닷 꺼짐', 'off'                # 마지막 날짜는 stats('옐로우닷(10/14) 뒤')가 말한다
     udt = None
     if u:
-        udt = ('다음 거래일 첫 매수' if n and n.get('pending') else f"도는 중 · {n['n']}포트" if n else '쉬는 중')
+        udt = ('다음 거래일 첫 매수' if n and n.get('pending') else (f"도는 중 · {n['n']}포트" + (' · 평단 +5% 기다림' if n.get('out') else '')) if n else '쉬는 중')
     stats = []
     past = d.get('past')
     if d['on'] and past:                               # 켜진 날: 과거에 다음 날 샀다면 +10%에 20·60거래일 안 — 화면이 색 칸으로

@@ -21,6 +21,8 @@ UD_U = 0.10               # 매도 LOC: LP × (1 + UD_U − 보유 포트 × UD_
 UD_STEP = 0.002
 UD_COST = 0.001           # 매매마다 비용 0.1%
 UD_MAXD = 250             # 이 거래일 안에 안 끝나면 그날 종가로 평가(못 끝남)
+UD_EVEN = 0.05            # 돈이 바닥나면(소진) 더 사지도 나눠 팔지도 않고, 종가가 평단 × (1 + UD_EVEN) 이상인 날 전부 판다
+                          # (2026-11-23 사용자 결정 · 전에는 기준가를 날마다 전날 종가로 바꿔 +8%쯤 오른 날만 1/n 매도 — 긴 하락장에서 몇 년씩 묶였다)
 
 
 # ───────────── 자료 받기 ─────────────
@@ -372,35 +374,42 @@ def ud_set():
 def updown_cycle(P, s):
     """P[s] 종가에 1포트 첫 매수(전날 종가 ×1.1 이하일 때). 원금 1.
        매일 장 마감 LOC: 매수 LP×(1−D−n×STEP), 매도 LP×(1+U−n×STEP), 매도 수량 = 보유 ÷ n. LP = 마지막 체결가(종가).
-       금액 소진(포트를 다 쓰거나 남은 돈이 한 포트에 못 미침): LP를 매일 전날 종가로 바꿔 매도만.
+       금액 소진(포트를 다 쓰거나 남은 돈이 한 포트에 못 미침): 그날부터 더 사지도 나눠 팔지도 않고,
+       종가가 평단(가진 주식에 쓴 돈 ÷ 주식 수, 비용 포함) × (1 + UD_EVEN) 이상인 날 장 마감에 전부 판다.
        반환: 끝났거나 UD_MAXD가 지났으면 결과, 자료가 끝날 때까지 도는 중이면 'run'에 지금 상태. 시작 못 하면 None"""
     if s < 1 or s >= len(P) or P[s]['c'] > P[s - 1]['c'] * 1.1:
         return None
     N, D, U, st, cost = UD_POTS, UD_D, UD_U, UD_STEP, UD_COST
     pot = 1.0 / N
-    cash = 1.0 - pot; sh = pot * (1 - cost) / P[s]['c']; n = 1; LP = P[s]['c']; low = 1.0; peak = 1
+    cash = 1.0 - pot; sh = pot * (1 - cost) / P[s]['c']; basis = pot; n = 1; LP = P[s]['c']; low = 1.0; peak = 1
+    hold = False                                       # 돈이 바닥난 뒤 — 평단 +UD_EVEN까지 기다림
     end = min(s + UD_MAXD, len(P))
+
+    def sell(q, c):
+        nonlocal sh, cash, basis
+        basis *= 1 - q / sh; sh -= q; cash += q * c * (1 - cost)
     for j in range(s + 1, end):
         c = P[j]['c']
-        if n >= N or cash < pot * 0.999:
-            LP = P[j - 1]['c']
-            if c >= LP * (1 + U - n * st):
-                q = sh / n; sh -= q; cash += q * c * (1 - cost); n -= 1; LP = c
+        if hold or n >= N or cash < pot * 0.999:
+            hold = True
+            if c >= basis / sh * (1 + UD_EVEN):
+                sell(sh, c); n = 0
         elif c <= LP * (1 - D - n * st):
-            cash -= pot; sh += pot * (1 - cost) / c; n += 1; LP = c
+            cash -= pot; sh += pot * (1 - cost) / c; basis += pot; n += 1; LP = c
         elif c >= LP * (1 + U - n * st):
-            q = sh / n; sh -= q; cash += q * c * (1 - cost); n -= 1; LP = c
+            sell(sh / n, c); n -= 1; LP = c
         peak = max(peak, n); low = min(low, cash + sh * c)
         if n == 0:
             return {'ret': (cash - 1) * 100, 'end': j, 'days': j - s, 'low': (low - 1) * 100, 'peak': peak, 'done': True}
     j = end - 1
     eq = cash + sh * P[j]['c'] * (1 - cost)
     if s + UD_MAXD > len(P):                           # 아직 도는 중 — 다음 거래일에 걸 LOC
-        out = n >= N or cash < pot * 0.999
-        base = P[j]['c'] if out else LP
+        out = hold or n >= N or cash < pot * 0.999
+        avg = basis / sh
         return {'run': {'since': P[s]['d'], 'n': n, 'out': out, 'ret': round((eq - 1) * 100, 1),
-                        'buy': None if out else round(base * (1 - D - n * st), 2),
-                        'sell': round(base * (1 + U - n * st), 2)}, 'end': j}
+                        'buy': None if out else round(LP * (1 - D - n * st), 2),
+                        'sell': round(avg * (1 + UD_EVEN), 2) if out else round(LP * (1 + U - n * st), 2),
+                        'avg': round(avg, 2)}, 'end': j}
     return {'ret': (eq - 1) * 100, 'end': j, 'days': UD_MAXD, 'low': (low - 1) * 100, 'peak': peak, 'done': False}
 
 
