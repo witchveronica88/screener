@@ -11,7 +11,7 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
     도달률은 SPY 1배로 세어 세 줄의 숫자를 견줄 수 없었다).
   뺀 것: 원문(블로그) 🟢🟡 판정, 반등 신호·취소선, VIX 완화 단계, 주·월 단위 흐름, UVIX 새 최저가 사이클,
          반등 신호 성적표·기록, 지난 판정 기록.
-  근거(2026-11-23 백테스트 — 9종목 · 옐로우업다운 −5%·+10% · 비용 0.1% · 예비 자금 칸 3개 · 2011~2026, 연 수익/최대 낙폭):
+  근거(2026-11-23 백테스트 — 9종목 · 옐로우업다운 −5%·+10% · 비용 0.1% · 3종목까지 동시에 · 2011~2026, 연 수익/최대 낙폭):
     옐로우닷 그대로 +9.7%/−29% (2011~18 +5.2% · 2019~26 +12.2%)
     원문 'VIX 악화인 날 거르기' +6.5%/−19% — 두 기간 모두 수익이 줄었다(사이클 127 → 50번)
     원문 '반등 신호까지 기다리기' +10.6%/−37% — 앞 기간만 나았고(+7.1%) 뒤 기간은 못했으며(+9.8%) 낙폭이 컸다
@@ -21,7 +21,7 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
   desk_log.json은 v2.x 원문 판정을 화면에 보인 그대로 남긴 기록(2026-11-23까지)이다. 더 쓰지 않고 고치지도 않는다.
 """
 import urllib.request, csv, io, json, time, datetime, sys
-from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS,
+from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST,
                     updown_past)
 
 RULE = '옐로우닷 v3.0'
@@ -160,7 +160,7 @@ def stage_of(c):
         udt = ('다음 거래일 첫 매수' if n and n.get('pending') else (f"도는 중 · {n['n']}포트" + (' · 평단 +5% 기다림' if n.get('out') else '')) if n else '쉬는 중')
     stats = []
     past = d.get('past')
-    if d['on'] and past:                               # 켜진 날: 과거에 다음 날 샀다면 +10%에 20·60거래일 안 — 화면이 색 칸으로
+    if d['on'] and past:                               # 켜진 날: 과거에 다음 날 샀다면 +10%에 15·30거래일 안(DIP_FAST·DIP_DAYS) — 화면이 색 칸으로
         stats.append(('과거', [past.get('hitF'), past['hit']], 'past'))
     elif last and last.get('pmv') is not None:
         stats.append((f"옐로우닷({md(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
@@ -234,10 +234,13 @@ def uvix_brief(U):
             'spark': [{'d': b['d'], 'c': round(b['c'], 2)} for b in U[-21:]], 'allLow': round(min(c), 2)}
 
 
-def uvix_dip(U, bars, days=DIP_DAYS):
+UVIX_DAYS = 60    # UVIX 옐로우닷 뒤 SPY·QQQ·SOXX를 견주는 기간 — 옐로우닷 과거 결과 기간(15·30)과 다른 숫자라 따로 둔다
+
+
+def uvix_dip(U, bars, days=UVIX_DAYS):
     """UVIX 옐로우닷 — 참고용(사용자 요청, 2026-11). UVIX의 세 지표가 모두 바닥권인 날 = 불안이 급하게 가라앉아
        시장이 아주 조용해진 날. 주식 옐로우닷과 뜻이 반대이고 UVIX는 오래 들고 있으면 녹아내리므로 판정에는 쓰지 않는다.
-       ① UVIX를 다음 날 샀다면 60거래일 안 +10%·+20% — 아무 날 샀을 때와 함께
+       ① UVIX를 다음 날 샀다면 옐로우닷 과거 결과와 같은 기간(DIP_DAYS) 안 +10%·+20% — 아무 날 샀을 때와 함께
        ② 그 뒤 60거래일 SPY·QQQ·SOXX(종가 기준 평균 등락 · 오른 비율 · -10% 넘게 빠진 비율) — 같은 기간 아무 날과 함께"""
     if len(U) < 60:
         return None
@@ -248,8 +251,8 @@ def uvix_dip(U, bars, days=DIP_DAYS):
     li = next((i for i in range(last, 0, -1) if is_dip(I, i)), None)
     starts = [i for i in range(1, len(U)) if is_dip(I, i) and not is_dip(I, i - 1)]
     h1 = h2 = n = 0
-    for i in range(len(U) - days - 1):
-        e = U[i + 1]['o']; hi = max(U[j]['h'] for j in range(i + 1, i + days + 1))
+    for i in range(len(U) - DIP_DAYS - 1):
+        e = U[i + 1]['o']; hi = max(U[j]['h'] for j in range(i + 1, i + DIP_DAYS + 1))
         n += 1; h1 += hi >= e * (1 + TARGET / 100); h2 += hi >= e * (1 + TARGET2 / 100)
     out = {'on': on, 'run': run, 'past': dip_past(U, I, U), 'from': U[0]['d'],
            'any': {'hit': round(h1 / n * 100), 'hit20': round(h2 / n * 100), 'n': n} if n else None,

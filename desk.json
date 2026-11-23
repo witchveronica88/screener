@@ -2,7 +2,7 @@
  "rule": "옐로우닷 v3.0",
  "asof": "2026-11-20",
  "target": 10,
- "updated": "2026-11-23T06:02+00:00",
+ "updated": "2026-11-23T06:31+00:00",
  "cards": [
   {
    "prod": "UPRO",
@@ -27,21 +27,21 @@
      "n": 34,
      "ep": 34,
      "from": "2009-06-25",
-     "days": 60,
-     "hit": 91,
-     "medD": 6,
-     "maeAvg": -14.1,
+     "days": 30,
+     "hit": 76,
+     "medD": 4,
+     "maeAvg": -13.2,
      "maeMax": -72.6,
-     "hit20": 71,
+     "hit20": 50,
      "n20": 34,
-     "medD20": 18,
-     "miss": 3,
-     "missAvg": -19.5,
-     "daysF": 20,
+     "medD20": 12,
+     "miss": 8,
+     "missAvg": -14.3,
+     "daysF": 15,
      "nF": 34,
      "hitF": 65,
      "missF": 12,
-     "missAvgF": -11.6
+     "missAvgF": -11.7
     },
     "k": 4.9,
     "cci": -249.5,
@@ -441,7 +441,7 @@
       "과거",
       [
        65,
-       91
+       76
       ],
       "past"
      ]
@@ -471,21 +471,21 @@
      "n": 28,
      "ep": 28,
      "from": "2010-02-11",
-     "days": 60,
-     "hit": 100,
+     "days": 30,
+     "hit": 89,
      "medD": 4,
      "maeAvg": -8.4,
      "maeMax": -38.2,
-     "hit20": 85,
+     "hit20": 52,
      "n20": 27,
-     "medD20": 16,
-     "miss": 0,
-     "missAvg": null,
-     "daysF": 20,
+     "medD20": 8,
+     "miss": 3,
+     "missAvg": -8.0,
+     "daysF": 15,
      "nF": 28,
-     "hitF": 82,
-     "missF": 5,
-     "missAvgF": -6.4
+     "hitF": 79,
+     "missF": 6,
+     "missAvgF": -4.9
     },
     "k": 3.2,
     "cci": -200.9,
@@ -889,8 +889,8 @@
      [
       "과거",
       [
-       82,
-       100
+       79,
+       89
       ],
       "past"
      ]
@@ -920,21 +920,21 @@
      "n": 26,
      "ep": 26,
      "from": "2010-03-11",
-     "days": 60,
-     "hit": 92,
+     "days": 30,
+     "hit": 85,
      "medD": 5,
-     "maeAvg": -17.1,
+     "maeAvg": -14.8,
      "maeMax": -55.8,
-     "hit20": 77,
+     "hit20": 62,
      "n20": 26,
-     "medD20": 8,
-     "miss": 2,
-     "missAvg": -35.6,
-     "daysF": 20,
+     "medD20": 5,
+     "miss": 4,
+     "missAvg": -14.3,
+     "daysF": 15,
      "nF": 26,
      "hitF": 77,
      "missF": 6,
-     "missAvgF": -12.9
+     "missAvgF": -14.0
     },
     "k": 4.5,
     "cci": -157.3,
@@ -1339,7 +1339,7 @@
       "과거",
       [
        77,
-       92
+       85
       ],
       "past"
      ]
@@ -1573,27 +1573,27 @@
    "n": 30,
    "ep": 30,
    "from": "2022-03-30",
-   "days": 60,
-   "hit": 87,
-   "medD": 7,
-   "maeAvg": -15.2,
-   "maeMax": -55.2,
-   "hit20": 73,
+   "days": 30,
+   "hit": 70,
+   "medD": 6,
+   "maeAvg": -13.0,
+   "maeMax": -45.8,
+   "hit20": 50,
    "n20": 30,
-   "medD20": 12,
-   "miss": 4,
-   "missAvg": -44.4,
-   "daysF": 20,
+   "medD20": 7,
+   "miss": 9,
+   "missAvg": -25.8,
+   "daysF": 15,
    "nF": 30,
-   "hitF": 67,
-   "missF": 10,
-   "missAvgF": -13.8
+   "hitF": 63,
+   "missF": 11,
+   "missAvgF": -13.9
   },
   "from": "2022-03-30",
   "any": {
-   "hit": 72,
-   "hit20": 54,
-   "n": 1106
+   "hit": 66,
+   "hit20": 47,
+   "n": 1136
   },
   "drop": -99.97,
   "stocks": [

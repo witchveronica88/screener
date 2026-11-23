@@ -78,7 +78,7 @@ class YellowDot(unittest.TestCase):
         self.assertEqual(p['miss'], 0)
 
     def test_dip_past_miss_loss(self):
-        # 사고 나서 계속 빠지면 못 닿음, 60거래일 뒤 종가 기준 손실을 센다
+        # 사고 나서 계속 빠지면 못 닿음, 긴 기간(DIP_DAYS · 30거래일) 뒤 종가 기준 손실을 센다
         n = 80
         I = ind([10 if i == 5 else 50 for i in range(n)], [-150 if i == 5 else 0 for i in range(n)],
                 [20 if i == 5 else 50 for i in range(n)])
@@ -86,10 +86,10 @@ class YellowDot(unittest.TestCase):
         B = bars(c, spread=0.1)
         p = market.dip_past(B, I, B)
         self.assertEqual((p['n'], p['hit'], p['miss']), (1, 0, 1))
-        self.assertLess(p['missAvg'], -20)
+        self.assertLess(p['missAvg'], -10)                         # 하루 0.5씩 30거래일 → 약 −14%
 
     def test_dip_past_skips_unfinished(self):
-        # 기간(60거래일)이 아직 안 끝났고 목표에도 못 닿은 최근 건은 세지 않는다
+        # 기간(30거래일)이 아직 안 끝났고 목표에도 못 닿은 최근 건은 세지 않는다
         n = 30
         I = ind([10 if i == 5 else 50 for i in range(n)], [-150 if i == 5 else 0 for i in range(n)],
                 [20 if i == 5 else 50 for i in range(n)])
@@ -180,20 +180,20 @@ class DipPast20(unittest.TestCase):
 
 
 class DipPastFast(unittest.TestCase):
-    """20거래일 안 +10%(hitF): 20일이 지났으면 60일이 안 끝났어도 세고, 21일째 닿은 건은 20일 기준으로는 못 닿음"""
+    """15거래일 안 +10%(hitF): 15일이 지났으면 30일이 안 끝났어도 세고, 16일째 넘어 닿은 건은 15일 기준으로는 못 닿음"""
     def run_case(self, closes):
         n = len(closes)
         I = ind([10] + [50] * (n - 1), [-150] + [0] * (n - 1), [20] + [50] * (n - 1))   # 0번 날만 옐로우닷
         return market.dip_past(bars([100] * n), I, bars(closes, spread=0.1))
 
-    def test_late_hit_counts_only_for_60(self):
-        p = self.run_case([10] * 22 + [11.5] + [11] * 50)           # 산 값 10, 22번(옐로우닷 뒤 22거래일)에 +10%
+    def test_late_hit_counts_only_for_long(self):
+        p = self.run_case([10] * 22 + [11.5] + [11] * 50)           # 산 값 10, 22번(옐로우닷 뒤 22거래일)에 +10% — 30일 안 · 15일 밖
         self.assertEqual((p['hit'], p['hitF'], p['nF'], p['missF']), (100, 0, 1, 1))
-        self.assertEqual(p['missAvgF'], 0.0)                         # 20거래일 뒤 종가 10 → 0%
+        self.assertEqual(p['missAvgF'], 0.0)                         # 15거래일 뒤 종가 10 → 0%
 
-    def test_counted_before_60_days_end(self):
-        p = self.run_case([10] * 30)                                 # 60일은 안 끝남, 20일은 끝남 · 못 닿음
-        self.assertIsNone(p)                                         # 60일 결과가 없으면 통째로 없음
+    def test_counted_before_long_end(self):
+        p = self.run_case([10] * 30)                                 # 30일은 안 끝남, 15일은 끝남 · 못 닿음
+        self.assertIsNone(p)                                         # 30일 결과가 없으면 통째로 없음
         p = self.run_case([10] * 5 + [11.5] + [10] * 10)             # 5번째 날 닿음 — 기간이 짧아도 셈
         self.assertEqual((p['hit'], p['hitF'], p['nF']), (100, 100, 1))
 
@@ -202,7 +202,7 @@ class DipPastFast(unittest.TestCase):
             fx = json.load(f)
         B = [{'d': d, 'o': c, 'h': h, 'l': l, 'c': c} for d, h, l, c in fx['SOXX']]
         p = market.dip_past(B, market.indicators(B), B)
-        self.assertGreaterEqual(p['nF'], p['n'])                     # 20일은 60일보다 먼저 끝나므로 표본이 같거나 많다
+        self.assertGreaterEqual(p['nF'], p['n'])                     # 15일은 30일보다 먼저 끝나므로 표본이 같거나 많다
         self.assertTrue(0 <= p['hitF'] <= 100)
 
 
@@ -256,7 +256,7 @@ class UpDown(unittest.TestCase):
 
 
 class UvixDip(unittest.TestCase):
-    """UVIX 옐로우닷(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히)"""
+    """UVIX 옐로우닷(참고용): 아무 날 기준선, 그 뒤 60거래일 주식(같은 기간 아무 날과 나란히 · desk.UVIX_DAYS)"""
     def test_shape(self):
         with open('test_data.json', encoding='utf-8') as f:
             fx = json.load(f)
@@ -327,7 +327,7 @@ class DeskStatus(unittest.TestCase):
         past = {'n': 26, 'hit': 92, 'hitF': 76}
         g = self.card(on=True, past=past, now={'pending': True, 'lim': 33.97})['stage']
         self.assertEqual((g['cls'], g['text']), ('on', '옐로우닷 오늘'))
-        self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])          # [20거래일 안 +10%, 60거래일 안 +10%] 색 칸
+        self.assertEqual(g['stats'], [('과거', [76, 92], 'past')])          # [15거래일 안 +10%, 30거래일 안 +10%] 색 칸
         self.assertEqual((g['ud'], g['up']), ('다음 거래일 첫 매수', 'SOXL'))
         self.assertEqual(self.card(on=True, run=3)['stage']['text'], '옐로우닷 3일째')
 
