@@ -432,19 +432,72 @@ class DeskStatus(unittest.TestCase):
         self.assertEqual(g['stats'], [('10/14 뒤 SOXL', '-17.8%', '')])
         self.assertEqual(desk.stage_of({'state': 'wait'})['cls'], 'wait')
 
+    def mk(self, base, prod, dd, move=None):
+        """시장 쪽 값(mkt)만 넣은 카드 — 결론 문장 시험용"""
+        c = self.card(base, prod)
+        c['mkt'] = {'dd': dd, 'phase': desk.phase_of(dd), 'move': move, 'lo': '2026-11-20' if move else None}
+        return c
+
     def test_headline(self):
-        cs = [self.card('SPY', 'UPRO', on=True), self.card('QQQ', 'TQQQ', on=True), self.card(on=True, run=3)]
-        self.assertEqual(desk.headline(cs), 'S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.')
-        cs = [self.card('SPY', 'UPRO', on=True), self.card('QQQ', 'TQQQ'), self.card()]
-        self.assertEqual(desk.headline(cs), 'S&P500 옐로우닷이 켜졌습니다.')
-        cs = [self.card('SPY', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'mv': 1, 'pmv': 3}), self.card('QQQ', 'TQQQ'), self.card()]
-        h = desk.headline(cs)
-        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 10/14에 켜진 뒤 SPY +1.0%입니다.')
-        L = lambda b, p, mv: self.card(b, p, last={'date': '2026-11-20', 'age': 1, 'mv': mv, 'pmv': mv * 3})
-        h = desk.headline([L('SPY', 'UPRO', 4.7), L('QQQ', 'TQQQ', 7.0), L('SOXX', 'SOXL', 13.6)])
-        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 11/20에 모두 켜진 뒤 SPY +4.7% · QQQ +7.0% · SOXX +13.6%입니다.')
-        self.assertNotIn('반등', h)                                          # 원문(블로그) 말은 쓰지 않는다
-        self.assertNotIn('옐로우업다운', h)                                  # 상황판은 그날의 상황만 (2026-11-23 사용자)
+        """결론 문장은 시장만 — 주가(S&P500 흐름 · 단계, 두 단계 넘게 깊은 지수는 괄호) + 분위기(VIX · 돈줄). 옐로우닷은 말하지 않는다 (2026-11-24 사용자)"""
+        V = lambda c: {'c': c}
+        calm = {'v': 2.84, 'chg2w': -0.05, 'hi1y': 3.5}
+        cases = [
+            ([('SPY', -7.3, 'rebound'), ('QQQ', -14.3, 'rebound'), ('SOXX', -35.8, 'rebound')], V(26.62), {'v': 3.76, 'chg2w': 0.34, 'hi1y': 3.76}, {'warn': False},
+             '주가는 11/20 저점에서 되오르는 중입니다(반도체는 하락장). 불안(VIX)은 아직 높고 돈줄 걱정도 커졌습니다.'),
+            ([('SPY', -29.1, 'fall'), ('QQQ', -28.6, 'fall'), ('SOXX', -33.9, 'fall')], V(82.7), None, {'warn': True},
+             '주가는 하락장이고, 아직 빠지는 중입니다. 불안(VIX)이 아주 높고 돈줄 경고가 켜져 있습니다.'),
+            ([('SPY', -10.8, 'rebound'), ('QQQ', -13.4, 'rebound'), ('SOXX', -31.1, 'rebound')], V(26.5), {'v': 3.73, 'chg2w': -0.5, 'hi1y': 4.57}, {'warn': False},
+             '주가는 조정 구간이고, 11/20 저점에서 되오르는 중입니다. 불안(VIX)은 아직 높은 편입니다.'),
+            ([('SPY', -4.2), ('QQQ', -7.9, 'fall'), ('SOXX', -13.5, 'fall')], V(18.0), calm, {'warn': False},
+             '주가는 최고가 근처입니다(반도체는 조정). 불안(VIX)은 보통이고 돈줄도 조용합니다.'),
+            ([('SPY', -0.2), ('QQQ', 0.0), ('SOXX', -9.0)], V(14.9), calm, None,
+             '주가는 최고가 근처입니다. 불안(VIX)은 낮고 돈줄도 조용합니다.'),
+            ([('SPY', -5.4, 'fall'), ('QQQ', -7.1, 'fall'), ('SOXX', -16.6, 'fall')], V(18.7), {'v': 3.4, 'chg2w': 0.25, 'hi1y': 3.9}, None,
+             '주가가 빠지는 중입니다. 불안(VIX)은 보통이지만 돈줄 걱정이 커졌습니다.'),
+            ([('SPY', -6.0), ('QQQ', -9.0), ('SOXX', -12.0)], V(16.0), None, None,
+             '주가는 최고가에서 조금 내려와 있습니다. 불안(VIX)은 보통입니다.'),
+        ]
+        prod = {'SPY': 'UPRO', 'QQQ': 'TQQQ', 'SOXX': 'SOXL'}
+        for rows, vix, hy, cr, want in cases:
+            cs = [self.mk(b, prod[b], dd, *mv) for b, dd, *mv in rows]
+            h = desk.headline(cs, vix, hy, cr)
+            self.assertEqual(h, want)
+            self.assertNotIn('옐로우닷', h)                                     # 결론은 시장만 — 옐로우닷은 진입 신호 칸이 보여 준다
+            self.assertNotIn('옐로우업다운', h)                                 # 상황판은 그날의 상황만 (2026-11-23 사용자)
+        self.assertEqual(desk.headline([self.mk('SPY', 'UPRO', -3.0)]), '주가는 최고가 근처입니다.')   # VIX를 못 받으면 주가만
+        self.assertEqual(desk.headline([{'state': 'wait'}]), '자료를 확인하는 중입니다.')
+
+
+class DeskMarket(unittest.TestCase):
+    """상황판 시장 쪽(desk.mkt_state) — 최고가 대비 단계 · 200일 평균 · 한 달 흐름 · 3개월 그래프 · 종목별 탭 글"""
+    def test_phase(self):
+        self.assertEqual([desk.phase_of(x) for x in (0, -4.9, -5, -9.9, -10, -19.9, -20, -45)], [0, 0, 1, 1, 2, 2, 3, 3])
+
+    def test_rebound_in_correction(self):
+        cl = [50 + i * 50 / 219 for i in range(220)] + [100 - i for i in range(1, 16)] + [86, 87, 88]
+        B = bars(cl); I = market.indicators(B)
+        drop = {'pct': -15.0, 'days': 15, 'from': B[219]['d'], 'to': B[234]['d'], 'back': 3.5}
+        m = desk.mkt_state('QQQ', B, I, drop)
+        self.assertEqual((m['ath'], m['dd'], m['phase'], m['move'], m['lo']), (100.0, -12.0, 2, 'rebound', B[234]['d']))
+        self.assertNotIn('hi1y', m)                                          # 1년 고점 = 역대 고점이면 한 번만
+        self.assertEqual(m['head'], f"나스닥은 조정 구간이고, {desk.md(B[234]['d'])} 저점에서 되오르는 중입니다.")
+        self.assertTrue(m['why'][0].startswith('1년 · 역대 최고($100.00'))
+        self.assertAlmostEqual(m['m200'], round(sum(cl[-200:]) / 200, 2))
+        self.assertEqual(m['o200'], round(cl[-200], 4))                      # 장중에 평균에서 빼는 가장 오래된 종가
+        self.assertEqual(len(m['spark']['c']), 63)
+        self.assertEqual(len(m['spark']['m200']), 63)
+        self.assertEqual(desk.mkt_state('QQQ', B, I, {**drop, 'back': 1.0})['move'], 'fall')    # 저점 뒤 2% 안이면 아직 빠지는 중
+        self.assertIsNone(desk.mkt_state('QQQ', B, I, {**drop, 'pct': -4.0})['move'])           # 한 달 하락이 5% 안이면 흐름은 말하지 않음
+
+    def test_old_high(self):
+        cl = [100 + i * 2 for i in range(11)] + [120 - i * 0.6 for i in range(1, 101)] + [60 + i * 40 / 188 for i in range(1, 189)]
+        B = bars(cl); I = market.indicators(B)
+        m = desk.mkt_state('SOXX', B, I, None)
+        self.assertEqual((m['ath'], m['phase'], m['move']), (120.0, 2, None))
+        self.assertIn('hi1y', m)                                             # 역대 고점이 1년보다 오래됐으면 1년 고점도
+        self.assertEqual(len(m['why']), 3)
+        self.assertEqual(m['head'], '반도체는 조정 구간입니다.')
 
 
 if __name__ == '__main__':

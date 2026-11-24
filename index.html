@@ -484,7 +484,7 @@ details.fold[open]>summary::after{content:'－'}
 .dhead1{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--on);border-radius:14px;padding:10px 16px;
         margin-bottom:6px;font-size:var(--fs-m);font-weight:700;line-height:var(--lh-t);word-break:keep-all;overflow-wrap:anywhere}
 .flow{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:12px 16px 8px;margin-bottom:10px;overflow-wrap:anywhere}
-.flow[data-dt],.mrow{cursor:pointer}
+.flow[data-dt]{cursor:pointer}
 .flow .fh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
 .flow .fn{font-size:var(--fs-m);font-weight:700;line-height:var(--lh-t)}
 .fn.on::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2);margin-right:6px;vertical-align:0}
@@ -493,18 +493,38 @@ details.fold[open]>summary::after{content:'－'}
 .flow .dpx.g{color:var(--up)}.flow .dpx.r{color:var(--dn)}
 .flow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:3px;line-height:var(--lh)}
 .flow .dul b{color:var(--ink)}
-/* 요약: 세 줄의 단계 막대는 칸이 같으므로 이름(평소·옐로우닷…)은 첫 줄에만 — 나머지는 점만 */
-.fsum .flow{padding:10px 16px 8px;margin-bottom:6px}
-.fsum .flow .fh .tk{line-height:var(--lh-t)}
-.fsum .fbody{align-items:center;margin-top:2px}
-.fsum .fpv{margin:1px 0}
-.mrow{display:block;background:var(--s1);border:1px solid var(--bd);border-radius:14px;
-      padding:12px 16px 9px;margin-bottom:12px;overflow-wrap:anywhere}
-.mrow .mh{display:flex;align-items:center;gap:10px}
-.mrow .mst{font-size:var(--fs-m)}.mrow .mst.warn{color:var(--dn)}.mrow .mst.watch{color:var(--warn)}.mrow .mst.buy{color:var(--up)}
-.mrow .mh .mv{margin-left:auto;white-space:nowrap}
-.mrow .lamp{width:18px;height:18px;border-width:2px}
-.mrow .fbody{margin-top:2px}
+/* 요약 — 시장 먼저(2026-11-24 사용자: 스크리너는 시장 전반 상황을 보는 곳, 옐로우닷은 진입 신호일 뿐):
+   주가 · 분위기 · 진입 신호 세 칸. 칸 이름은 작은 회색 굵은 글씨, 줄 사이 얇은 선 */
+.mx{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:10px 16px 4px;margin-bottom:10px;overflow-wrap:anywhere}
+.mxt{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 10px;font-size:var(--fs-s);color:var(--ink3);
+     font-weight:700;line-height:var(--lh-t);padding-bottom:5px}
+.mxt em{font-style:normal;font-weight:400;margin-left:4px}
+.mxt .lvbtn{display:inline-block;margin:0 0 0 auto;padding:3px 10px}
+.mxr{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--s2);cursor:pointer}
+.mxl{flex:1;min-width:0}
+.mxh{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px}
+.mxh .tk{color:var(--idx);line-height:var(--lh-t)}
+.mxh>b{font-size:var(--fs-s)}
+.mxh .dpx{margin-left:auto;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2);white-space:nowrap}
+.mxs{font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
+.mxs b{color:var(--ink)}
+.mxm{display:grid;grid-template-columns:3.2em minmax(0,1fr);gap:0 8px;padding:6px 0;border-top:1px solid var(--s2);
+     font-size:var(--fs-s);line-height:var(--lh);color:var(--ink2)}
+.mxm[data-dt],.mxm[data-view],.sgl[data-dt]{cursor:pointer}
+.mxm .mk{color:var(--ink3);font-weight:600}
+.mxv{min-width:0}
+.mxv>b{color:var(--ink);margin-right:4px}
+.mxv small{white-space:nowrap}
+.sgl{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px}
+.sgl+.sgl{margin-top:5px}
+.sgl .tk{font-size:var(--fs-m);color:var(--idx);line-height:var(--lh-t)}
+.sgl>b,.sgv b{color:var(--ink)}
+.mx .g{color:var(--up)}.mx .r{color:var(--dn)}.mx .w{color:var(--warn)}
+/* 종목별 탭 오늘의 해석 — 시장 글 아래 '진입 신호 · 옐로우닷' 묶음 */
+.dread .dul+.dbars{margin-top:12px}
+.dsig{border-top:1px solid var(--s2);margin-top:14px;padding-top:12px}
+.dsig .sh{display:flex;align-items:center;gap:6px;font-size:var(--fs-s);color:var(--ink3);font-weight:600;margin-bottom:6px}
+.dsig .st{font-size:var(--fs-s);color:var(--ink);font-weight:600;line-height:var(--lh);margin-bottom:8px}
 /* 장중 지금 가격 (Finnhub) — 버튼 · 키 넣기 · 결과 상자 */
 .lvbtn{display:block;width:fit-content;background:var(--s1);border:1px solid var(--bd2);color:var(--on);border-radius:999px;
        padding:4px 12px;margin:-2px 0 10px auto;font-size:var(--fs-s);font-weight:600;line-height:var(--lh-t);cursor:pointer;font-family:var(--sans)}   /* 작은 알약 (2026-11-24 사용자: 더 작게) */
@@ -550,11 +570,6 @@ svg.mini{display:block}
 .mini .ref{stroke:var(--dn);stroke-width:1.2;stroke-dasharray:4 3}
 .mini .dot{fill:var(--st-watch);stroke:var(--ink2);stroke-width:.8}
 .mini .end{fill:var(--on)}
-.mrow b{font-size:var(--fs-m)}
-.mrow .mv{font-family:var(--mono);font-size:var(--fs-s);color:var(--ink2)}
-.mrow .mv .g{color:var(--up)}.mrow .mv .r{color:var(--dn)}
-.mrow .dul li{font-size:var(--fs-s);color:var(--ink2);margin-top:2px;line-height:var(--lh-t)}
-.fsum+.mrow{padding:9px 16px 7px}
 .lamp{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:var(--s3);border:3px solid var(--s2)}
 .lamp.buy{background:var(--up)}.lamp.sell,.lamp.worse{background:var(--dn)}.lamp.warn{background:var(--warn)}
 .lamp.watch{background:var(--st-watch)}.lamp.hot{background:var(--st-hot)}
@@ -639,7 +654,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>타이밍을 보는 값</h4>
     <div class="hitem" data-k="chart"><div class="hterm">RSI (14)</div>
-      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 레버리지 ETF는 옐로우닷과 같이 <b>기초자산</b>의 RSI를 보여 줍니다(SOXL이면 SOXX). 스위치법 본 운용은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없습니다. 옐로우닷과 상황판은 예비 투자금을 언제 더 넣을지 볼 때 쓰는 참고입니다.</div></div>
+      <div class="hdef">최근 14일 상승폭과 하락폭의 비율. 70 이상 과열권, 30 이하 침체권. 레버리지 ETF는 옐로우닷과 같이 <b>기초자산</b>의 RSI를 보여 줍니다(SOXL이면 SOXX). 스위치법 본 운용은 떨어질수록 사는 구조라 RSI가 낮다고 서둘 이유는 없습니다. 상황판은 시장 전반 상황을 보는 곳이고, 옐로우닷은 그 안에서 주가가 많이 빠져 진입 기회가 될 수 있는 날을 알려 주는 신호입니다.</div></div>
     <div class="hitem" data-k="chart"><div class="hterm">역대 고점 대비 · 1년 고점 대비</div>
       <div class="hdef">두 개를 함께 두는 이유가 있습니다. <b>역대</b>는 과거 최대낙폭과 나란히 놓고 비교하는 참고값입니다. 과거 최대낙폭이 앞으로의 하락 한도는 아니므로, 둘의 차이를 남은 안전 여유로 읽으면 안 됩니다. <b>1년</b>은 지금 흐름에서 어디쯤인지 보는 값입니다. 레버리지 ETF는 감가 때문에 역대 고점이 사실상 도달 불가능한 경우가 많아, 역대 수치만 보면 항상 바닥처럼 보입니다.</div></div>
   </div>
@@ -1670,10 +1685,13 @@ async function liveGo(){
 const lvOf=b=>LVQ&&LVQ.rows?LVQ.rows.find(r=>r.base===b&&r.chg!=null)||null:null;
 const lvOn=()=>!!(LVQ&&LVQ.rows&&LVQ.rows.some(r=>r.chg!=null));
 const LV_NM={SPY:'S&P500',QQQ:'나스닥',SOXX:'반도체'};
-function lvHead(){
-  const ok=LVQ.rows.filter(r=>r.chg!=null), on=ok.filter(r=>r.on);
+function lvHead(){   /* 장중 결론 — 주가(S&P500 ±1% 경계, 다른 지수가 크게 다르면 괄호) + 이 가격으로 끝날 때의 옐로우닷 */
+  const ok=LVQ.rows.filter(r=>r.chg!=null), on=ok.filter(r=>r.on), s=ok.find(r=>r.base==='SPY')||ok[0];
   const nm=on.map(r=>LV_NM[r.base]||r.base).join('·')+(on.length===ok.length&&on.length>1?' 모두':'');
-  return on.length?`장중 지금 가격으로는 ${nm} 옐로우닷이 켜집니다.`:'장중 지금 가격으로는 옐로우닷이 모두 꺼집니다.';
+  const big=ok.filter(r=>r!==s&&Math.abs(r.chg)>=2&&Math.abs(r.chg-s.chg)>=1.5).sort((a,b)=>Math.abs(b.chg)-Math.abs(a.chg))[0];
+  const mv=(s.chg>=1?'장중 지금 주가가 오르고 있습니다':s.chg<=-1?'장중 지금 주가가 빠지고 있습니다':'장중 지금 주가는 크게 움직이지 않습니다')+
+    (big?`(${LV_NM[big.base]||big.base} ${sg(big.chg)})`:'')+'.';
+  return mv+' '+(on.length?`이 가격으로 끝나면 ${nm} 옐로우닷이 켜집니다.`:'지금 가격으로는 옐로우닷이 켜지지 않습니다.');
 }
 const lvText=r=>r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
   :r.th?`<b>꺼짐</b> — $${r.th.toFixed(2)} 아래로 끝나면 켜집니다 <small>(지금보다 ${sg((r.th/r.c-1)*100)})</small>`
@@ -1716,16 +1734,17 @@ async function liveClick(e){
     LVQ={loading:true};re();await liveGo();re();
   }
 }
-/* 요약 탭 아래 — 옐로우닷이란 · 이 상황판의 기준 (상황판은 그날의 상황만 — 옐로우업다운 매수·매도는 종목 탭에만 · 2026-11-23 사용자) */
+/* 요약 탭 아래 — 시장 지표란 · 옐로우닷이란 · 이 상황판의 기준 (상황판은 그날의 상황만 — 옐로우업다운 매수·매도는 종목 탭에만 · 2026-11-23 사용자) */
 function dotRules(){
   const C=DESK.cards.filter(c=>c.dip);
   return dsec('b','옐로우닷이란',ul([
-    '두 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
+    '주가가 짧은 사이에 많이 빠져 <b>진입 기회</b>가 될 수 있는지 보는 신호입니다. 두 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
     '<b>바닥권</b>: 빠르기(%K) 20 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
     '장 마감 종가로 계산합니다. 한국 아침 6시 20분쯤 <small>(서머타임 5시 20분쯤)</small> 켜졌는지 나옵니다',
-    `켜진 날 줄의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 꺼진 날 줄의 'M/D 뒤 UPRO +x%'는 마지막 옐로우닷(M/D) 뒤 그 3배 상품이 오르내린 폭입니다. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
+    `진입 신호 칸의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품(${C.map(c=>c.prod).join(' · ')})을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 다 꺼져 있으면 20거래일 안에 마지막으로 켜진 날을 적습니다. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
+    '<b>종목</b> 줄은 종목 탭에서 옐로우닷이 켜진 종목 수와 이름입니다 <small>(종목 탭 추천순)</small>. 누르면 종목 탭으로 갑니다',
     '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다',
-    '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 세 줄 모두 3배 상품(UPRO · TQQQ · SOXL)으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
+    '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
     '두 지표가 모두 바닥권에 들어간 날 · 과거 결과 보는 법');
 }
 function secRules(){
@@ -1735,19 +1754,21 @@ function secRules(){
       '바닥권: %K 20 이하 · RSI 30 이하가 모두 맞는 날',
       '<small>2026-11-24부터 CCI(−100 이하)를 뺐습니다 — 켜진 날이 거의 같았고 과거 결과도 그대로였습니다</small>',
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
-    blk('장중 지금 가격',ul(['위 버튼을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
-      '<b>지금 가격으로 장이 끝나면</b> 옐로우닷이 켜지는지 보여 주는 임시 값입니다. 확정은 장 마감 뒤 종가로 다시 계산합니다',
+    blk('장중 지금 가격',ul(['주가 칸 머리의 <b>장중 지금 가격</b>을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
+      '주가 칸(단계 · 최고가 대비 · 오늘 등락 · 그래프 끝)과 진입 신호 칸이 지금 가격으로 바뀝니다. <b>지금 가격으로 장이 끝나면</b> 어떤지 보여 주는 임시 값이고, 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
-    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임 · 하이일드 스프레드 · 돈줄 경고는 보여 주기만 합니다',
-      '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
+    blk('시장 지표 <small>판정에 넣지 않음</small>',ul(['주가 단계 · 200일 평균 · VIX · VIX 선물 · 하이일드 스프레드 · 돈줄 경고 · 월봉 과열 꺾임 · UVIX 옐로우닷은 시장 상황을 보여 주는 값이고, 옐로우닷 판정(두 지표)에는 넣지 않습니다',
+      '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않았습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
       '하루에 25% 넘게 달라지면 분할 보정 문제로 보고 그날은 계산을 멈춤'])),
-    `${DESK.rule} · 옐로우닷 · 장중 · 시장 참고 · 가격`);
+    `${DESK.rule} · 옐로우닷 · 장중 · 시장 지표 · 가격`);
 }
-/* 오늘의 해석 — 지금이 왜 매수 기회인지(아닌지)를 쉬운 말로 */
-const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · ${lvOf(c.base)?md(DESK.asof)+' 종가 해석':'오늘의 해석'}</div><div class="rt">${c.dip.head}</div>${dropBars(c)}${ul(c.dip.why)}</div>`;
+/* 오늘의 해석 — 시장 먼저(단계 · 최고가 · 200일 평균 · 최근 한 달 하락 막대), 그 아래 '진입 신호 · 옐로우닷' 묶음 (2026-11-24) */
+const readCard=c=>!c.dip?'':`<div class="dread"><div class="rh">${c.base} · ${lvOf(c.base)?md(DESK.asof)+' 종가 해석':'오늘의 해석'}</div>`+
+  (c.mkt?`<div class="rt">${c.mkt.head}</div>${ul(c.mkt.why)}`:'')+dropBars(c)+
+  `<div class="dsig"><div class="sh">진입 신호 · 옐로우닷${c.dip.on?ydot(c.dip.run):''}</div><div class="st">${c.dip.head}</div>${ul(c.dip.why)}</div></div>`;
 /* 최근 한 달 고점에서 저점까지 — 이 종목군과 시장 전체(SPY), 그 뒤 되오른 폭 */
 function dropBars(c){
   const d=c.dip&&c.dip.drop; if(!d||!d.days||d.pct>-3)return '';
@@ -1769,7 +1790,6 @@ function miniChart(vals,o={}){
     `<circle class="end" cx="${X(n-1).toFixed(1)}" cy="${Y(vals[n-1]).toFixed(1)}" r="2.6"/></svg>`+
     (o.label?`<em>${o.label}</em>`:'')+`</span>`;
 }
-const statIcon=c=>c==='dot'?'<i class="sdot"></i>':'';
 /* 상태 줄 머리 — 기준자산 · 과거 결과 상품 · 옐로우닷 상태 · 오늘 등락 (desk.py stage_of) */
 const fhead=(c,g)=>{
   const r=lvOf(c.base);
@@ -1779,49 +1799,94 @@ const fhead=(c,g)=>{
   (g.on&&c.dip?ydot(c.dip.run):g.cls==='wait'?`<span class="fn wait">${g.text}</span>`:'')+
   (c.prod!==c.base?tkP(c.prod):'')+
   (c.ind?`<span class="dpx ${sc(c.ind.chg)}">${sg(c.ind.chg)}</span>`:'')+`</div>`;};
-/* 요약 줄 — 옐로우닷 상태 · 과거 결과(켜진 날) 또는 마지막 옐로우닷 뒤 · 옐로우업다운 · 1개월 작은 그래프 */
-function sumRow(c){
-  const g=c.stage||{cls:'wait',text:c.line||'자료 확인 중',stats:[]}, H=c.hist||[], r=lvOf(c.base);
-  if(r&&c.dip){
-    const dots=H.map((x,i)=>x.dot?i:-1).filter(i=>i>=0).concat(r.on?[H.length]:[]);
-    const ch=H.length>2?miniChart(H.map(x=>x.c).concat(r.c),{label:'1개월 · 지금',dots}):'';
-    const p=c.dip.past;
-    const body=r.on&&p?`<div class="fpast"><div class="fpv">${p.hitF!=null?`<span class="fg">15일 ${pctCell(p.hitF)}</span>`:''}${p.hit!=null?`<span class="fg">30일 ${pctCell(p.hit)}</span>`:''}</div></div>`
-      :r.on?'':r.th?`<div class="fsv"><span>켜지는 가격</span> <b>$${r.th.toFixed(2)}</b> <small>(${sg((r.th/r.c-1)*100)})</small></div>`
-      :`<div class="fsv"><span>오늘은 켜지기 어렵습니다</span></div>`;
-    return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${body}</div>${ch}</div></div>`;
+/* ── 요약 — 시장 먼저 (2026-11-24 사용자: 스크리너는 옐로우닷만을 위한 게 아니다, 시장 전반 상황을 보고 싶다 ·
+   옐로우닷 · 스위치법은 주가가 많이 빠져 진입 기회가 될 수 있는지 보는 신호일 뿐)
+   결론(desk.py headline) → 주가(SPY · QQQ · SOXX) → 분위기(불안 · 돈줄 · 과열) → 진입 신호(옐로우닷 · 종목 탭). 아래는 접는 칸 */
+const PHASE=['최고가 근처','가벼운 하락','조정','하락장'], PHC=['g','w','r','r'];
+const phaseOf=dd=>dd>-5?0:dd>-10?1:dd>-20?2:3;   /* desk.py phase_of와 같은 경계 */
+/* 장중이면 지금 가격으로 최고가 대비 · 200일 평균을 다시 센다(평균은 가장 오래된 종가 o200을 빼고 지금 가격을 넣음) */
+function mxNow(c){
+  const m=c.mkt, r=lvOf(c.base);
+  if(!r)return {c:c.ind.close,chg:c.ind.chg,dd:m.dd,ph:m.phase,m200:m.m200,r:null};
+  const dd=(r.c/Math.max(m.ath,r.c)-1)*100;
+  return {c:r.c,chg:r.chg,dd,ph:phaseOf(dd),m200:m.m200!=null&&m.o200!=null?m.m200+(r.c-m.o200)/200:null,r};
+}
+/* 주가 줄 — 티커 · 단계 · 오늘 등락 / 최고가보다 · 오른쪽 3개월 그래프(회색 점선 200일 평균 · 노란 점 옐로우닷) */
+function pxRow(c){
+  const m=c.mkt, x=mxNow(c), sp=m.spark||{c:[],m200:[],dots:[]};
+  const vals=sp.c.concat(x.r?[x.c]:[]), l2=(sp.m200||[]).concat(x.r?[x.m200]:[]);
+  const dots=(sp.dots||[]).concat(x.r&&x.r.on?[vals.length-1]:[]);
+  const ch=vals.length>2?miniChart(vals,{l2:l2.length===vals.length&&l2.every(v=>v!=null)?l2:null,dots}):'';
+  return `<div class="mxr" data-dt="${c.base}"><div class="mxl"><div class="mxh"><span class="tk">${c.base}</span>`+
+    `<b class="${PHC[x.ph]}">${PHASE[x.ph]}</b><span class="dpx ${sc(x.chg)}">${x.r?'$'+x.c.toFixed(2)+' ':''}${sg(x.chg)}</span></div>`+
+    `<div class="mxs">최고가보다 <b>${sg(x.dd)}</b></div></div>${ch}</div>`;
+}
+function mxPrice(){
+  return `<div class="mx"><div class="mxt"><span>주가 <em>3개월${lvOn()?' · 끝은 지금':''} · 점선 200일 평균</em></span>`+
+    (LVQ?'':'<button class="lvbtn" id="lvGo">장중 지금 가격</button>')+`</div>`+
+    DESK.cards.map(c=>c.mkt&&c.ind?pxRow(c):`<div class="mxr"><div class="mxl"><div class="mxh"><span class="tk">${c.base}</span></div>`+
+      `<div class="mxs">${c.line||'자료 확인 중'}</div></div></div>`).join('')+`</div>`;
+}
+/* 분위기 — 불안(VIX) · 돈줄(하이일드 스프레드 · 돈줄 경고) · 과열(월봉 과열 꺾임). 이름 · 결론 낱말 · 값 한 줄씩, 누르면 VIX 탭 */
+function mxMood(){
+  const D=DESK, v=D.market&&D.market.vix, h=D.hy, cr=D.credit, u=D.uvixDip, W=D.monthWarn||[], R=[];
+  if(v){const [w,cl]=v.c>=30?['아주 높음','r']:v.c>=20?['높은 편','w']:v.c>=15?['보통','']:['낮은 편',''];
+    R.push({k:'불안',w,cl,v:`VIX ${v.c.toFixed(1)} <span class="${sc(-v.chg)}">${sg(v.chg)}</span>`+
+      (v.hi1m?' · 1개월 최고':v.lo1m?' · 1개월 최저':'')+(u&&u.on?' · UVIX 옐로우닷 켜짐':'')});}
+  if(h||cr){const c2=h?h.chg2w:cr.chg2w;
+    const [w,cl]=cr&&cr.warn?[cwTag,'']:h&&h.hi1y-h.v<=0.05?['1년 최고','r']:c2>=0.2?['벌어지는 중','r']:c2<=-0.2?['좁아지는 중','']:['조용함',''];
+    R.push({k:'돈줄',w,cl,v:h?`하이일드 ${hyF(h.v)} · 2주 ${hyChg(h.chg2w)}`:`회사채 ${hyF(cr.v)} · 2주 ${hyChg(cr.chg2w)}`});}
+  if(W.length){   /* 월봉 과열 꺾임 — 꺾인 뒤 12개월(MW_MONTHS) 안인 지수를 달마다 묶어서. 진행 중인 달은 표시 */
+    const r=W.filter(w=>w.last&&w.last.ago<=MW_MONTHS), hot=W.filter(w=>w.hot).map(w=>w.sym), g={};
+    r.forEach(w=>{const k=w.last.m+(w.last.open?'o':'');(g[k]=g[k]||[]).push(w.sym);});
+    R.push(r.length?{k:'과열',w:'월봉 꺾임',cl:'w',v:Object.keys(g).sort().reverse().map(k=>`${g[k].join('·')} ${+k.slice(5,7)}월${k.endsWith('o')?'<small>(진행 중)</small>':''}`).join(' · ')}
+      :hot.length?{k:'과열',w:'월봉 과열권',cl:'w',v:hot.join(' · ')}:{k:'과열',w:'없음',cl:'',v:'월봉 기준'});}
+  return R.length?`<div class="mx"><div class="mxt"><span>분위기</span></div>`+
+    R.map(r=>`<div class="mxm" data-dt="VIX"><span class="mk">${r.k}</span><div class="mxv"><b class="${r.cl}">${r.w}</b> ${r.v}</div></div>`).join('')+`</div>`:'';
+}
+/* 진입 신호 — 옐로우닷(지수 셋 · 종목 탭). 켜진 지수만 한 줄씩(과거 15일 · 30일), 꺼진 곳은 한 줄로. 장중이면 지수마다 지금 가격으로 */
+const pastCells=p=>`<span class="fg">15일 ${pctCell(p.hitF,p.nF)}</span> <span class="fg">30일 ${pctCell(p.hit,p.n)}</span>`;
+function mxSignal(){
+  const C=DESK.cards.filter(c=>c.dip), L=[];
+  const line=(c,dot,body)=>`<div class="sgl" data-dt="${c.base}"><span class="tk">${c.base}</span>${dot}${tkP(c.prod)}<span class="sgv">${body}</span></div>`;
+  if(lvOn())C.forEach(c=>{const r=lvOf(c.base), p=c.dip.past; if(!r)return;
+    L.push(line(c,r.on?ydot(c.dip.on?c.dip.run+1:1):'',r.on?(p?pastCells(p):'<b>켜짐</b>')
+      :r.th?`켜지는 가격 <b>$${r.th.toFixed(2)}</b> <small>(${sg((r.th/r.c-1)*100)})</small>`:'오늘은 켜지기 어렵습니다'));});
+  else{
+    const on=C.filter(c=>c.dip.on), off=C.filter(c=>!c.dip.on);
+    on.forEach(c=>L.push(line(c,ydot(c.dip.run),c.dip.past?pastCells(c.dip.past):'')));
+    if(off.length){
+      const rec=off.filter(c=>c.dip.last&&c.dip.last.age<=20), a=rec.length?Math.min(...rec.map(c=>c.dip.last.age)):null, g=rec.filter(c=>c.dip.last.age===a);
+      L.push(`<div class="sgl" data-dt="${(g[0]||off[0]).base}"><b>${on.length?off.map(c=>c.base).join(' · ')+' 꺼짐':'모두 꺼짐'}</b>`+
+        (g.length?`<span class="sgv">마지막 ${md(g[0].dip.last.date)} <small>(${g.length===C.length&&C.length>1?'모두':g.map(c=>c.base).join(' · ')})</small></span>`:'')+`</div>`);
+    }
   }
-  const chart=H.length>2?miniChart(H.map(x=>x.c),{label:'1개월',dots:H.map((x,i)=>x.dot?i:-1).filter(i=>i>=0)}):'';
-  const pp=(g.stats||[]).find(x=>x[2]==='past'), v=pp&&pp[1];
-  const st=(g.stats||[]).filter(x=>x[2]!=='past').map(([k,val,icn])=>`<div class="fsv">${statIcon(icn)}<span>${k}</span> <b>${val}</b></div>`).join('');
-  const past=v?`<div class="fpast"><div class="fpv">${v[0]!=null?`<span class="fg">15일 ${pctCell(v[0])}</span>`:''}${v[1]!=null?`<span class="fg">30일 ${pctCell(v[1])}</span>`:''}</div></div>`:'';
-  return `<div class="flow" data-dt="${c.base}">${fhead(c,g)}<div class="fbody"><div class="fst">${past}${st}</div>${chart}</div></div>`;
+  let T=Object.keys(LIVE||{}).filter(t=>LIVE[t]&&LIVE[t].dip&&LIVE[t].dip.on);
+  try{T.sort((a,b)=>keyCmp(dipKey(a),dipKey(b)));}catch(e){T.sort((a,b)=>(UD.has(b)-UD.has(a))||a.localeCompare(b));}
+  const tk=Object.keys(LIVE||{}).length?`<div class="mxm" data-view="scr"><span class="mk">종목</span><div class="mxv">`+
+    (T.length?`<b>${T.length}개 켜짐</b> ${T.slice(0,4).join(' · ')}${T.length>4?` 외 ${T.length-4}`:''}`:'<b>없음</b>')+`</div></div>`:'';
+  return `<div class="mx"><div class="mxt"><span>진입 신호 · 옐로우닷</span></div>`+
+    (L.length?`<div class="mxm"><span class="mk">지수</span><div class="mxv">${L.join('')}</div></div>`:'')+tk+`</div>`;
 }
-/* 요약 탭 — 첫 화면 한 장: 결론 한 문장 · SPY·QQQ·SOXX 세 줄 · VIX 한 줄. 아래는 접는 칸 */
 function deskSum(){
-  const D=DESK, m=D.market, v=m.vix, x=D.uvixDip;
-  const hd=lvOn()?lvHead():D.headline;
-  let h=hd?`<div class="dhead1">${hd}</div>`:'';
-  h+=liveBox();
-  h+=`<div class="fsum">${D.cards.map(sumRow).join('')}</div>`;
-  h+=`<div class="mrow" data-dt="VIX"><div class="mh"><span class="tk">VIX</span><b class="mst">시장 불안 ${v.c}</b>`+
-    `<span class="mv"><span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
-    `<div class="fbody"><div class="fst">${ul([
-      vixLevel(v.c)+(v.hi1m?' · 1개월 중 가장 높음':v.lo1m?' · 1개월 중 가장 낮음':''),
-      x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null,cwLine()||hyLine(),mwLine()])}</div>`+
-    (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
-  return h+dotRules()+mktRules()+secRules();
+  const hd=lvOn()?lvHead():DESK.headline;
+  return (hd?`<div class="dhead1">${hd}</div>`:'')+(LVQ?liveBox():'')+mxPrice()+mxMood()+mxSignal()+mktRules()+dotRules()+secRules();   /* 장중 버튼은 주가 칸 머리에 */
 }
-/* VIX 수준을 쉬운 말로 — 평소(약 20 아래)와 견줘서 */
-const vixLevel=c=>c>=30?'아주 높은 편 <small>(30 넘음 · 크게 겁먹은 상태)</small>':c>=20?'높은 편 <small>(평소는 20 아래)</small>':c>=15?'보통':'낮은 편 <small>(조용한 시장)</small>';
-/* 요약 탭 — 시장 참고란: VIX 줄에 나오는 말들의 뜻 (자세한 숫자는 VIX 탭) */
+/* 요약 탭 — 시장 지표란: 주가 · 분위기 칸의 말들의 뜻 (자세한 숫자는 SPY · QQQ · SOXX · VIX 탭) */
 function mktRules(){
-  return dsec('m','시장 참고란',ul([
-    '<b>VIX(시장 불안)</b>: 앞으로 한 달 S&P500이 얼마나 출렁일지 옵션 값으로 잰 숫자입니다. 평소는 20 아래, 30을 넘으면 크게 겁먹은 상태입니다',
-    '<b>하이일드 스프레드</b>: 신용이 낮은 회사가 돈을 빌릴 때 미국 정부보다 더 내는 이자입니다. 벌어지면 돈을 빌려주는 쪽이 부도를 걱정한다는 뜻입니다. VIX가 "주식 시장이 얼마나 겁먹었나"라면 이것은 "돈줄이 얼마나 걱정하나"입니다 <small>(요약에는 2주 사이 +0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 나옵니다)</small>',
-    '<b>돈줄 경고(빨간 점)</b>: 회사채 스프레드가 2주 사이 +0.2%p 넘게 벌어진 날 켜집니다. 2008년 같은 신용 위기에서는 바닥권 신호가 떠도 한참 더 빠졌습니다',
-    '<b>월봉 과열 꺾임</b>: 한 달 봉의 지표가 모두 과열권에 들어갔다가 내려온 달입니다. 오래 많이 오른 뒤 힘이 빠지기 시작했다는 뜻이라, 오래 들고 있는 돈이 앞으로 1년 더 흔들릴 수 있다는 경고입니다',
-    `모두 옐로우닷 판정에는 쓰지 않는 참고입니다. 자세한 숫자와 과거 결과는 <a data-dt="VIX">VIX</a> 탭에 있습니다`]));
+  const T=['SPY','QQQ','SOXX','VIX'].map(t=>`<a data-dt="${t}">${t}</a>`).join(' · ');
+  return dsec('m','시장 지표란',
+    blk('주가',ul([
+      '<b>단계</b>: 역대 최고 종가보다 −5% 안이면 최고가 근처, −5~−10% 가벼운 하락, −10~−20% 조정, −20%보다 더 빠지면 하락장입니다 <small>(흔히 쓰는 기준)</small>',
+      '<b>그래프</b>: 최근 3개월 종가입니다. 회색 점선은 200일 평균으로, 가격이 그 아래면 긴 흐름이 꺾였다고 봅니다. 노란 점은 옐로우닷이 켜진 날입니다',
+      `결론 문장의 <b>주가</b>는 S&P500(SPY)입니다. 최근 한 달 고점에서 5% 넘게 빠졌으면 저점 뒤 2% 넘게 올랐는지로 '되오르는 중' · '빠지는 중'을 가르고, 다른 지수가 두 단계 넘게 깊으면 괄호로 덧붙입니다`]))+
+    blk('분위기',ul([
+      '<b>불안(VIX)</b>: 앞으로 한 달 S&P500이 얼마나 출렁일지 옵션 값으로 잰 숫자입니다. 평소는 20 아래, 30을 넘으면 크게 겁먹은 상태입니다',
+      '<b>돈줄(하이일드 스프레드)</b>: 신용이 낮은 회사가 돈을 빌릴 때 미국 정부보다 더 내는 이자입니다. 벌어지면 돈을 빌려주는 쪽이 부도를 걱정한다는 뜻입니다. VIX가 "주식 시장이 얼마나 겁먹었나"라면 이것은 "돈줄이 얼마나 걱정하나"입니다 <small>(2주 사이 0.2%p 넘게 벌어지면 벌어지는 중)</small>',
+      '<b>돈줄 경고(빨간 점)</b>: 회사채 스프레드가 2주 사이 +0.2%p 넘게 벌어진 날 켜집니다. 2008년 같은 신용 위기에서는 바닥권 신호가 떠도 한참 더 빠졌습니다',
+      '<b>과열(월봉 과열 꺾임)</b>: 한 달 봉의 지표가 모두 과열권에 들어갔다가 내려온 달입니다. 오래 많이 오른 뒤 힘이 빠지기 시작했다는 뜻이라, 오래 들고 있는 돈이 앞으로 1년 더 흔들릴 수 있다는 경고입니다',
+      `결론 문장은 VIX 20 · 30을 경계로 높은 편 · 아주 높음이라 쓰고, 돈줄 경고가 켜졌거나 하이일드 스프레드가 벌어지는 중 · 1년 중 가장 넓으면 '돈줄 걱정이 커졌다'고 씁니다`,
+      `자세한 숫자와 과거 결과는 ${T} 탭에 있습니다`])));
 }
 /* 종목별 탭 — 상태 줄과 오늘의 해석만 펼치고, 나머지는 접는 칸: 차트 → 옐로우닷 과거 결과 → 지표 값 */
 function deskCard(c){
@@ -1852,12 +1917,12 @@ function uvixDipBody(x){
       ul([a?`아무 날이나 샀어도 +10% ${a.hit}% · +20% ${a.hit20}%에 닿았습니다 (워낙 크게 출렁이는 상품)`:null,
         `<span class="w">오래 들고 있으면 녹아내립니다 — 상장 뒤 가장 높았을 때보다 ${x.drop}%</span>`]));
 }
-/* 하이일드 스프레드 — 시장 참고(판정에 쓰지 않음 · desk.py fetch_hy, 2026-11-24 사용자: 상황판에도, 뜻을 쉽고 자세하게).
-   요약 VIX 줄에는 2주 사이 +0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 한 줄 */
+/* 하이일드 스프레드 — 시장 지표(판정에 넣지 않음 · desk.py fetch_hy, 2026-11-24 사용자: 상황판에도, 뜻을 쉽고 자세하게).
+   요약 분위기 칸 '돈줄' 줄에 늘 나온다(벌어지는 중 · 1년 중 가장 넓음 · 돈줄 경고면 빨간 점). hyLine은 VIX 탭 해석 한 줄 */
 const hyF=v=>v.toFixed(2)+'%', hyChg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(2)+'%p';
 const hyHot=h=>!!h&&(h.chg2w>=0.2||h.hi1y-h.v<=0.05);
 /* 돈줄 경고 — 회사채(BAA) 스프레드가 10거래일 사이 +0.2%p 넘게 벌어진 날 빨간 점(desk.py credit_stats · 2026-11-24 사용자: 시작 금액을
-   줄이는 규칙 대신 경고로). 판정·옐로우업다운 계산은 그대로. 상황판 요약 VIX 줄(켜지면 하이일드 줄 대신) · VIX 탭 · 종목 탭 옐로우닷 상자 ·
+   줄이는 규칙 대신 경고로). 판정·옐로우업다운 계산은 그대로. 상황판 요약 분위기 칸 돈줄 줄 · VIX 탭 · 종목 탭 옐로우닷 상자 ·
    옐로우업다운 '지금'(첫 매수 전)에 뜬다. DESK가 늦게 오면 목록을 다시 그린다 */
 const cw=()=>DESK&&DESK.credit&&DESK.credit.warn?DESK.credit:null;
 const cwTag='<span class="rdw"><i class="rd"></i>돈줄 경고</span>';
@@ -1907,16 +1972,16 @@ function hySec(){
       '다만 벌어짐이 멈출 때까지 기다렸다 샀어도 1년 뒤 결과는 7번 중 3번만 나았습니다 — 더 싸게 사는 신호는 아닙니다',
       '<small>12번뿐이라 확실하다고 하기는 어렵습니다. FRED가 하이일드는 최근 3년치만 주어서 1993년부터는 비슷하게 움직이는 BAA 회사채 스프레드로 셌습니다(최근 3년 2주 변화 상관 0.69)</small>']));
   const how=blk('읽는 법',ul([
-    '옐로우닷 · 옐로우업다운 판단에는 쓰지 않는 시장 참고입니다',
+    '시장 상황을 보여 주는 지표입니다. 옐로우닷 · 옐로우업다운 판단에는 넣지 않습니다',
     HY_UD,
-    '요약 탭 VIX 줄에는 2주 사이 0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 나옵니다. 돈줄 경고가 켜지면 그 줄이 대신 나옵니다',
+    '요약 탭 분위기 칸의 <b>돈줄</b> 줄에 늘 나옵니다. 2주 사이 0.2%p 넘게 벌어지면 벌어지는 중, 1년 중 가장 높으면 1년 중 가장 넓음, 돈줄 경고가 켜지면 빨간 점이 대신 나옵니다',
     '돈줄 경고는 하이일드 대신 1986년부터 기록이 있는 BAA 회사채 스프레드로 판정합니다 <small>(FRED BAA10Y · 백테스트에 쓴 자료)</small>',
     '출처: FRED(미국 세인트루이스 연준) · ICE BofA US High Yield Index 옵션조정 스프레드']));
   return dsec('hy','하이일드 스프레드',now+cwBlk()+what+why+scale+past+how);
 }
 const HY_UD='<small>옐로우업다운에 붙여 본 시험(2026-11-24): 스프레드가 2주 사이 크게 벌어진 때(BAA 기준 +0.15~0.25%p) 켜진 옐로우닷은 시작 금액을 절반으로 하면, 2011년 뒤 결과는 그대로이고 1999년부터 넣은 가상 계산의 최대 낙폭은 −69% → −50%로 줄었습니다. 다만 효과가 거의 2007년에 시작한 두 사이클에서 나왔고, 사이클 하나하나로는 벌어질 때 시작한 쪽이 더 나쁘지 않았습니다. 그래서 규칙으로 쓰지 않고 빨간 점(돈줄 경고)만 띄웁니다</small>';
-/* 월봉 과열 꺾임 — 시장 참고(판정에 쓰지 않음 · desk.py month_warn, 2026-11-24 사용자).
-   SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달. 꺾인 뒤 12개월 안이면 VIX 줄과 VIX 탭 해석에 한 줄 */
+/* 월봉 과열 꺾임 — 시장 지표(판정에 넣지 않음 · desk.py month_warn, 2026-11-24 사용자).
+   SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달. 꺾인 뒤 12개월 안이면 요약 분위기 칸 '과열' 줄과 VIX 탭 해석에 한 줄 */
 const MW_MONTHS=12;
 function mwLine(){
   const r=(DESK.monthWarn||[]).filter(w=>w.last&&w.last.ago<=MW_MONTHS);
@@ -1947,7 +2012,7 @@ function mwSec(){
       '오래 들고 있는 돈이 앞으로 1년 더 흔들릴 수 있다는 경고로만 보세요',
       '월봉은 그 달이 끝나야 확정됩니다. 진행 중인 달은 월말 종가로 바뀔 수 있습니다'])));
 }
-/* VIX 탭 — 시장 참고(판정에 쓰지 않음). 오늘의 해석만 펼치고 차트 · UVIX는 접는 칸 */
+/* VIX 탭 — 시장 지표(옐로우닷 판정에 넣지 않음). 오늘의 해석만 펼치고 차트 · UVIX는 접는 칸 */
 function deskVix(m,u,x){
   const v=m.vix, f=m.fut;
   let h=`<div class="dread"><div class="rh">VIX · 오늘의 해석</div><div class="rt">시장 불안(VIX) ${v.c} — 전날보다 ${sg(v.chg)}</div>`+ul([
@@ -1955,7 +2020,7 @@ function deskVix(m,u,x){
       f?(f.back?'VIX 선물: 가까운 달이 더 비쌈 — 단기 불안이 남아 있음 <small>(백워데이션)</small>':'VIX 선물: 먼 달이 더 비쌈 — 평소 모습 <small>(콘탱고)</small>')
         :'VIX 선물 자료를 확인하지 못함',
       cwLine(),hyLine(true),mwLine(),
-      '옐로우닷 · 옐로우업다운 판단에는 쓰지 않는 참고 값입니다 <small>(2026-11 백테스트에서 VIX로 거르면 결과가 나아지지 않음)</small>'])+`</div>`;
+      '시장 상황을 보여 주는 지표입니다. 옐로우닷 · 옐로우업다운 판단에는 넣지 않습니다 <small>(2026-11 백테스트에서 VIX로 거르면 결과가 나아지지 않음)</small>'])+`</div>`;
   h+=mwSec()+hySec();
   h+=dsec('vc','차트',vixSpark(m,110)+futBars(m),'VIX 최근 1개월 · 선물 가격');
   if(u||x)h+=dsec('uy','UVIX',(u?ul([`UVIX $${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span> <small>(VIX 선물 2배 — 시장이 불안할 때 오름)</small>`,
@@ -1997,6 +2062,8 @@ function metaLines(){
 }
 document.getElementById('vDesk').onclick=async e=>{
   if(e.target.closest('#lvGo,#lvX,#lvKeySave,#lvDel')){await liveClick(e);return;}
+  const vw=e.target.closest('[data-view]');
+  if(vw){navGo(()=>{st.view=vw.dataset.view;save();syncView();render();window.scrollTo(0,0);});return;}
   const t=e.target.closest('[data-dt]');
   if(t){if(t.dataset.dt!==DTAB)navGo(()=>{DTAB=t.dataset.dt;renderDesk();window.scrollTo(0,0);});return;}
   const r=e.target.closest('.hit');if(!r)return;

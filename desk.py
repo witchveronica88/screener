@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""옐로우닷 상황판 — desk.json 생성 (옐로우닷 v3.1)
+"""시장 상황판 — desk.json 생성 (옐로우닷 v3.1)
+
+2026-11-24 중심을 시장으로 (사용자: 스크리너는 옐로우닷만을 위한 게 아니다 — 시장 전반 상황을 보고 싶다.
+  옐로우닷 · 스위치법은 주가가 많이 빠져 진입 기회가 될 수 있는지 보는 신호일 뿐). 판정 규칙은 그대로.
+  - 결론 문장(headline)은 시장만: 주가(S&P500 흐름, 다른 지수가 두 단계 넘게 깊으면 괄호) + 분위기(불안 VIX · 돈줄).
+  - 지수마다 mkt: 최고가 대비 단계(−5% · −10% · −20% 경계: 최고가 근처 · 가벼운 하락 · 조정 · 하락장 — 흔히 쓰는
+    눌림 · 조정 · 약세장 기준), 200일 평균, 최근 한 달 흐름(빠지는 중 · 되오르는 중), 3개월 그래프, 종목별 탭 해석 글.
+  - 옐로우닷은 화면의 '진입 신호' 칸과 종목별 탭 해석 아래 한 묶음으로 보인다.
 
 v3.1 (2026-11-24 사용자: CCI가 기능을 안 하면 빼도 좋다 · 시장 참고에 월봉 과열 꺾임을 넣어 달라)
   - 옐로우닷 = 두 지표(빠르기 %K ≤ 20 · 힘 RSI ≤ 30)가 모두 바닥권인 날. CCI(≤ −100)를 뺐다.
@@ -44,6 +51,9 @@ RULE = '옐로우닷 v3.1'
 PAIRS = [('UPRO', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 3배 상품, 기준자산) — 화면 순서
 SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'UPRO', 'UVIX', '^VIX']
 NAMES = {'SPY': 'S&P500', 'QQQ': '나스닥', 'SOXX': '반도체'}   # 결론 문장에 쓰는 우리말 이름
+EUN = {'SPY': '은', 'QQQ': '은', 'SOXX': '는'}                    # 그 이름 뒤 조사
+PHASE = ['최고가 근처', '가벼운 하락', '조정', '하락장']           # 최고가 대비 −5% · −10% · −20% 경계 (phase_of)
+SPARK = 63        # 요약 '주가' 줄 그래프 — 3개월
 RECENT = 20       # 옐로우닷이 꺼진 지 이 거래일 안이면 결론 문장에 마지막 옐로우닷을 적는다
 
 
@@ -83,8 +93,9 @@ def bad_data(B):
 
 
 # ───────────── 옐로우닷 · 오늘의 해석 ─────────────
-def dip_card(base, prod, bars, I, vix):
-    """옐로우닷 상태 · 과거 결과 · '오늘의 해석'(쉬운 말 한 문장과 불렛) — 그날의 상황만, 매수·매도 안내는 쓰지 않는다"""
+def dip_card(base, prod, bars, I):
+    """옐로우닷 상태 · 과거 결과 · 진입 신호 글(쉬운 말 한 문장과 불렛) — 그날의 상황만, 매수·매도 안내는 쓰지 않는다.
+       종목별 탭에서 시장 해석(mkt_state) 아래 '진입 신호 · 옐로우닷' 묶음으로 보인다"""
     B = bars[base]; last = len(B) - 1
     P = [b for b in bars[prod] if b['d'] <= B[-1]['d']]
     S = {b['d']: b['c'] for b in bars['SPY']}
@@ -114,21 +125,60 @@ def dip_card(base, prod, bars, I, vix):
     lastd = r.get('last')
     ok = lambda v: ' ✓' if v else ''
     cond = f"옐로우닷 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})"
-    vl = f"참고: 시장 불안(VIX) {vix['c']} (전날보다 {vix['chg']:+.1f}%) — 판정에는 쓰지 않음" if vix else None
     if on:
         # 켜진 날수는 결론 문장에만 — 불렛에서 다시 말하지 않는다
         head = (f'오늘 옐로우닷이 켜졌습니다. {base}가 급하게 내려 두 지표가 모두 바닥권에 들어갔습니다.' if run <= 1 else
                 f'옐로우닷이 {run}일째 켜져 있습니다. {base}의 두 지표가 모두 바닥권에 머물러 있습니다.')
         why = ['바닥권: 빠르기·힘 두 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다',
-               '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다', vl]
+               '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다']
     elif lastd and lastd['age'] <= RECENT:
         head = f"마지막 옐로우닷은 {lastd['age']}거래일 전({md(lastd['date'])})입니다. 그 뒤 {base} {lastd['mv']:+.1f}%입니다."
-        why = [cond, vl]
+        why = [cond]
     else:
         head = '옐로우닷이 꺼져 있습니다. 두 지표가 모두 바닥권에 들어가야 켜집니다.'
         why = [cond, f"마지막 옐로우닷은 {md(lastd['date'])} ({lastd['age']}거래일 전), 그 뒤 {base} {lastd['mv']:+.1f}%"
-               if lastd else None, vl]
+               if lastd else None]
     r['head'] = head; r['why'] = [x for x in why if x]
+    return r
+
+
+def phase_of(dd):
+    """최고가 대비(%) → 단계 0 최고가 근처 · 1 가벼운 하락(−5% 아래) · 2 조정(−10% 아래) · 3 하락장(−20% 아래)"""
+    return 0 if dd > -5 else 1 if dd > -10 else 2 if dd > -20 else 3
+
+
+def mkt_state(base, B, I, drop):
+    """시장 쪽 값 — 최고가 대비 단계 · 200일 평균 · 최근 한 달 흐름(dip_card의 drop) · 3개월 그래프 · 종목별 탭 '오늘의 해석' 글.
+       2026-11-24 사용자: 스크리너는 시장 전반 상황을 보는 곳이고 옐로우닷은 그 안의 진입 기회 신호일 뿐.
+       장중에는 화면이 지금 가격으로 최고가 대비 · 200일 평균을 다시 센다(o200 = 평균에서 빠질 가장 오래된 종가)"""
+    c = [b['c'] for b in B]; n = len(c)
+    ai = max(range(n), key=lambda i: c[i]); yi = max(range(max(0, n - 252), n), key=lambda i: c[i])
+    dd = pct(c[-1], c[ai]); ph = phase_of(dd)
+    r = {'ath': round(c[ai], 2), 'athD': B[ai]['d'], 'dd': dd, 'phase': ph}
+    if yi != ai:                                   # 1년 고점이 역대 고점과 다를 때만 따로
+        r['hi1y'] = round(c[yi], 2); r['hi1yD'] = B[yi]['d']; r['dd1y'] = pct(c[-1], c[yi])
+    m200 = sma(c, 200)
+    if m200[-1]:
+        r['m200'] = round(m200[-1], 2); r['d200'] = pct(c[-1], m200[-1]); r['o200'] = round(c[-200], 4)
+    mv = None                                      # 최근 한 달 고점에서 5% 넘게 빠졌으면 — 저점 뒤 2% 넘게 올랐나
+    if drop and drop.get('days') and drop['pct'] <= -5:
+        mv = 'rebound' if (drop.get('back') or 0) >= 2 else 'fall'
+    r['move'] = mv; r['lo'] = drop['to'] if mv else None
+    k = min(SPARK, n)
+    r['spark'] = {'c': [round(x, 2) for x in c[-k:]],
+                  'm200': [None if v is None else round(v, 2) for v in m200[-k:]],
+                  'dots': [i for i in range(k) if is_dip(I, n - k + i)]}
+    nm = NAMES.get(base, base) + EUN.get(base, '은')
+    st = ['최고가 근처', '가벼운 하락 구간', '조정 구간', '하락장'][ph]
+    ms = f"{md(drop['to'])} 저점에서 되오르는 중입니다" if mv == 'rebound' else '빠지는 중입니다' if mv == 'fall' else None
+    r['head'] = f"{nm} {st}이고, {ms}." if ms else f"{nm} {st}입니다."
+    ymd = lambda d: f"{d[:4]}.{int(d[5:7])}.{int(d[8:10])}"
+    why = [f"{'역대' if 'hi1y' in r else '1년 · 역대'} 최고(${r['ath']:,.2f} · {ymd(r['athD'])})보다 {dd:+.1f}%"]
+    if 'hi1y' in r:
+        why.append(f"1년 고점(${r['hi1y']:,.2f} · {ymd(r['hi1yD'])})보다 {r['dd1y']:+.1f}%")
+    if 'm200' in r:
+        why.append(f"200일 평균(${r['m200']:,.2f})보다 {r['d200']:+.1f}% — 긴 흐름 {'위' if r['d200'] >= 0 else '아래'}")
+    r['why'] = why
     return r
 
 
@@ -149,7 +199,7 @@ def history(base, prod, bars, I, n=21):
 
 
 def stage_of(c):
-    """요약 줄 상태 — 옐로우닷(켜짐·꺼짐) · 짧은 숫자(stats)"""
+    """옐로우닷 상태(켜짐·꺼짐) · 짧은 숫자(stats) — 종목별 탭 머리가 쓴다. 요약은 2026-11-24부터 진입 신호 칸이 dip을 바로 읽는다"""
     if c['state'] == 'wait':
         return {'on': False, 'cls': 'wait', 'text': '자료 확인 중', 'stats': []}
     d = c['dip']; last = d.get('last')
@@ -166,26 +216,49 @@ def stage_of(c):
     return {'on': d['on'], 'cls': cls, 'text': text, 'stats': stats}
 
 
-def headline(cards):
-    """요약 첫 줄 — 옐로우닷이 켜진 곳 (그날의 상황만 · 매수·매도 안내는 쓰지 않는다)"""
-    live = [c for c in cards if c['state'] != 'wait']
+def headline(cards, vix=None, hy=None, credit=None):
+    """요약 결론 — 시장 전체 (2026-11-24 사용자: 스크리너는 시장 전반 상황을 보는 곳, 옐로우닷은 진입 기회 신호일 뿐).
+       주가: S&P500의 최근 한 달 흐름(빠지는 중 · 되오르는 중), 없으면 최고가 대비 단계. 다른 지수가 두 단계 넘게 깊으면 괄호로.
+       분위기: 불안(VIX 20 · 30 경계)과 돈줄(돈줄 경고 · 하이일드 스프레드가 2주 +0.2%p 넘게 벌어짐 또는 1년 중 가장 넓음).
+       옐로우닷은 화면의 '진입 신호' 칸이 보여 준다 — 여기서는 말하지 않는다. 매수·매도 안내도 쓰지 않는다"""
+    live = [c for c in cards if c['state'] != 'wait' and c.get('mkt')]
     if not live:
         return '자료를 확인하는 중입니다.'
-    nm = lambda cs: '·'.join(NAMES.get(c['base'], c['base']) for c in cs) + (' 모두' if len(cs) == len(live) > 1 else '')
-    on = [c for c in live if c['dip']['on']]
-    out = []
-    if on:                                             # 켜진 날수·꺼진 곳은 아래 세 줄이 보여 준다 — 여기서 다시 말하지 않는다
-        out.append(f'{nm(on)} 옐로우닷이 켜졌습니다.')
+    S = next((c for c in live if c['base'] == 'SPY'), live[0]); m = S['mkt']
+    st = ['', '', '조정 구간이고, ', '하락장이고, '][m['phase']]    # 조정 · 하락장이면 단계도 함께
+    if m['move'] == 'fall':
+        a = f"주가는 {st}아직 빠지는 중입니다" if st else '주가가 빠지는 중입니다'
+    elif m['move'] == 'rebound':
+        a = f"주가는 {st}{md(m['lo'])} 저점에서 되오르는 중입니다"
     else:
-        rec = [c for c in live if c['dip'].get('last') and c['dip']['last']['age'] <= RECENT]
-        out.append('옐로우닷이 모두 꺼져 있습니다.')
-        if rec:                                        # 가장 최근에 켜졌던 날 — 그날 켜졌던 곳 모두와 그 뒤 지수 등락
-            a = min(c['dip']['last']['age'] for c in rec)
-            g = [c for c in rec if c['dip']['last']['age'] == a]
-            mv = ' · '.join(f"{c['base']} {c['dip']['last']['mv']:+.1f}%" for c in g if c['dip']['last'].get('mv') is not None)
-            out.append(f"{md(g[0]['dip']['last']['date'])}에 {'모두 ' if len(g) == len(live) > 1 else ''}켜진 뒤 {mv}입니다." if mv else
-                       f"마지막은 {md(g[0]['dip']['last']['date'])} {nm(g)}입니다.")
-    return ' '.join(out)
+        a = ['주가는 최고가 근처입니다', '주가는 최고가에서 조금 내려와 있습니다', '주가는 조정 구간입니다', '주가는 하락장입니다'][m['phase']]
+    g = {}
+    for c in live:                                     # S&P500보다 두 단계 넘게 깊은 지수
+        p = c['mkt']['phase']
+        if c is not S and p >= 2 and p - m['phase'] >= 2:
+            g.setdefault(p, []).append(c)
+    if g:
+        a += '(' + ', '.join('·'.join(NAMES.get(c['base'], c['base']) for c in g[p]) + EUN.get(g[p][-1]['base'], '은') + ' ' + PHASE[p]
+                             for p in sorted(g)) + ')'
+    b = None
+    v = vix.get('c') if vix else None
+    if v is not None:
+        lv = 3 if v >= 30 else 2 if v >= 20 else 1 if v >= 15 else 0
+        cw = bool(credit and credit.get('warn'))
+        wide = bool(hy and (hy['chg2w'] >= 0.2 or hy['hi1y'] - hy['v'] <= 0.05))
+        if lv >= 2:
+            j = '은 아직 ' if m['move'] == 'rebound' else '이 '
+            hi = '아주 높' if lv == 3 else '높'
+            b = (f"불안(VIX){j}{hi}고 돈줄 경고가 켜져 있습니다" if cw else
+                 f"불안(VIX){j}{hi}고 돈줄 걱정도 커졌습니다" if wide else
+                 f"불안(VIX){j}{'아주 높습니다' if lv == 3 else '높은 편입니다'}")
+        else:
+            lo = '보통이' if lv == 1 else '낮'
+            b = (f"불안(VIX)은 {lo}지만 돈줄 경고가 켜져 있습니다" if cw else
+                 f"불안(VIX)은 {lo}지만 돈줄 걱정이 커졌습니다" if wide else
+                 f"불안(VIX)은 {lo}고 돈줄도 조용합니다" if (hy or credit) else
+                 f"불안(VIX)은 {'보통입니다' if lv == 1 else '낮은 편입니다'}")
+    return a + '.' + (f' {b}.' if b else '')
 
 
 def live_state(B, n=14):
@@ -201,7 +274,7 @@ def live_state(B, n=14):
             'h4': [r6(b['h']) for b in B[-4:]], 'l4': [r6(b['l']) for b in B[-4:]]}
 
 
-def card(prod, base, bars, vix):
+def card(prod, base, bars):
     B = bars[base]; asof = B[-1]['d']
     P = [b for b in bars.get(prod) or [] if b['d'] <= asof]
     c0 = {'prod': prod, 'base': base}
@@ -215,7 +288,8 @@ def card(prod, base, bars, vix):
                  'rsi': round(I['rsi'][-1], 1), 'disp': round(I['disp'][-1], 1),
                  'close': round(c, 2), 'pclose': round(P[-1]['c'], 2),
                  'chg': pct(c, B[-2]['c']), 'pchg': pct(P[-1]['c'], P[-2]['c'])}}
-    r['dip'] = dip_card(base, prod, bars, I, vix)
+    r['dip'] = dip_card(base, prod, bars, I)
+    r['mkt'] = mkt_state(base, B, I, r['dip']['drop'])
     r['hist'] = history(base, prod, bars, I)
     r['stage'] = stage_of(r)
     r['live'] = live_state(B)
@@ -474,17 +548,18 @@ def main():
     mk = market_card(bars['SPY'], bars['^VIX'], vxf)
     cards = []
     for prod, base in PAIRS:
-        c = card(prod, base, bars, mk['vix'])
+        c = card(prod, base, bars)
         cards.append(c)
         print(f"{base}({prod}): {(c.get('stage') or {}).get('text', c.get('line'))}")
+    hy, cr = fetch_hy(), fetch_credit()
     out = {'rule': RULE, 'asof': asof, 'target': TARGET,
            'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
-           'cards': cards, 'market': mk, 'headline': headline(cards),
+           'cards': cards, 'market': mk, 'headline': headline(cards, mk['vix'], hy, cr),
            'uvix': uvix_brief(bars['UVIX']) if len(bars['UVIX']) > 60 else None,
            'uvixDip': uvix_dip(bars['UVIX'], bars),
            'monthWarn': [w for w in (month_warn(b, bars[b]) for _, b in PAIRS) if w],
-           'hy': fetch_hy(),
-           'credit': fetch_credit(),
+           'hy': hy,
+           'credit': cr,
            'table': [summary_row(s.replace('^', ''), bars[s]) for s in SYMS]}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
