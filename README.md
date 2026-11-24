@@ -9,7 +9,7 @@
 | `index.html` | 화면 (상황 탭 · 종목 탭). 아래 JSON들을 읽기만 한다 |
 | `etfs.json` | 종목 탭의 레버리지 ETF 목록 — 이름·기초자산·설명 등. **ETF 추가·수정은 여기 한 곳** |
 | `tickers.txt` | 직접 추가한 개별주 (한 줄에 하나) |
-| `market.py` | 가격 받기 · 지표(%K·CCI·RSI) · 노란 점 · 회복 여부 — 아래 두 파일이 같이 쓴다 |
+| `market.py` | 가격 받기 · 지표(%K·RSI · 월봉 과열 꺾임에는 CCI도) · 옐로우닷 · 회복 여부 — 아래 두 파일이 같이 쓴다 |
 | `prices.py` | 종가 수집 → `data.json` (종목 탭) |
 | `desk.py` | 상황판 판정 → `desk.json`, 그날 표시한 판정 기록 → `desk_log.json` |
 | `fund.json` | 개별주 재무 (손으로 넣는다) |

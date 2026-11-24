@@ -192,7 +192,7 @@ details.fold[open]>summary::after{content:'－'}
 .dst small{display:block;font-weight:400;font-size:var(--fs-s);color:var(--ink3)}
 .dst.on small{display:none}
 .dcd{background:var(--s2);border-radius:12px;padding:10px 12px;margin-top:10px}
-.d3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.d3{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .d3 .dmr{margin-top:0;display:block}
 .d3 .dmr span,.d3 .dmr b{display:block;white-space:nowrap}
 .dmr{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:var(--fs-s);color:var(--ink2);margin-top:8px}
@@ -655,7 +655,7 @@ svg.mini{display:block}
   <div class="hcard">
     <h4>옐로우닷</h4>
     <div class="hitem" data-k="dip dipbox"><div class="hterm">옐로우닷 — 매수 기회 표시</div>
-      <div class="hdef">세 지표가 모두 <b>바닥권</b>에 들어간 날. 바닥권은 지표마다 기준선 아래라는 뜻으로, 짧은 사이에 너무 많이 빠졌다는 신호입니다(과매도): <code>빠르기 %K ≤ 20 · 벗어난 정도 CCI ≤ −100 · 힘 RSI ≤ 30</code>. 상황판의 옐로우닷과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
+      <div class="hdef">두 지표가 모두 <b>바닥권</b>에 들어간 날. 바닥권은 지표마다 기준선 아래라는 뜻으로, 짧은 사이에 너무 많이 빠졌다는 신호입니다(과매도): <code>빠르기 %K ≤ 20 · 힘 RSI ≤ 30</code>. 상황판의 옐로우닷과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip dipbox"><div class="hterm">노란 점 · +N</div>
       <div class="hdef">노란 점은 옐로우닷이 켜졌다는 뜻입니다. 며칠 이어서 켜져 있으면 점 옆에 <b>+N</b>을 붙입니다. N은 처음 켜진 날 뒤로 이어 켜진 거래일 수입니다(D+N처럼, <b>+1</b>이면 이틀째, <b>+4</b>면 닷새째). 처음 켜진 날은 점만 보입니다. 목록 · 상자 · 상황판 어디서나 같은 뜻입니다.</div></div>
     <div class="hitem" data-k="dipbox"><div class="hterm">맨 위 상자</div>
@@ -830,7 +830,7 @@ function warnTags(tk,L){
 }
 /* 옐로우업다운 종목에서는 스위치법 기준인 '변동성 부족'을 빼고 본다 (옐로우업다운은 −5%·+10%라 덜 출렁여도 돈다) */
 const swOnly=(tk,w)=>UD.has(tk)?w.filter(x=>x!=='변동성 부족'):w;
-/* 옐로우닷 (세 지표가 모두 바닥권) — 레버리지 ETF는 기초자산, 나머지는 자기 가격으로 판정 */
+/* 옐로우닷 (두 지표가 모두 바닥권) — 레버리지 ETF는 기초자산, 나머지는 자기 가격으로 판정 */
 const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
 /* 옐로우닷 추천순 — 걸리는 것 적은 순 → 15거래일 안 +10% 도달률 높은 순 → 30거래일 안 +10% 높은 순 → 오래 켜진 순.
    걸리는 것 = 경고 칩 수 + 과거 옐로우닷이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
@@ -1004,12 +1004,12 @@ const udFold=(u,tk,p)=>(u.now?blk('지금',udNow(u)):'')+blk('시드',udSeed(p))
 /* 종목 탭 펼친 카드 맨 위(펼침): 지금 → 시드, 과거 결과는 접는 줄 */
 const udOpen=(u,tk,p)=>(u.now?blk('지금',udNow(u)):'')+blk('시드',udSeed(p))+
   `<details class="more"><summary>과거 결과</summary><div class="mbody">${udPast(u,tk)}</div></details>`;
-/* 옐로우닷 — 세 지표가 바닥권(노란 칸)에 있는지, 과거 결과. 켜졌으면 칸 이름 옆 배지, 꺼졌으면 맨 위 한 줄에 마지막 옐로우닷 */
+/* 옐로우닷 — 두 지표가 바닥권(노란 칸)에 있는지, 과거 결과. 켜졌으면 칸 이름 옆 배지, 꺼졌으면 맨 위 한 줄에 마지막 옐로우닷 */
 function dipBlock(d,tk){
   const pc=v=>(v>0?'+':'')+v+'%';
   const off=d.on?'':`<div class="dst">${d.last?`마지막 ${+d.last.date.slice(5,7)}/${+d.last.date.slice(8)} · 그 뒤 ${pc(d.last.pmv??d.last.mv)}`:'최근 1년 없음'}</div>`;
   const col=(nm,v,lo,hi,th)=>`<div><div class="dmr"><span>${nm}</span><b class="${v<=th?'y':''}">${v<=th?'✓ ':''}${Math.round(v)}</b></div>${meter(v,lo,hi,{zones:[[lo,th,'y']]})}</div>`;
-  const cond=`<div class="dcd"><div class="d3">`+col('빠르기',d.k,0,100,20)+col('벗어남',d.cci,-250,250,-100)+col('힘',d.rsi,0,100,30)+
+  const cond=`<div class="dcd"><div class="d3">`+col('빠르기',d.k,0,100,20)+col('힘',d.rsi,0,100,30)+
     `</div></div>`;
   return off+cond+dipPast(d.past,d.base?tk+eul(tk):'');
 }
@@ -1536,12 +1536,12 @@ const px=(p,ch)=>`<span class="dpx">$${p} <span class="${sc(ch)}">${sg(ch)}</spa
 /* 상황판 접는 칸 — 제목만 보인다(넷째 인자 요약은 받아도 그리지 않는다: 2026-11-23 사용자 '제목 아래 작은 글씨 지저분하다') */
 const dsec=(id,t,b)=>`<details class="dsec" data-s="${id}"${DOPEN[id]?' open':''}><summary><span>${t}</span></summary>${b}<div style="height:14px"></div></details>`;
 /* 차트 기호 — 옐로우닷과 +10% 닿은 날(✓) */
-const MK={ro:'옐로우닷 — 세 지표가 모두 바닥권에 들어간 날',
+const MK={ro:'옐로우닷 — 두 지표가 모두 바닥권에 들어간 날',
   tg:'옐로우닷 다음 날 샀다면 +10%에 닿은 날 (SPY는 UPRO, QQQ는 TQQQ, SOXX는 SOXL 가격)'};
 const ic=b=>`<svg class="ic" viewBox="0 0 14 14">${b}</svg>`;
 const IC={ro:ic('<circle class="mk-ro" cx="7" cy="7" r="4"/>'),tg:ic(`<path class="tgk" d="${ckPath(7,7)}"/>`)};
 
-/* 최근 1개월 차트: 가격 + 날짜별 옐로우닷 띠 + 세 지표(아래 점선 = 바닥권 기준선). 날짜를 누르면 그날 값 */
+/* 최근 1개월 차트: 가격 + 날짜별 옐로우닷 띠 + 두 지표(아래 점선 = 바닥권 기준선). 날짜를 누르면 그날 값 */
 function deskChart(c){
   const H=c.hist; if(!H||!H.length)return '';
   const n=H.length, W=300, cw=W/n, X=i=>cw*(i+.5), sel=Math.min(DSEL[c.prod]??n-1,n-1);
@@ -1570,19 +1570,19 @@ function deskChart(c){
   /* 선택한 날 */
   const d=H[sel];
   h+=`<div class="dday"><b>${md(d.d)} — 옐로우닷 ${d.dot?'켜짐':'꺼짐'}</b>`+ul([
-    `빠르기 ${d.k} · 벗어난 정도 ${d.cci} · 힘 ${d.rsi} <small>(바닥권: 20 · −100 · 30 이하)</small>`,
+    `빠르기 ${d.k} · 힘 ${d.rsi} <small>(바닥권: 20 · 30 이하)</small>`,
     `종가 $${d.c} · 50일 평균보다 ${sg(d.disp-100)}`,d.marks.includes('tg')?MK.tg:null])+`</div>`;
-  /* 세 지표 — 아래 점선이 바닥권 기준선, 위 점선이 과열권 기준선 */
+  /* 두 지표 — 아래 점선이 바닥권 기준선, 위 점선이 과열권 기준선 */
   const osc=(k,nm,min,max,a,b)=>{const hh=46, y=v=>3+(hh-6)*(1-(Math.max(min,Math.min(max,v))-min)/(max-min));
     return `<div class="cap"><span>${nm}</span><span class="mono">${H[sel][k]}</span></div>`+svg(hh,
       [a,b].map(t=>`<line class="gl" vector-effect="non-scaling-stroke" x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}"/>`).join('')+
       `<path class="ln" vector-effect="non-scaling-stroke" d="${H.map((d,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${y(d[k]).toFixed(1)}`).join('')}"/>`);};
-  h+=osc('k','① 빠르기 (%K)',0,100,20,80)+osc('cci','② 평균에서 벗어난 정도 (CCI)',-250,250,-100,100)+osc('rsi','③ 힘 (RSI)',0,100,30,70);
+  h+=osc('k','① 빠르기 (%K)',0,100,20,80)+osc('rsi','② 힘 (RSI)',0,100,30,70);
   h+=blk('차트 보는 법',ul([
     '<b>막대 하나</b>가 하루입니다. 초록은 오른 날, 빨강은 내린 날',
     '<b>옅은 띠</b>는 평소 움직이는 범위(볼린저밴드), <b>회색 점선</b>은 50일 평균',
     ...['ro','tg'].filter(k=>seen.has(k)).map(k=>IC[k]+MK[k]),
-    '<b>세 지표</b>가 모두 아래 점선 밑이면 <b>바닥권</b> — 그날 옐로우닷이 켜집니다',
+    '<b>두 지표</b>가 모두 아래 점선 밑이면 <b>바닥권</b> — 그날 옐로우닷이 켜집니다',
     '위 점선 위는 너무 많이 오른 쪽(과열권)입니다']));
   return h+'</div>';
 }
@@ -1611,17 +1611,15 @@ const vixSpark=(m,h)=>spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<d
 
 /* 장중 지금 가격 (2026-11-23 사용자: 장중에 급변하는 날 버튼 하나로 지금 상황을)
    Finnhub 무료 키(이 기기에만 저장)로 SPY·QQQ·SOXX의 현재가와 오늘 지금까지의 고가·저가를 받아,
-   desk.json의 live(마지막 확정 종가까지의 지표 상태)에 오늘 봉만 더해 세 지표를 다시 센다 — desk.py live_state와 같은 셈.
+   desk.json의 live(마지막 확정 종가까지의 지표 상태)에 오늘 봉만 더해 두 지표를 다시 센다 — desk.py live_state와 같은 셈.
    종가가 아니라 '지금 가격으로 끝나면'의 임시 값이고 저장하지 않는다. 켜지는 가격 = 남은 시간에 고가·저가가 더 넓어지지 않는다고 본 문턱 */
 const LV_KEY='scr_fh';
 let LVQ=null;
 const fhKey=()=>{try{return localStorage.getItem(LV_KEY)||'';}catch(e){return '';}};
 function lvCalc(s,h,l,c){
   const hh=Math.max(...s.h4,h), ll=Math.min(...s.l4,l), k=hh===ll?50:(c-ll)/(hh-ll)*100;
-  const tp=[...s.tp19,(h+l+c)/3], m=tp.reduce((a,b)=>a+b,0)/20, mdv=tp.reduce((a,b)=>a+Math.abs(b-m),0)/20;
-  const cci=mdv===0?0:(tp[19]-m)/(0.015*mdv);
   const d=c-s.pc, g=(s.g*13+Math.max(d,0))/14, lo=(s.l*13+Math.max(-d,0))/14, rsi=lo===0?100:100-100/(1+g/lo);
-  return {k,cci,rsi,on:k<=20&&cci<=-100&&rsi<=30};
+  return {k,rsi,on:k<=20&&rsi<=30};
 }
 function lvThresh(s,H,L){   // 지금까지의 고가 H·저가 L에서 이 값 이하로 끝나면 켜지는 가장 높은 종가 (없으면 null)
   const ok=C=>lvCalc(s,Math.max(H,C),Math.min(L,C),C).on;
@@ -1714,25 +1712,26 @@ async function liveClick(e){
 function dotRules(){
   const C=DESK.cards.filter(c=>c.dip);
   return dsec('b','옐로우닷이란',ul([
-    '세 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
-    '<b>바닥권</b>: 빠르기(%K) 20 이하 · 벗어난 정도(CCI) −100 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
+    '두 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
+    '<b>바닥권</b>: 빠르기(%K) 20 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
     '장 마감 종가로 계산합니다. 한국 아침 6시 20분쯤 <small>(서머타임 5시 20분쯤)</small> 켜졌는지 나옵니다',
     `켜진 날 줄의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
     '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 세 줄 모두 3배 상품(UPRO · TQQQ · SOXL)으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
-    '세 지표가 모두 바닥권에 들어간 날 · 과거 결과 보는 법');
+    '두 지표가 모두 바닥권에 들어간 날 · 과거 결과 보는 법');
 }
 function secRules(){
   return dsec('r','이 상황판의 기준',
     blk('계산',ul(metaLines()))+
-    blk('옐로우닷',ul(['세 지표: 빠르기 %K(5) · CCI(20) · RSI(14), 기준자산(SPY · QQQ · SOXX) 확정 종가로 계산',
-      '바닥권: %K 20 이하 · CCI −100 이하 · RSI 30 이하가 모두 맞는 날',
+    blk('옐로우닷',ul(['두 지표: 빠르기 %K(5) · RSI(14), 기준자산(SPY · QQQ · SOXX) 확정 종가로 계산',
+      '바닥권: %K 20 이하 · RSI 30 이하가 모두 맞는 날',
+      '<small>2026-11-24부터 CCI(−100 이하)를 뺐습니다 — 켜진 날이 거의 같았고 과거 결과도 그대로였습니다</small>',
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
-    blk('장중 지금 가격',ul(['위 버튼을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 세 지표를 다시 셉니다',
+    blk('장중 지금 가격',ul(['위 버튼을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
       '<b>지금 가격으로 장이 끝나면</b> 옐로우닷이 켜지는지 보여 주는 임시 값입니다. 확정은 장 마감 뒤 종가로 다시 계산합니다',
-      '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 세 지표가 모두 바닥권에 들어가는 가장 높은 종가',
+      '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
-    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷은 보여 주기만 합니다',
+    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임은 보여 주기만 합니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
@@ -1801,7 +1800,7 @@ function deskSum(){
     `<span class="mv"><span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
       v.hi1m?'1개월 가운데 가장 높음':v.lo1m?'1개월 가운데 가장 낮음':`5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,
-      x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null])}</div>`+
+      x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null,mwLine()])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   return h+dotRules()+secRules();
 }
@@ -1824,7 +1823,7 @@ function uvixDipBody(x){
     sx.map(r=>`<div class="usr"><span class="tk">${r.s}</span>${cell(r.dip.ret,r.all.ret)}${cell(r.dip.dd10,r.all.dd10,1)}</div>`).join('')+`</div>`:'';
   const weaker=sx.length&&sx.every(r=>r.dip.ret<r.all.ret), notRiskier=sx.length&&sx.every(r=>r.dip.dd10<=r.all.dd10+5);
   return blk('UVIX 옐로우닷',ul([x.on?`켜짐 · ${x.run>1?x.run+'일째':'오늘'}`:`꺼짐${x.last?` <small>(마지막 ${md(x.last.date)}, ${x.last.age}거래일 전)</small>`:''}`,
-      'UVIX의 세 지표가 모두 바닥권 — 불안이 급하게 가라앉아 시장이 아주 조용해졌다는 뜻입니다',
+      'UVIX의 두 지표가 모두 바닥권 — 불안이 급하게 가라앉아 시장이 아주 조용해졌다는 뜻입니다',
       '주식의 옐로우닷과 뜻이 반대입니다. 이때 UVIX를 사는 것은 곧 불안이 튈 것에 거는 일입니다']))+
     blk(`그 뒤 60거래일 주식 <small>(UVIX 옐로우닷 ${sx[0]?sx[0].dip.n:0}번 뒤, 평소와 비교)</small>`,tbl+
       (sx.length?ul([weaker&&notRiskier?'더 오를 여지는 평소보다 작았고, 큰 하락이 더 잦지는 않았습니다. 파는 신호라기보다 <b>새로 사거나 더 넣기엔 덜 좋은 때</b>에 가깝습니다'
@@ -1834,6 +1833,38 @@ function uvixDipBody(x){
       ul([a?`아무 날이나 샀어도 +10% ${a.hit}% · +20% ${a.hit20}%에 닿았습니다 (워낙 크게 출렁이는 상품)`:null,
         `<span class="w">오래 들고 있으면 녹아내립니다 — 상장 뒤 가장 높았을 때보다 ${x.drop}%</span>`]));
 }
+/* 월봉 과열 꺾임 — 시장 참고(판정에 쓰지 않음 · desk.py month_warn, 2026-11-24 사용자).
+   SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달. 꺾인 뒤 12개월 안이면 VIX 줄과 VIX 탭 해석에 한 줄 */
+const MW_MONTHS=12;
+function mwLine(){
+  const r=(DESK.monthWarn||[]).filter(w=>w.last&&w.last.ago<=MW_MONTHS);
+  if(!r.length)return null;
+  const g={};r.forEach(w=>{const k=w.last.m+(w.last.open?'o':'');(g[k]=g[k]||[]).push(w.sym);});
+  return '월봉 과열 꺾임 '+Object.keys(g).sort().reverse().map(k=>`${g[k].join(' · ')} ${+k.slice(5,7)}월${k.endsWith('o')?' <small>(진행 중)</small>':''}`).join(' / ');
+}
+function mwSec(){
+  const W=DESK.monthWarn||[]; if(!W.length)return '';
+  const st=w=>w.last&&w.last.ago<=MW_MONTHS?`꺾임 ${w.last.m.slice(0,4)}.${+w.last.m.slice(5)}월`+(w.last.open?' — 이달 봉이 끝나야 확정':w.last.ago?` <small>(${w.last.ago}개월 전)</small>`:'')
+    :w.hot?'과열권 — 아직 안 꺾임':`최근 1년 없음${w.last?` <small>(마지막 ${w.last.m.slice(0,4)}.${+w.last.m.slice(5)}월)</small>`:''}`;
+  const f=v=>(v>0?'+':'')+v.toFixed(1)+'%';
+  const cell=(v,all)=>`<span><b>${f(v)}</b><small>평소 ${f(all)}</small></span>`;
+  const R=W.filter(w=>w.past&&w.all);
+  const tbl=R.length?`<div class="ustb"><div class="ush"><span></span><span>1년 뒤 평균</span><span>1년 안 최저</span></div>`+
+    R.map(w=>`<div class="usr"><span class="tk">${w.sym}</span>${cell(w.past.r12,w.all.r12)}${cell(w.past.low,w.all.low)}</div>`).join('')+`</div>`:'';
+  const weaker=R.length&&R.every(w=>w.past.r12<w.all.r12), deeper=R.length&&R.every(w=>w.past.low<w.all.low);
+  const r6lo=R.filter(w=>w.past.r6<w.all.r6).length;
+  return dsec('mw','월봉 과열 꺾임',
+    blk('지금',ul(W.map(w=>`<b>${w.sym}</b> ${st(w)}`)))+
+    blk(`꺾인 뒤 1년 <small>(${R.map(w=>`${w.sym} ${w.past.n}번`).join(' · ')} · 평소와 비교)</small>`,tbl+ul([
+      weaker&&deeper?'세 지수 모두 평소보다 <b>덜 오르고 더 깊게 빠졌습니다</b>':weaker?'세 지수 모두 평소보다 덜 올랐습니다':deeper?'세 지수 모두 평소보다 더 깊게 빠졌습니다':'평소와 뚜렷하게 다르지 않았습니다',
+      r6lo===R.length?'6개월 뒤도 평소보다 낮았습니다':'곧바로 빠진다는 뜻은 아닙니다 — 6개월 뒤는 평소보다 높을 때도 있었습니다',
+      `<small>지수마다 몇 번뿐이고 같은 시기에 겹쳐 확실하다고 하기는 어렵습니다 · 그 지수 수정종가 기준, ${R.map(w=>w.sym+' '+w.from).join(' · ')}년부터</small>`]))+
+    blk('읽는 법',ul(['월봉에서 빠르기 %K(5) · CCI(20) · RSI(14)가 모두 과열권(80 · +100 · 70 이상)에 들어갔다가 셋 다 내려온 달입니다',
+      '오래 많이 오른 뒤 힘이 빠지기 시작했다는 뜻입니다',
+      '옐로우닷 · 옐로우업다운 판단에는 쓰지 않습니다 <small>(2026-11 백테스트에서 옐로우업다운에 붙이면 수익만 줄었음)</small>',
+      '오래 들고 있는 돈이 앞으로 1년 더 흔들릴 수 있다는 경고로만 보세요',
+      '월봉은 그 달이 끝나야 확정됩니다. 진행 중인 달은 월말 종가로 바뀔 수 있습니다'])));
+}
 /* VIX 탭 — 시장 참고(판정에 쓰지 않음). 오늘의 해석만 펼치고 차트 · UVIX는 접는 칸 */
 function deskVix(m,u,x){
   const v=m.vix, f=m.fut;
@@ -1841,7 +1872,9 @@ function deskVix(m,u,x){
       v.hi1m?'최근 1개월 가운데 가장 높습니다':v.lo1m?'최근 1개월 가운데 가장 낮습니다':`최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}입니다`,
       f?(f.back?'VIX 선물: 가까운 달이 더 비쌈 — 단기 불안이 남아 있음 <small>(백워데이션)</small>':'VIX 선물: 먼 달이 더 비쌈 — 평소 모습 <small>(콘탱고)</small>')
         :'VIX 선물 자료를 확인하지 못함',
+      mwLine(),
       '옐로우닷 · 옐로우업다운 판단에는 쓰지 않는 참고 값입니다 <small>(2026-11 백테스트에서 VIX로 거르면 결과가 나아지지 않음)</small>'])+`</div>`;
+  h+=mwSec();
   h+=dsec('vc','차트',vixSpark(m,110)+futBars(m),'VIX 최근 1개월 · 선물 가격');
   if(u||x)h+=dsec('uy','UVIX',(u?ul([`UVIX $${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span> <small>(VIX 선물 2배 — 시장이 불안할 때 오름)</small>`,
         u.jump?'<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있습니다</span>':null])+uvixSpark(u,110):'')+(x?uvixDipBody(x):''),
@@ -1849,15 +1882,15 @@ function deskVix(m,u,x){
   return h;
 }
 
-/* 지표 값 — 세 지표(바닥권이면 ✓) · 50일 평균 대비 · 평소 범위 안 위치 · 1년 고점 대비 */
+/* 지표 값 — 두 지표(바닥권이면 ✓) · 50일 평균 대비 · 평소 범위 안 위치 · 1년 고점 대비 */
 function secTable(syms){
   const rows=(DESK.table||[]).filter(r=>syms.includes(r.sym)).sort((a,b)=>syms.indexOf(a.sym)-syms.indexOf(b.sym));
   const r0=rows.find(r=>!r.na), ck=v=>v?' ✓':'';
   return dsec('t','지표 값',rows.map(r=>r.na?blk(r.sym,ul(['자료 부족'])):blk(`${r.sym} <small>${r.sym==='VIX'?'':'$'}${r.close} (${sg(r.chg)})</small>`,ul([
-    `① 빠르기 %K ${r.k}${ck(r.k<=20)} <small>(3일 평균 ${r.d})</small>`,`② 벗어난 정도 CCI ${r.cci}${ck(r.cci<=-100)}`,`③ 힘 RSI ${r.rsi}${ck(r.rsi<=30)}`,
+    `① 빠르기 %K ${r.k}${ck(r.k<=20)} <small>(3일 평균 ${r.d})</small>`,`② 힘 RSI ${r.rsi}${ck(r.rsi<=30)}`,
     `50일 평균보다 ${sg(r.disp-100)}`,`평소 범위(볼린저밴드) 안 위치: ${r.bb}`,r.hi1y!=null?`1년 고점보다 ${sg(r.hi1y)}`:null]))).join('')+
-    ul(['<small>✓는 바닥권(%K 20 · CCI −100 · RSI 30 이하)</small>']),
-    r0?`${r0.sym} · %K ${r0.k} · CCI ${r0.cci} · RSI ${r0.rsi}`:'');
+    ul(['<small>✓는 바닥권(%K 20 · RSI 30 이하)</small>']),
+    r0?`${r0.sym} · %K ${r0.k} · RSI ${r0.rsi}`:'');
 }
 function renderDesk(){
   const el=document.getElementById('vDesk');

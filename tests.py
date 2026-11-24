@@ -58,11 +58,12 @@ class Indicators(unittest.TestCase):
 
 class YellowDot(unittest.TestCase):
     def test_is_dip(self):
-        I = ind([20, 21, 20, None], [-100, -150, -99, -150], [30, 25, 25, 25])
+        I = ind([20, 21, 20, None, 10], [-100, -150, -150, -150, 50], [30, 25, 31, 25, 20])
         self.assertTrue(market.is_dip(I, 0))      # 기준선과 같으면 켜짐
         self.assertFalse(market.is_dip(I, 1))     # %K 21
-        self.assertFalse(market.is_dip(I, 2))     # CCI −99
+        self.assertFalse(market.is_dip(I, 2))     # RSI 31
         self.assertFalse(market.is_dip(I, 3))     # 값이 없으면 꺼짐
+        self.assertTrue(market.is_dip(I, 4))      # v3.1부터 CCI는 보지 않는다 (2026-11-24)
 
     def test_dip_past_counts_runs_once(self):
         # 옐로우닷이 사흘 연달아 켜지면 한 번으로 센다. 그다음 날 시가에 사서 +10%에 닿으면 도달
@@ -329,14 +330,38 @@ class DeskLive(unittest.TestCase):
         I = market.indicators(B)
         s = desk.live_state(B[:-1]); b = B[-1]
         hh = max(s['h4'] + [b['h']]); ll = min(s['l4'] + [b['l']]); k = (b['c'] - ll) / (hh - ll) * 100
-        tp = s['tp19'] + [(b['h'] + b['l'] + b['c']) / 3]; m = sum(tp) / 20; md = sum(abs(x - m) for x in tp) / 20
-        cci = (tp[-1] - m) / (0.015 * md)
         d = b['c'] - s['pc']; g = (s['g'] * 13 + max(d, 0)) / 14; lo = (s['l'] * 13 + max(-d, 0)) / 14
         rsi = 100 - 100 / (1 + g / lo)
         self.assertAlmostEqual(k, I['k'][-1], places=3)
-        self.assertAlmostEqual(cci, I['cci'][-1], places=3)
         self.assertAlmostEqual(rsi, I['rsi'][-1], places=3)
-        self.assertEqual((s['d'], len(s['h4']), len(s['tp19'])), (B[-2]['d'], 4, 19))
+        self.assertEqual((s['d'], len(s['h4'])), (B[-2]['d'], 4))
+        self.assertNotIn('tp19', s)   # v3.1: CCI를 빼서 19일 기준가는 보내지 않는다
+
+
+class MonthWarn(unittest.TestCase):
+    """월봉 과열 꺾임 — 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달 (desk.month_warn, 시장 참고)"""
+    def bars(self, closes, start=(2000, 1)):
+        out = []; y, m = start
+        for c in closes:
+            out.append({'d': f'{y}-{m:02d}-15', 'o': c, 'h': c * 1.01, 'l': c * 0.99, 'c': c, 'a': c})
+            m += 1
+            if m > 12: y += 1; m = 1
+        return out
+
+    def test_exit_after_overbought(self):
+        up = [100 * 1.03 ** i for i in range(30)]              # 30달 꾸준히 오름 → 과열권
+        down = [up[-1] * 0.9, up[-1] * 0.8, up[-1] * 0.75]     # 크게 빠짐 → 셋 다 내려옴
+        flat = [up[-1] * 0.75] * 14
+        w = desk.month_warn('X', self.bars(up + down + flat))
+        self.assertIsNotNone(w)
+        self.assertEqual(w['n'], 1)
+        self.assertIn(w['last']['m'], ('2002-07', '2002-08', '2002-09'))
+        self.assertFalse(w['last']['open'])                    # 날짜가 15일이라 그 달은 끝난 것으로 셈(마지막 달 빼고)
+
+    def test_month_done(self):
+        self.assertTrue(desk.month_done('2026-11-30'))         # 월요일 · 그 달 마지막 평일
+        self.assertFalse(desk.month_done('2026-11-23'))
+        self.assertTrue(desk.month_done('2026-10-30'))         # 금요일 뒤 주말 → 11월
 
 
 class DeskStatus(unittest.TestCase):

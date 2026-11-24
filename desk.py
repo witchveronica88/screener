@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
-"""옐로우닷 상황판 — desk.json 생성 (옐로우닷 v3.0)
+"""옐로우닷 상황판 — desk.json 생성 (옐로우닷 v3.1)
+
+v3.1 (2026-11-24 사용자: CCI가 기능을 안 하면 빼도 좋다 · 시장 참고에 월봉 과열 꺾임을 넣어 달라)
+  - 옐로우닷 = 두 지표(빠르기 %K ≤ 20 · 힘 RSI ≤ 30)가 모두 바닥권인 날. CCI(≤ −100)를 뺐다.
+    근거: 스크리너 62종목 전체 기록에서 CCI만 걸러 낸 날은 옐로우닷 날 5,664일 가운데 158일, 첫날이 달라진 건 3,058번 가운데 139번(4.5%).
+    9종목 옐로우업다운(3종목까지 동시에 · 고르는 차례 100가지 가운데값) 2011~ 연 +12.9% · 낙폭 −35%, 1999~ 가상의 3배 +6.5% · −69%로
+    세 지표와 소수점까지 같았다. 개별주·업종 ETF에서도 CCI가 막은 신호가 더 나쁘지 않았다.
+    세 번째 확인 지표 후보(거래량 1.5배 · 볼린저밴드 하단 · VIX 급등 · MFI · 50일선·1년 고점 대비 깊이)도 시험했지만 꾸준히 나은 것이 없었다.
+  - 시장 참고에 '월봉 과열 꺾임'(SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달)을 더했다.
+    판정에는 쓰지 않는다. 월봉에서는 CCI(20개월)가 하는 일이 있어 세 지표 그대로 둔다(빼면 신호가 잦아지고 경고 효과가 약해짐).
+    근거(1993~, 그 지수 수정종가): 다음 1년이 평소보다 덜 오르고 더 깊게 빠졌다 — SPY 12개월 뒤 +4.2%(평소 +12.2%) · 1년 안 최저 −15.7%(−10.6%),
+    QQQ +11.6%(+14.6%) · −17.5%(−12.8%), SOXX +17.3%(+20.7%) · −22.3%(−17.4%). 3·6개월 뒤는 평소만큼 올라 '곧 하락' 신호는 아니다.
+    옐로우업다운에 붙이면(꺾임 뒤 6·12개월 조심) 수익만 줄어 쓰지 않는다.
+
+v3.0
 
 v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — 원문 내용은 지우고 '옐로우닷'과 '옐로우업다운'으로 우리 방법을 찾자)
   남긴 것은 우리 방법 둘뿐이다.
-  - 옐로우닷: 기준자산(SPY·QQQ·SOXX)의 세 지표가 모두 바닥권인 날. 바닥권 = 빠르기 %K ≤ 20 · CCI ≤ −100 · RSI ≤ 30
+  - 옐로우닷: 기준자산(SPY·QQQ·SOXX)의 지표가 모두 바닥권인 날(v3.0은 세 지표 %K ≤ 20 · CCI ≤ −100 · RSI ≤ 30, v3.1부터 %K · RSI 둘)
     (짧은 사이에 너무 많이 빠졌다는 뜻 · 예전 이름 '노란 점'). 계산은 종가 수집과 같은 market.is_dip.
   - 옐로우업다운: 옐로우닷 다음 거래일 장 마감에 1포트로 시작하는 예비 자금 운용(market.updown_past) — 종목 탭에서만 보인다.
     상황판은 2026-11-23 사용자 말대로 옐로우업다운을 쓰지 않는다('그날의 상황만 알고 싶다, 옐로우업다운 매수·매도는 빼고 옐로우닷이 떴다 정도만').
@@ -23,7 +37,7 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
 import urllib.request, csv, io, json, time, datetime, sys
 from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST)
 
-RULE = '옐로우닷 v3.0'
+RULE = '옐로우닷 v3.1'
 PAIRS = [('UPRO', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 3배 상품, 기준자산) — 화면 순서
 SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'UPRO', 'UVIX', '^VIX']
 NAMES = {'SPY': 'S&P500', 'QQQ': '나스닥', 'SOXX': '반도체'}   # 결론 문장에 쓰는 우리말 이름
@@ -78,7 +92,7 @@ def dip_card(base, prod, bars, I, vix):
         run += 1
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
-         'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
+         'k': round(I['k'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),
@@ -96,20 +110,19 @@ def dip_card(base, prod, bars, I, vix):
 
     lastd = r.get('last')
     ok = lambda v: ' ✓' if v else ''
-    cond = (f"옐로우닷 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 벗어난 정도 {r['cci']} (−100 이하{ok(r['cci'] <= -100)})"
-            f" · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})")
+    cond = f"옐로우닷 조건: 빠르기 {r['k']} (20 이하{ok(r['k'] <= 20)}) · 힘 {r['rsi']} (30 이하{ok(r['rsi'] <= 30)})"
     vl = f"참고: 시장 불안(VIX) {vix['c']} (전날보다 {vix['chg']:+.1f}%) — 판정에는 쓰지 않음" if vix else None
     if on:
         # 켜진 날수는 결론 문장에만 — 불렛에서 다시 말하지 않는다
-        head = (f'오늘 옐로우닷이 켜졌습니다. {base}가 급하게 내려 세 지표가 모두 바닥권에 들어갔습니다.' if run <= 1 else
-                f'옐로우닷이 {run}일째 켜져 있습니다. {base}의 세 지표가 모두 바닥권에 머물러 있습니다.')
-        why = ['바닥권: 빠르기·벗어난 정도·힘 세 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다',
+        head = (f'오늘 옐로우닷이 켜졌습니다. {base}가 급하게 내려 두 지표가 모두 바닥권에 들어갔습니다.' if run <= 1 else
+                f'옐로우닷이 {run}일째 켜져 있습니다. {base}의 두 지표가 모두 바닥권에 머물러 있습니다.')
+        why = ['바닥권: 빠르기·힘 두 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다',
                '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다', vl]
     elif lastd and lastd['age'] <= RECENT:
         head = f"옐로우닷은 {lastd['age']}거래일 전({md(lastd['date'])})에 꺼졌습니다. 그 뒤 {base} {lastd['mv']:+.1f}%입니다."
         why = [cond, vl]
     else:
-        head = '옐로우닷이 꺼져 있습니다. 세 지표가 모두 바닥권에 들어가야 켜집니다.'
+        head = '옐로우닷이 꺼져 있습니다. 두 지표가 모두 바닥권에 들어가야 켜집니다.'
         why = [cond, f"마지막 옐로우닷은 {md(lastd['date'])} ({lastd['age']}거래일 전), 그 뒤 {base} {lastd['mv']:+.1f}%"
                if lastd else None, vl]
     r['head'] = head; r['why'] = [x for x in why if x]
@@ -126,7 +139,7 @@ def history(base, prod, bars, I, n=21):
         b = B[i]; dot = is_dip(I, i)
         out.append({'d': b['d'], 'o': r2(b['o']), 'h': r2(b['h']), 'l': r2(b['l']), 'c': r2(b['c']),
                     'bu': r2(I['bu'][i]), 'bl': r2(I['bl'][i]), 'm50': r2(I['m50'][i]),
-                    'k': round(I['k'][i], 1), 'cci': round(I['cci'][i], 1), 'rsi': round(I['rsi'][i], 1),
+                    'k': round(I['k'][i], 1), 'rsi': round(I['rsi'][i], 1),
                     'disp': round(I['disp'][i], 1), 'dot': dot,
                     'marks': (['ro'] if dot else []) + (['tg'] if b['d'] in hits else [])})
     return out
@@ -169,7 +182,7 @@ def headline(cards):
 
 def live_state(B, n=14):
     """장중 '지금 가격으로 보기'용 — 마지막 확정 종가까지의 지표 상태(2026-11-23 사용자: 장중에 급변하는 날 버튼 하나로 지금 상황을).
-       화면이 오늘 봉(지금까지 고가·저가·현재가)만 더해 %K(5)·CCI(20)·RSI(14)를 market.indicators와 같은 셈으로 다시 센다"""
+       화면이 오늘 봉(지금까지 고가·저가·현재가)만 더해 %K(5)·RSI(14)를 market.indicators와 같은 셈으로 다시 센다"""
     c = [b['c'] for b in B]
     d = [c[i] - c[i-1] for i in range(1, len(c))]
     g = sum(x for x in d[:n] if x > 0) / n; l = sum(-x for x in d[:n] if x < 0) / n
@@ -177,8 +190,7 @@ def live_state(B, n=14):
         g = (g * (n-1) + max(d[i], 0)) / n; l = (l * (n-1) + max(-d[i], 0)) / n
     r6 = lambda v: round(v, 6)
     return {'d': B[-1]['d'], 'pc': r6(c[-1]), 'g': r6(g), 'l': r6(l),
-            'h4': [r6(b['h']) for b in B[-4:]], 'l4': [r6(b['l']) for b in B[-4:]],
-            'tp19': [r6((b['h'] + b['l'] + b['c']) / 3) for b in B[-19:]]}
+            'h4': [r6(b['h']) for b in B[-4:]], 'l4': [r6(b['l']) for b in B[-4:]]}
 
 
 def card(prod, base, bars, vix):
@@ -191,7 +203,7 @@ def card(prod, base, bars, vix):
         return {**c0, 'state': 'wait', 'line': '기준자산 가격이 하루 만에 크게 달라졌습니다. 분할·병합 보정이 끝났는지 확인 중입니다.'}
     I = indicators(B); c = B[-1]['c']
     r = {**c0, 'state': 'ok', 'asof': asof,
-         'ind': {'k': round(I['k'][-1], 1), 'd': round(I['d'][-1], 1), 'cci': round(I['cci'][-1], 1),
+         'ind': {'k': round(I['k'][-1], 1), 'd': round(I['d'][-1], 1),
                  'rsi': round(I['rsi'][-1], 1), 'disp': round(I['disp'][-1], 1),
                  'close': round(c, 2), 'pclose': round(P[-1]['c'], 2),
                  'chg': pct(c, B[-2]['c']), 'pchg': pct(P[-1]['c'], P[-2]['c'])}}
@@ -225,7 +237,7 @@ UVIX_DAYS = 60    # UVIX 옐로우닷 뒤 SPY·QQQ·SOXX를 견주는 기간 —
 
 
 def uvix_dip(U, bars, days=UVIX_DAYS):
-    """UVIX 옐로우닷 — 참고용(사용자 요청, 2026-11). UVIX의 세 지표가 모두 바닥권인 날 = 불안이 급하게 가라앉아
+    """UVIX 옐로우닷 — 참고용(사용자 요청, 2026-11). UVIX의 두 지표가 모두 바닥권인 날 = 불안이 급하게 가라앉아
        시장이 아주 조용해진 날. 주식 옐로우닷과 뜻이 반대이고 UVIX는 오래 들고 있으면 녹아내리므로 판정에는 쓰지 않는다.
        ① UVIX를 다음 날 샀다면 옐로우닷 과거 결과와 같은 기간(DIP_DAYS) 안 +10%·+20% — 아무 날 샀을 때와 함께
        ② 그 뒤 60거래일 SPY·QQQ·SOXX(종가 기준 평균 등락 · 오른 비율 · -10% 넘게 빠진 비율) — 같은 기간 아무 날과 함께"""
@@ -266,8 +278,73 @@ def uvix_dip(U, bars, days=UVIX_DAYS):
     return out
 
 
+# ───────────── 시장 참고: 월봉 과열 꺾임 (판정에 쓰지 않음) ─────────────
+WARN_MONTHS = 12      # 꺾인 뒤 이 개월 안이면 요약 탭 VIX 줄에 적는다
+
+
+def monthly(B):
+    """일봉 → 월봉(그 달 첫 시가 · 고가 · 저가 · 마지막 종가 · 수정종가, 날짜는 그 달 마지막 거래일)"""
+    M = []
+    for b in B:
+        if M and M[-1]['d'][:7] == b['d'][:7]:
+            m = M[-1]; m['h'] = max(m['h'], b['h']); m['l'] = min(m['l'], b['l']); m['c'] = b['c']; m['a'] = b.get('a', b['c']); m['d'] = b['d']
+        else:
+            M.append({'d': b['d'], 'o': b['o'], 'h': b['h'], 'l': b['l'], 'c': b['c'], 'a': b.get('a', b['c'])})
+    return M
+
+
+def month_done(d):
+    """그 날이 그 달 마지막 평일이면 월봉이 끝난 것으로 본다(공휴일은 모름)"""
+    x = datetime.date.fromisoformat(d) + datetime.timedelta(days=1)
+    while x.weekday() >= 5:
+        x += datetime.timedelta(days=1)
+    return x.month != datetime.date.fromisoformat(d).month
+
+
+def month_warn(sym, B):
+    """월봉 과열 꺾임 — 월봉 %K(5) · CCI(20) · RSI(14)가 모두 과열권(80 · +100 · 70 이상)에 들어갔다가 모두 내려온 달.
+       2026-11-24 사용자 요청(블로그가 이번 추세 전환을 맞춘 신호). 과거엔 다음 1년이 평소보다 덜 오르고 더 깊게 빠졌다.
+       3·6개월 뒤는 평소만큼 올라 '곧 하락' 신호는 아니고, 옐로우닷 · 옐로우업다운 판단에는 쓰지 않는다(붙이면 수익만 줄었음).
+       월봉에서는 CCI(20개월)가 하는 일이 있어 세 지표 그대로 센다. 마지막 달은 그 달이 끝나야 확정"""
+    M = monthly(B)
+    if len(M) < 30:
+        return None
+    I = indicators(M); K, C, R = I['k'], I['cci'], I['rsi']
+    ev, arm = [], False
+    for i in range(len(M)):
+        if None in (K[i], C[i], R[i]):
+            continue
+        if K[i] >= 80 and C[i] >= 100 and R[i] >= 70:
+            arm = True
+        elif arm and K[i] < 80 and C[i] < 100 and R[i] < 70:
+            ev.append(i); arm = False
+    last = len(M) - 1; done = month_done(M[-1]['d'])
+
+    def fw(i, h):
+        return M[i + h]['a'] / M[i]['a'] - 1 if i + h <= last - (0 if done else 1) else None
+
+    def low(i, h):
+        return min(m['l'] for m in M[i + 1:i + h + 1]) / M[i]['c'] - 1 if i + h <= last - (0 if done else 1) else None
+
+    def stat(ix):
+        r12 = [x for x in (fw(i, 12) for i in ix) if x is not None]
+        r6 = [x for x in (fw(i, 6) for i in ix) if x is not None]
+        lo = [x for x in (low(i, 12) for i in ix) if x is not None]
+        if not r12:
+            return None
+        f = lambda v: round(sum(v) / len(v) * 100, 1)
+        return {'n': len(r12), 'r12': f(r12), 'r6': f(r6), 'low': f(lo), 'up': round(sum(x > 0 for x in r12) / len(r12) * 100)}
+
+    out = {'sym': sym, 'from': M[0]['d'][:4], 'hot': K[last] is not None and K[last] >= 80 and C[last] >= 100 and R[last] >= 70,
+           'past': stat(ev), 'all': stat(range(20, len(M))), 'n': len(ev)}
+    if ev:
+        i = ev[-1]; a = datetime.date.fromisoformat(M[i]['d']); b = datetime.date.fromisoformat(M[-1]['d'])
+        out['last'] = {'m': M[i]['d'][:7], 'ago': (b.year - a.year) * 12 + b.month - a.month, 'open': i == last and not done}
+    return out
+
+
 def summary_row(sym, B):
-    """지표 값 칸 한 종목 — 세 지표 · 50일 평균 대비 · 평소 범위 안 위치 · 1년 고점 대비"""
+    """지표 값 칸 한 종목 — 두 지표 · 50일 평균 대비 · 평소 범위 안 위치 · 1년 고점 대비"""
     if len(B) < 60:
         return {'sym': sym, 'na': True}
     I = indicators(B); c = B[-1]['c']
@@ -275,7 +352,7 @@ def summary_row(sym, B):
     bb = ('위쪽 끝 밖' if pos > 100 else '위쪽 끝 근처' if pos >= 80 else '아래쪽 끝 밖' if pos < 0 else
           '아래쪽 끝 근처' if pos <= 20 else '가운데')
     return {'sym': sym, 'close': round(c, 2), 'chg': pct(c, B[-2]['c']), 'k': round(I['k'][-1], 1),
-            'd': round(I['d'][-1], 1), 'cci': round(I['cci'][-1], 1), 'rsi': round(I['rsi'][-1], 1),
+            'd': round(I['d'][-1], 1), 'rsi': round(I['rsi'][-1], 1),
             'disp': round(I['disp'][-1], 1), 'bb': f'{bb} ({pos:.0f}%)',
             'hi1y': pct(c, max(b['c'] for b in B[-252:]))}
 
@@ -308,6 +385,7 @@ def main():
            'cards': cards, 'market': mk, 'headline': headline(cards),
            'uvix': uvix_brief(bars['UVIX']) if len(bars['UVIX']) > 60 else None,
            'uvixDip': uvix_dip(bars['UVIX'], bars),
+           'monthWarn': [w for w in (month_warn(b, bars[b]) for _, b in PAIRS) if w],
            'table': [summary_row(s.replace('^', ''), bars[s]) for s in SYMS]}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)

@@ -237,9 +237,11 @@ def indicators(B):
 
 # ───────────── 옐로우닷 ─────────────
 def is_dip(I, i):
-    """옐로우닷: 세 지표가 모두 '많이 빠짐' (%K ≤ 20 · CCI ≤ -100 · RSI ≤ 30)"""
-    k, cc, rs = I['k'][i], I['cci'][i], I['rsi'][i]
-    return None not in (k, cc, rs) and k <= 20 and cc <= -100 and rs <= 30
+    """옐로우닷: 두 지표가 모두 '많이 빠짐' (빠르기 %K ≤ 20 · 힘 RSI ≤ 30).
+       2026-11-24 사용자 결정으로 CCI(≤ −100)를 뺐다 — 62종목 전체 기록에서 첫날이 달라진 건 4.5%뿐이고
+       9종목 옐로우업다운 백테스트(2011~ · 1999~ 가상의 3배)는 소수점까지 같았다(CLAUDE.md '방법론 검토')"""
+    k, rs = I['k'][i], I['rsi'][i]
+    return None not in (k, rs) and k <= 20 and rs <= 30
 
 
 def dip_past(B, I, P):
@@ -335,7 +337,7 @@ def yellow(B, P=None, base=None, ud=False):
     while on and run <= last and is_dip(I, last - run):
         run += 1
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
-    r = {'on': on, 'run': run, 'k': round(I['k'][-1], 1), 'cci': round(I['cci'][-1], 1),
+    r = {'on': on, 'run': run, 'k': round(I['k'][-1], 1),
          'rsi': round(I['rsi'][-1], 1), 'past': dip_past(B, I, P)}
     if base:
         r['base'] = base
