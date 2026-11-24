@@ -122,7 +122,7 @@ def dip_card(base, prod, bars, I, vix):
         why = ['바닥권: 빠르기·힘 두 지표가 모두 기준선 아래 — 짧은 사이에 너무 많이 빠졌다는 뜻입니다',
                '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다', vl]
     elif lastd and lastd['age'] <= RECENT:
-        head = f"옐로우닷은 {lastd['age']}거래일 전({md(lastd['date'])})에 꺼졌습니다. 그 뒤 {base} {lastd['mv']:+.1f}%입니다."
+        head = f"마지막 옐로우닷은 {lastd['age']}거래일 전({md(lastd['date'])})입니다. 그 뒤 {base} {lastd['mv']:+.1f}%입니다."
         why = [cond, vl]
     else:
         head = '옐로우닷이 꺼져 있습니다. 두 지표가 모두 바닥권에 들어가야 켜집니다.'
@@ -162,7 +162,7 @@ def stage_of(c):
     if d['on'] and past:                               # 켜진 날: 과거에 다음 날 샀다면 +10%에 15·30거래일 안(DIP_FAST·DIP_DAYS) — 화면이 색 칸으로
         stats.append(('과거', [past.get('hitF'), past['hit']], 'past'))
     elif last and last.get('pmv') is not None:
-        stats.append((f"옐로우닷({md(last['date'])}) 뒤", f"{last['pmv']:+.1f}%", 'dot'))
+        stats.append((f"{md(last['date'])} 뒤 {c['prod']}", f"{last['pmv']:+.1f}%", ''))   # 마지막 옐로우닷 날 뒤 3배 상품 등락 · 노란 점은 '켜짐'으로 읽혀서 뺌
     return {'on': d['on'], 'cls': cls, 'text': text, 'stats': stats}
 
 
@@ -177,9 +177,14 @@ def headline(cards):
     if on:                                             # 켜진 날수·꺼진 곳은 아래 세 줄이 보여 준다 — 여기서 다시 말하지 않는다
         out.append(f'{nm(on)} 옐로우닷이 켜졌습니다.')
     else:
-        rec = sorted((c for c in live if c['dip'].get('last') and c['dip']['last']['age'] <= RECENT),
-                     key=lambda c: c['dip']['last']['age'])
-        out.append('옐로우닷이 모두 꺼져 있습니다.' + (f" 마지막은 {rec[0]['base']} {md(rec[0]['dip']['last']['date'])}입니다." if rec else ''))
+        rec = [c for c in live if c['dip'].get('last') and c['dip']['last']['age'] <= RECENT]
+        out.append('옐로우닷이 모두 꺼져 있습니다.')
+        if rec:                                        # 가장 최근에 켜졌던 날 — 그날 켜졌던 곳 모두와 그 뒤 지수 등락
+            a = min(c['dip']['last']['age'] for c in rec)
+            g = [c for c in rec if c['dip']['last']['age'] == a]
+            mv = ' · '.join(f"{c['base']} {c['dip']['last']['mv']:+.1f}%" for c in g if c['dip']['last'].get('mv') is not None)
+            out.append(f"{md(g[0]['dip']['last']['date'])}에 {'모두 ' if len(g) == len(live) > 1 else ''}켜진 뒤 {mv}입니다." if mv else
+                       f"마지막은 {md(g[0]['dip']['last']['date'])} {nm(g)}입니다.")
     return ' '.join(out)
 
 

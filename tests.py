@@ -429,7 +429,7 @@ class DeskStatus(unittest.TestCase):
     def test_off(self):
         g = self.card(last={'date': '2026-10-14', 'age': 27, 'pmv': -17.8})['stage']
         self.assertEqual((g['cls'], g['text']), ('off', '옐로우닷 꺼짐'))
-        self.assertEqual(g['stats'], [('옐로우닷(10/14) 뒤', '-17.8%', 'dot')])
+        self.assertEqual(g['stats'], [('10/14 뒤 SOXL', '-17.8%', '')])
         self.assertEqual(desk.stage_of({'state': 'wait'})['cls'], 'wait')
 
     def test_headline(self):
@@ -437,9 +437,12 @@ class DeskStatus(unittest.TestCase):
         self.assertEqual(desk.headline(cs), 'S&P500·나스닥·반도체 모두 옐로우닷이 켜졌습니다.')
         cs = [self.card('SPY', 'UPRO', on=True), self.card('QQQ', 'TQQQ'), self.card()]
         self.assertEqual(desk.headline(cs), 'S&P500 옐로우닷이 켜졌습니다.')
-        cs = [self.card('SPY', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'pmv': 1}), self.card('QQQ', 'TQQQ'), self.card()]
+        cs = [self.card('SPY', 'UPRO', last={'date': '2026-10-14', 'age': 5, 'mv': 1, 'pmv': 3}), self.card('QQQ', 'TQQQ'), self.card()]
         h = desk.headline(cs)
-        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 마지막은 SPY 10/14입니다.')
+        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 10/14에 켜진 뒤 SPY +1.0%입니다.')
+        L = lambda b, p, mv: self.card(b, p, last={'date': '2026-11-20', 'age': 1, 'mv': mv, 'pmv': mv * 3})
+        h = desk.headline([L('SPY', 'UPRO', 4.7), L('QQQ', 'TQQQ', 7.0), L('SOXX', 'SOXL', 13.6)])
+        self.assertEqual(h, '옐로우닷이 모두 꺼져 있습니다. 11/20에 모두 켜진 뒤 SPY +4.7% · QQQ +7.0% · SOXX +13.6%입니다.')
         self.assertNotIn('반등', h)                                          # 원문(블로그) 말은 쓰지 않는다
         self.assertNotIn('옐로우업다운', h)                                  # 상황판은 그날의 상황만 (2026-11-23 사용자)
 

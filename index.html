@@ -506,8 +506,8 @@ details.fold[open]>summary::after{content:'－'}
 .mrow .lamp{width:18px;height:18px;border-width:2px}
 .mrow .fbody{margin-top:2px}
 /* 장중 지금 가격 (Finnhub) — 버튼 · 키 넣기 · 결과 상자 */
-.lvbtn{display:block;width:100%;background:var(--s1);border:1px solid var(--bd2);color:var(--on);border-radius:12px;
-       padding:10px 14px;margin:0 0 10px;font-size:var(--fs-m);font-weight:600;cursor:pointer;font-family:var(--sans)}
+.lvbtn{display:block;width:fit-content;background:var(--s1);border:1px solid var(--bd2);color:var(--on);border-radius:999px;
+       padding:4px 12px;margin:-2px 0 10px auto;font-size:var(--fs-s);font-weight:600;line-height:var(--lh-t);cursor:pointer;font-family:var(--sans)}   /* 작은 알약 (2026-11-24 사용자: 더 작게) */
 .lv{background:var(--s1);border:1px solid var(--bd);border-left:5px solid var(--st-watch);border-radius:14px;padding:10px 16px;margin:0 0 10px}
 .lv .lvt{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;font-size:var(--fs-s);color:var(--ink2);line-height:var(--lh)}
 .lv .lvt b{color:var(--ink);font-size:var(--fs-m)}
@@ -1723,7 +1723,7 @@ function dotRules(){
     '두 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
     '<b>바닥권</b>: 빠르기(%K) 20 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
     '장 마감 종가로 계산합니다. 한국 아침 6시 20분쯤 <small>(서머타임 5시 20분쯤)</small> 켜졌는지 나옵니다',
-    `켜진 날 줄의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
+    `켜진 날 줄의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 꺼진 날 줄의 'M/D 뒤 UPRO +x%'는 마지막 옐로우닷(M/D) 뒤 그 3배 상품이 오르내린 폭입니다. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
     '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 세 줄 모두 3배 상품(UPRO · TQQQ · SOXL)으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
     '두 지표가 모두 바닥권에 들어간 날 · 과거 결과 보는 법');
@@ -1739,7 +1739,7 @@ function secRules(){
       '<b>지금 가격으로 장이 끝나면</b> 옐로우닷이 켜지는지 보여 주는 임시 값입니다. 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
-    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임 · 하이일드 스프레드는 보여 주기만 합니다',
+    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임 · 하이일드 스프레드 · 돈줄 경고는 보여 주기만 합니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
@@ -1807,10 +1807,21 @@ function deskSum(){
   h+=`<div class="mrow" data-dt="VIX"><div class="mh"><span class="tk">VIX</span><b class="mst">시장 불안 ${v.c}</b>`+
     `<span class="mv"><span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
-      v.hi1m?'1개월 가운데 가장 높음':v.lo1m?'1개월 가운데 가장 낮음':`5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,
+      vixLevel(v.c)+(v.hi1m?' · 1개월 중 가장 높음':v.lo1m?' · 1개월 중 가장 낮음':''),
       x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null,cwLine()||hyLine(),mwLine()])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
-  return h+dotRules()+secRules();
+  return h+dotRules()+mktRules()+secRules();
+}
+/* VIX 수준을 쉬운 말로 — 평소(약 20 아래)와 견줘서 */
+const vixLevel=c=>c>=30?'아주 높은 편 <small>(30 넘음 · 크게 겁먹은 상태)</small>':c>=20?'높은 편 <small>(평소는 20 아래)</small>':c>=15?'보통':'낮은 편 <small>(조용한 시장)</small>';
+/* 요약 탭 — 시장 참고란: VIX 줄에 나오는 말들의 뜻 (자세한 숫자는 VIX 탭) */
+function mktRules(){
+  return dsec('m','시장 참고란',ul([
+    '<b>VIX(시장 불안)</b>: 앞으로 한 달 S&P500이 얼마나 출렁일지 옵션 값으로 잰 숫자입니다. 평소는 20 아래, 30을 넘으면 크게 겁먹은 상태입니다',
+    '<b>하이일드 스프레드</b>: 신용이 낮은 회사가 돈을 빌릴 때 미국 정부보다 더 내는 이자입니다. 벌어지면 돈을 빌려주는 쪽이 부도를 걱정한다는 뜻입니다. VIX가 "주식 시장이 얼마나 겁먹었나"라면 이것은 "돈줄이 얼마나 걱정하나"입니다 <small>(요약에는 2주 사이 +0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 나옵니다)</small>',
+    '<b>돈줄 경고(빨간 점)</b>: 회사채 스프레드가 2주 사이 +0.2%p 넘게 벌어진 날 켜집니다. 2008년 같은 신용 위기에서는 바닥권 신호가 떠도 한참 더 빠졌습니다',
+    '<b>월봉 과열 꺾임</b>: 한 달 봉의 지표가 모두 과열권에 들어갔다가 내려온 달입니다. 오래 많이 오른 뒤 힘이 빠지기 시작했다는 뜻이라, 오래 들고 있는 돈이 앞으로 1년 더 흔들릴 수 있다는 경고입니다',
+    `모두 옐로우닷 판정에는 쓰지 않는 참고입니다. 자세한 숫자와 과거 결과는 <a data-dt="VIX">VIX</a> 탭에 있습니다`]));
 }
 /* 종목별 탭 — 상태 줄과 오늘의 해석만 펼치고, 나머지는 접는 칸: 차트 → 옐로우닷 과거 결과 → 지표 값 */
 function deskCard(c){
