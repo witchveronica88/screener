@@ -1731,7 +1731,7 @@ function secRules(){
       '<b>지금 가격으로 장이 끝나면</b> 옐로우닷이 켜지는지 보여 주는 임시 값입니다. 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
-    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임은 보여 주기만 합니다',
+    blk('시장 참고 <small>판정에 쓰지 않음</small>',ul(['VIX · VIX 선물 · UVIX 옐로우닷 · 월봉 과열 꺾임 · 하이일드 스프레드는 보여 주기만 합니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않아 판정에 쓰지 않습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
       '지표 계산: 2026-11-10 값을 따로 다시 계산해 일치 확인 <small>(트레이딩뷰 화면과 직접 대조한 것은 아님)</small>',
@@ -1800,7 +1800,7 @@ function deskSum(){
     `<span class="mv"><span class="${sc(-v.chg)}">${sg(v.chg)}</span></span></div>`+
     `<div class="fbody"><div class="fst">${ul([
       v.hi1m?'1개월 가운데 가장 높음':v.lo1m?'1개월 가운데 가장 낮음':`5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}`,
-      x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null,mwLine()])}</div>`+
+      x&&x.on?'UVIX 옐로우닷 켜짐 — 시장이 아주 조용함':null,hyLine(),mwLine()])}</div>`+
     (m.spark?miniChart(m.spark.map(x=>x.c),{label:'1개월',l2:m.spark.map(x=>x.m5)}):'')+`</div></div>`;
   return h+dotRules()+secRules();
 }
@@ -1833,6 +1833,53 @@ function uvixDipBody(x){
       ul([a?`아무 날이나 샀어도 +10% ${a.hit}% · +20% ${a.hit20}%에 닿았습니다 (워낙 크게 출렁이는 상품)`:null,
         `<span class="w">오래 들고 있으면 녹아내립니다 — 상장 뒤 가장 높았을 때보다 ${x.drop}%</span>`]));
 }
+/* 하이일드 스프레드 — 시장 참고(판정에 쓰지 않음 · desk.py fetch_hy, 2026-11-24 사용자: 상황판에도, 뜻을 쉽고 자세하게).
+   요약 VIX 줄에는 2주 사이 +0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 한 줄 */
+const hyF=v=>v.toFixed(2)+'%', hyChg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(2)+'%p';
+const hyHot=h=>!!h&&(h.chg2w>=0.2||h.hi1y-h.v<=0.05);
+function hyLine(force){
+  const h=DESK.hy; if(!h||(!force&&!hyHot(h)))return null;
+  const tag=h.hi1y-h.v<=0.05?'1년 중 가장 높음':h.v-h.lo1y<=0.05?'1년 중 가장 낮음':'';
+  return `하이일드 스프레드 ${hyF(h.v)} <small>(2주 ${hyChg(h.chg2w)}${tag?' · '+tag:''})</small>`;
+}
+function hySec(){
+  const h=DESK.hy; if(!h)return '';
+  const ym=d=>`${d.slice(0,4)}.${+d.slice(5,7)}`;
+  const now=blk('지금',ul([
+      `<b>${hyF(h.v)}</b> <small>(${md(h.date)} · 하루 늦게 나옴)</small>`,
+      `2주 사이 ${hyChg(h.chg2w)} · 1개월 사이 ${hyChg(h.chg1m)}`,
+      `최근 1년 ${hyF(h.lo1y)}~${hyF(h.hi1y)} · 최근 3년 가운데 ${h.pct}%의 날보다 높음`]))+
+    spark(h.spark.map(x=>x.v),90,{ref:h.med})+`<div class="spkc"><span>최근 3개월</span><span>점선: 3년 가운데 값 ${hyF(h.med)}</span></div>`;
+  const what=blk('무엇인가',ul([
+    '신용이 낮은 회사들이 돈을 빌릴 때 내는 이자가 미국 정부가 내는 이자보다 얼마나 높은지입니다',
+    '하이일드는 빚을 갚을 힘이 약한 회사들의 회사채입니다 <small>(투기등급 · 정크본드)</small>',
+    `예: 미국 국채 이자가 4%이고 이 회사채들의 이자가 ${(4+h.v).toFixed(2)}%면 스프레드는 ${hyF(h.v)}입니다`,
+    '<b>벌어진다</b> = 돈을 빌려준 사람들이 "못 갚는 회사가 늘 수 있다"고 걱정해 이자를 더 달라고 한다는 뜻입니다',
+    '<b>좁아진다</b> = 걱정이 줄어 낮은 이자에도 빌려준다는 뜻입니다']));
+  const why=blk('왜 주식에 중요한가',ul([
+    '회사채에 돈을 댄 사람들은 회사가 망하면 원금을 잃습니다. 그래서 주식보다 부도 위험에 더 예민하게 움직입니다',
+    '스프레드가 벌어지면 빚이 많은 회사는 돈을 빌리기 어려워집니다. 투자와 고용을 줄이거나 부도가 나면서 경기와 주가가 함께 나빠질 수 있습니다',
+    '그래서 주가가 빠질 때 스프레드가 <b>조용하면</b> 겁만 먹은 하락일 때가 많고, 스프레드도 <b>빠르게 벌어지면</b> 돈줄이 막히는 큰 하락일 수 있습니다',
+    'VIX가 "주식 시장이 지금 얼마나 겁먹었나"라면, 하이일드 스프레드는 "돈을 빌려주는 쪽이 얼마나 걱정하나"입니다']));
+  const scale=blk('숫자 감 잡기',ul([
+    `최근 3년 가운데 값 ${hyF(h.med)} · 가장 낮을 때 ${hyF(h.lo.v)} (${ym(h.lo.d)}) · 가장 높을 때 ${hyF(h.hi.v)} (${ym(h.hi.d)})`,
+    '2020년 3월 코로나 때는 약 11%, 2008년 금융위기 때는 20% 넘게 벌어졌습니다',
+    '높고 낮음보다 <b>얼마나 빨리 벌어지나</b>가 더 중요합니다']));
+  const past=blk('과거에 어땠나 <small>(1993~ · S&P500이 최고점보다 −10%에 처음 닿은 12번)</small>',
+    `<div class="ustb"><div class="ush"><span></span><span>그 뒤 1년</span><span>1년 안 더 빠진 폭</span></div>`+
+    `<div class="usr"><span class="tk">벌어짐</span><span><b>+6.5%</b><small>7번 평균</small></span><span><b>−16.5%</b><small>2000·2008·2022 포함</small></span></div>`+
+    `<div class="usr"><span class="tk">조용</span><span><b>+25.4%</b><small>5번 평균</small></span><span><b>−5.6%</b><small>&nbsp;</small></span></div></div>`+
+    ul(['−10%에 닿을 때 스프레드가 2주 사이 벌어지던 중이면 그 뒤 1년이 훨씬 험했습니다',
+      '다만 벌어짐이 멈출 때까지 기다렸다 샀어도 1년 뒤 결과는 7번 중 3번만 나았습니다 — 더 싸게 사는 신호는 아닙니다',
+      '<small>12번뿐이라 확실하다고 하기는 어렵습니다. FRED가 하이일드는 최근 3년치만 주어서 1993년부터는 비슷하게 움직이는 BAA 회사채 스프레드로 셌습니다(최근 3년 2주 변화 상관 0.69)</small>']));
+  const how=blk('읽는 법',ul([
+    '옐로우닷 · 옐로우업다운 판단에는 쓰지 않는 시장 참고입니다',
+    HY_UD,
+    '요약 탭 VIX 줄에는 2주 사이 0.2%p 넘게 벌어졌거나 1년 중 가장 높을 때만 나옵니다',
+    '출처: FRED(미국 세인트루이스 연준) · ICE BofA US High Yield Index 옵션조정 스프레드']));
+  return dsec('hy','하이일드 스프레드',now+what+why+scale+past+how);
+}
+const HY_UD='<small>옐로우업다운에 붙여 본 시험(2026-11-24): 스프레드가 2주 사이 크게 벌어진 때(BAA 기준 +0.15~0.25%p) 켜진 옐로우닷은 시작 금액을 절반으로 하면, 2011년 뒤 결과는 그대로이고 1999년부터 넣은 가상 계산의 최대 낙폭은 −69% → −50%로 줄었습니다. 근거가 사실상 2008년 한 번이라 아직 규칙으로 쓰지 않습니다</small>';
 /* 월봉 과열 꺾임 — 시장 참고(판정에 쓰지 않음 · desk.py month_warn, 2026-11-24 사용자).
    SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달. 꺾인 뒤 12개월 안이면 VIX 줄과 VIX 탭 해석에 한 줄 */
 const MW_MONTHS=12;
@@ -1872,9 +1919,9 @@ function deskVix(m,u,x){
       v.hi1m?'최근 1개월 가운데 가장 높습니다':v.lo1m?'최근 1개월 가운데 가장 낮습니다':`최근 5일 평균 ${v.m5}보다 ${v.above5?'위':'아래'}입니다`,
       f?(f.back?'VIX 선물: 가까운 달이 더 비쌈 — 단기 불안이 남아 있음 <small>(백워데이션)</small>':'VIX 선물: 먼 달이 더 비쌈 — 평소 모습 <small>(콘탱고)</small>')
         :'VIX 선물 자료를 확인하지 못함',
-      mwLine(),
+      hyLine(true),mwLine(),
       '옐로우닷 · 옐로우업다운 판단에는 쓰지 않는 참고 값입니다 <small>(2026-11 백테스트에서 VIX로 거르면 결과가 나아지지 않음)</small>'])+`</div>`;
-  h+=mwSec();
+  h+=mwSec()+hySec();
   h+=dsec('vc','차트',vixSpark(m,110)+futBars(m),'VIX 최근 1개월 · 선물 가격');
   if(u||x)h+=dsec('uy','UVIX',(u?ul([`UVIX $${u.close} <span class="${sc(u.chg)}">${sg(u.chg)}</span> <small>(VIX 선물 2배 — 시장이 불안할 때 오름)</small>`,
         u.jump?'<span class="w">가격이 하루 만에 크게 달라졌습니다. 병합 보정이 덜 됐을 수 있습니다</span>':null])+uvixSpark(u,110):'')+(x?uvixDipBody(x):''),

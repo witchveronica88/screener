@@ -364,6 +364,22 @@ class MonthWarn(unittest.TestCase):
         self.assertTrue(desk.month_done('2026-10-30'))         # 금요일 뒤 주말 → 11월
 
 
+class HighYield(unittest.TestCase):
+    """하이일드 스프레드 — FRED CSV를 읽어 지금 값 · 2주 변화 · 1년 범위를 센다 (desk.hy_stats, 시장 참고)"""
+    def test_stats(self):
+        import datetime as dt
+        d0 = dt.date(2024, 1, 1)
+        lines = ['observation_date,BAMLH0A0HYM2'] + [f'{d0 + dt.timedelta(days=i)},{3 + i / 1000:.3f}' for i in range(400)]
+        lines.insert(5, '2024-01-04,')                       # 빈 값은 건너뛴다
+        h = desk.hy_stats('\n'.join(lines))
+        self.assertAlmostEqual(h['v'], 3.399)
+        self.assertAlmostEqual(h['chg2w'], 0.01)            # 10줄 전보다
+        self.assertEqual(h['date'], str(d0 + dt.timedelta(days=399)))
+        self.assertEqual(h['pct'], 100)
+        self.assertEqual(len(h['spark']), 63)
+        self.assertIsNone(desk.hy_stats('observation_date,X\n2024-01-01,3'))   # 너무 짧으면 None
+
+
 class DeskStatus(unittest.TestCase):
     """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다 · 옐로우업다운 매수·매도도 쓰지 않는다)"""
     def card(self, base='SOXX', prod='SOXL', on=False, run=1, last=None, past=None):

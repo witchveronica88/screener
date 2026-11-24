@@ -7,6 +7,7 @@ v3.1 (2026-11-24 사용자: CCI가 기능을 안 하면 빼도 좋다 · 시장 
     9종목 옐로우업다운(3종목까지 동시에 · 고르는 차례 100가지 가운데값) 2011~ 연 +12.9% · 낙폭 −35%, 1999~ 가상의 3배 +6.5% · −69%로
     세 지표와 소수점까지 같았다. 개별주·업종 ETF에서도 CCI가 막은 신호가 더 나쁘지 않았다.
     세 번째 확인 지표 후보(거래량 1.5배 · 볼린저밴드 하단 · VIX 급등 · MFI · 50일선·1년 고점 대비 깊이)도 시험했지만 꾸준히 나은 것이 없었다.
+  - 시장 참고에 '하이일드 스프레드'(FRED BAMLH0A0HYM2)를 더했다 — 판정에 쓰지 않는다. 근거는 CLAUDE.md '방법론 검토'.
   - 시장 참고에 '월봉 과열 꺾임'(SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달)을 더했다.
     판정에는 쓰지 않는다. 월봉에서는 CCI(20개월)가 하는 일이 있어 세 지표 그대로 둔다(빼면 신호가 잦아지고 경고 효과가 약해짐).
     근거(1993~, 그 지수 수정종가): 다음 1년이 평소보다 덜 오르고 더 깊게 빠졌다 — SPY 12개월 뒤 +4.2%(평소 +12.2%) · 1년 안 최저 −15.7%(−10.6%),
@@ -278,6 +279,47 @@ def uvix_dip(U, bars, days=UVIX_DAYS):
     return out
 
 
+# ───────────── 시장 참고: 하이일드 스프레드 (판정에 쓰지 않음) ─────────────
+HY_URL = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2'
+
+
+def fetch_hy():
+    """하이일드 스프레드 — ICE BofA US High Yield 옵션조정 스프레드(%) · FRED BAMLH0A0HYM2 (2026-11-24 사용자: 상황판에도).
+       신용이 낮은 회사채 이자가 미국 국채보다 얼마나 높은지. 벌어지면 돈 빌리기가 어려워지고 있다는 뜻이다.
+       FRED는 ICE 자료를 최근 3년치만 주고 하루 늦게 올린다. 브라우저 흉내 UA(market.UA)를 막아서 파이썬 기본 UA로 받는다.
+       못 받으면 None — 상황판의 다른 칸은 그대로 만든다"""
+    try:
+        with urllib.request.urlopen(HY_URL, timeout=30) as r:
+            text = r.read().decode('utf-8')
+    except Exception as e:
+        print('하이일드 스프레드를 못 받음:', e)
+        return None
+    return hy_stats(text)
+
+
+def hy_stats(text):
+    """FRED CSV(날짜,값) → 지금 값 · 2주(10거래일)·1개월(21거래일) 변화 · 1년 범위 · 받은 기간(약 3년)의 가운데 값·위치 · 최근 3개월 그래프"""
+    rows = []
+    for line in text.splitlines()[1:]:
+        d, _, v = line.partition(',')
+        try:
+            rows.append((d, float(v)))
+        except ValueError:
+            pass
+    if len(rows) < 60:
+        return None
+    d, v = rows[-1]
+    cut = (datetime.date.fromisoformat(d) - datetime.timedelta(days=365)).isoformat()
+    yr = [x for dd, x in rows if dd > cut]
+    vs = sorted(x for _, x in rows)
+    lo, hi = min(rows, key=lambda r: r[1]), max(rows, key=lambda r: r[1])
+    return {'v': v, 'date': d, 'chg2w': round(v - rows[-11][1], 2), 'chg1m': round(v - rows[-22][1], 2),
+            'lo1y': min(yr), 'hi1y': max(yr), 'from': rows[0][0], 'med': vs[len(vs) // 2],
+            'pct': round(sum(x < v for x in vs) / len(vs) * 100),
+            'lo': {'v': lo[1], 'd': lo[0]}, 'hi': {'v': hi[1], 'd': hi[0]},
+            'spark': [{'d': dd, 'v': x} for dd, x in rows[-63:]]}
+
+
 # ───────────── 시장 참고: 월봉 과열 꺾임 (판정에 쓰지 않음) ─────────────
 WARN_MONTHS = 12      # 꺾인 뒤 이 개월 안이면 요약 탭 VIX 줄에 적는다
 
@@ -386,6 +428,7 @@ def main():
            'uvix': uvix_brief(bars['UVIX']) if len(bars['UVIX']) > 60 else None,
            'uvixDip': uvix_dip(bars['UVIX'], bars),
            'monthWarn': [w for w in (month_warn(b, bars[b]) for _, b in PAIRS) if w],
+           'hy': fetch_hy(),
            'table': [summary_row(s.replace('^', ''), bars[s]) for s in SYMS]}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
