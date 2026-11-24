@@ -8,6 +8,8 @@ v3.1 (2026-11-24 사용자: CCI가 기능을 안 하면 빼도 좋다 · 시장 
     세 지표와 소수점까지 같았다. 개별주·업종 ETF에서도 CCI가 막은 신호가 더 나쁘지 않았다.
     세 번째 확인 지표 후보(거래량 1.5배 · 볼린저밴드 하단 · VIX 급등 · MFI · 50일선·1년 고점 대비 깊이)도 시험했지만 꾸준히 나은 것이 없었다.
   - 시장 참고에 '하이일드 스프레드'(FRED BAMLH0A0HYM2)를 더했다 — 판정에 쓰지 않는다. 근거는 CLAUDE.md '방법론 검토'.
+  - 시장 참고에 '돈줄 경고'(빨간 점)를 더했다: 회사채 BAA 스프레드(FRED BAA10Y)가 10거래일 사이 +0.2%p 넘게 벌어진 날.
+    사용자 결정(같은 날): 시작 금액을 절반으로 줄이는 규칙 대신 경고만 띄우고 판단은 직접 한다. 판정·옐로우업다운 계산은 그대로.
   - 시장 참고에 '월봉 과열 꺾임'(SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달)을 더했다.
     판정에는 쓰지 않는다. 월봉에서는 CCI(20개월)가 하는 일이 있어 세 지표 그대로 둔다(빼면 신호가 잦아지고 경고 효과가 약해짐).
     근거(1993~, 그 지수 수정종가): 다음 1년이 평소보다 덜 오르고 더 깊게 빠졌다 — SPY 12개월 뒤 +4.2%(평소 +12.2%) · 1년 안 최저 −15.7%(−10.6%),
@@ -297,8 +299,8 @@ def fetch_hy():
     return hy_stats(text)
 
 
-def hy_stats(text):
-    """FRED CSV(날짜,값) → 지금 값 · 2주(10거래일)·1개월(21거래일) 변화 · 1년 범위 · 받은 기간(약 3년)의 가운데 값·위치 · 최근 3개월 그래프"""
+def fred_rows(text):
+    """FRED CSV(날짜,값) → [(날짜, 값)] — 값이 빈 날('.')은 뺀다"""
     rows = []
     for line in text.splitlines()[1:]:
         d, _, v = line.partition(',')
@@ -306,6 +308,12 @@ def hy_stats(text):
             rows.append((d, float(v)))
         except ValueError:
             pass
+    return rows
+
+
+def hy_stats(text):
+    """FRED CSV(날짜,값) → 지금 값 · 2주(10거래일)·1개월(21거래일) 변화 · 1년 범위 · 받은 기간(약 3년)의 가운데 값·위치 · 최근 3개월 그래프"""
+    rows = fred_rows(text)
     if len(rows) < 60:
         return None
     d, v = rows[-1]
@@ -318,6 +326,48 @@ def hy_stats(text):
             'pct': round(sum(x < v for x in vs) / len(vs) * 100),
             'lo': {'v': lo[1], 'd': lo[0]}, 'hi': {'v': hi[1], 'd': hi[0]},
             'spark': [{'d': dd, 'v': x} for dd, x in rows[-63:]]}
+
+
+# ───────────── 시장 참고: 돈줄 경고 (판정에 쓰지 않음 · 빨간 점) ─────────────
+CREDIT_URL = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAA10Y'
+CREDIT_TH = 0.2       # 회사채(BAA) 스프레드가 10거래일 전보다 이만큼(%p) 넘게 벌어지면 경고
+
+
+def fetch_credit():
+    """돈줄 경고 — 회사채(무디스 BAA) 금리 − 미국 10년 국채 금리(%) · FRED BAA10Y (2026-11-24 사용자: 시작 금액을 반으로 줄이는
+       규칙 대신 빨간 점 경고로). 하이일드는 FRED가 최근 3년치만 줘서, 1986년부터 기록이 있고 백테스트에 쓴 BAA로 판정한다.
+       못 받으면 None"""
+    try:
+        with urllib.request.urlopen(CREDIT_URL, timeout=30) as r:
+            text = r.read().decode('utf-8')
+    except Exception as e:
+        print('회사채 스프레드를 못 받음:', e)
+        return None
+    return credit_stats(text)
+
+
+def credit_stats(text, th=CREDIT_TH):
+    """지금 값 · 2주(10거래일) 변화 · 경고 여부 · 이어진 경고의 첫날(since) · 마지막 경고 날(last) · 2011년부터 경고 묶음 수(runs)·날 수(days)"""
+    rows = fred_rows(text)
+    if len(rows) < 11:
+        return None
+    chg = [None] * 10 + [round(rows[i][1] - rows[i - 10][1], 2) for i in range(10, len(rows))]
+    hot = [c is not None and c > th for c in chg]
+    d, v = rows[-1]
+    out = {'v': v, 'date': d, 'chg2w': chg[-1], 'th': th, 'warn': hot[-1]}
+    if hot[-1]:
+        i = len(rows) - 1
+        while i > 0 and hot[i - 1]:
+            i -= 1
+        out['since'] = rows[i][0]
+    else:
+        last = next((i for i in range(len(rows) - 1, -1, -1) if hot[i]), None)
+        if last is not None:
+            out['last'] = rows[last][0]
+    k = [i for i in range(len(rows)) if hot[i] and rows[i][0] >= '2011']
+    out['days'] = len(k)
+    out['runs'] = sum(1 for j, i in enumerate(k) if j == 0 or k[j - 1] != i - 1)
+    return out
 
 
 # ───────────── 시장 참고: 월봉 과열 꺾임 (판정에 쓰지 않음) ─────────────
@@ -429,6 +479,7 @@ def main():
            'uvixDip': uvix_dip(bars['UVIX'], bars),
            'monthWarn': [w for w in (month_warn(b, bars[b]) for _, b in PAIRS) if w],
            'hy': fetch_hy(),
+           'credit': fetch_credit(),
            'table': [summary_row(s.replace('^', ''), bars[s]) for s in SYMS]}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)

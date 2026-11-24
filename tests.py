@@ -380,6 +380,34 @@ class HighYield(unittest.TestCase):
         self.assertIsNone(desk.hy_stats('observation_date,X\n2024-01-01,3'))   # 너무 짧으면 None
 
 
+class CreditWarn(unittest.TestCase):
+    """돈줄 경고 — 회사채(BAA) 스프레드가 10거래일 전보다 +0.2%p 넘게 벌어진 날 (desk.credit_stats, 시장 참고 · 빨간 점)"""
+    def csv(self, vals, start='2026-01-01'):
+        import datetime as dt
+        d0 = dt.date.fromisoformat(start)
+        return '\n'.join(['observation_date,BAA10Y'] + [f'{d0 + dt.timedelta(days=i)},{v}' for i, v in enumerate(vals)])
+
+    def test_warn_and_since(self):
+        v = [1.5] * 20 + [1.6, 1.75, 1.8]          # 마지막 두 날: 10줄 전 1.5보다 +0.25 · +0.3 (+0.1은 아님)
+        c = desk.credit_stats(self.csv(v))
+        self.assertTrue(c['warn'])
+        self.assertAlmostEqual(c['chg2w'], 0.3)
+        self.assertEqual(c['since'], '2026-01-22')                        # 이어진 경고의 첫날
+        self.assertEqual((c['runs'], c['days']), (1, 2))
+
+    def test_exactly_threshold_is_not_warn(self):
+        c = desk.credit_stats(self.csv([1.5] * 15 + [1.7]))                  # +0.2는 '넘게'가 아님
+        self.assertFalse(c['warn'])
+        self.assertNotIn('last', c)
+
+    def test_last_warn_when_off(self):
+        v = [1.5] * 12 + [1.8] + [1.8] * 15                                   # 한 번 켜졌다가 10줄 뒤 꺼짐
+        c = desk.credit_stats(self.csv(v))
+        self.assertFalse(c['warn'])
+        self.assertEqual(c['last'], '2026-01-22')                         # 1.8이 10줄 전 1.5와 견줘지는 마지막 날(22번째 줄)
+        self.assertEqual(c['runs'], 1)
+
+
 class DeskStatus(unittest.TestCase):
     """상황판 v3.0 — 옐로우닷 상태 줄과 결론 문장 (원문 판정은 없다 · 옐로우업다운 매수·매도도 쓰지 않는다)"""
     def card(self, base='SOXX', prod='SOXL', on=False, run=1, last=None, past=None):
