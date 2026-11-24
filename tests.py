@@ -466,7 +466,35 @@ class DeskStatus(unittest.TestCase):
             self.assertNotIn('옐로우닷', h)                                     # 결론은 시장만 — 옐로우닷은 진입 신호 칸이 보여 준다
             self.assertNotIn('옐로우업다운', h)                                 # 상황판은 그날의 상황만 (2026-11-23 사용자)
         self.assertEqual(desk.headline([self.mk('SPY', 'UPRO', -3.0)]), '주가는 최고가 근처입니다.')   # VIX를 못 받으면 주가만
+        # S&P500 칸이 없는 날(분할 보정 확인 중)은 '주가'라 하지 않고 그 지수 이름으로 (2026-11-24 점검: 나스닥을 '주가'로 말했다)
+        W = {'state': 'wait', 'base': 'SPY', 'prod': 'UPRO'}
+        self.assertEqual(desk.headline([W, self.mk('QQQ', 'TQQQ', -14.3, 'rebound'), self.mk('SOXX', 'SOXL', -35.8, 'rebound')], V(26.6)),
+                         '나스닥은 조정 구간이고, 11/20 저점에서 되오르는 중입니다. 불안(VIX)은 아직 높은 편입니다.')
+        W2 = {'state': 'wait', 'base': 'QQQ', 'prod': 'TQQQ'}
+        self.assertEqual(desk.headline([W, W2, self.mk('SOXX', 'SOXL', -8.0, 'fall')]), '반도체가 빠지는 중입니다.')
         self.assertEqual(desk.headline([{'state': 'wait'}]), '자료를 확인하는 중입니다.')
+
+
+class DeskCardData(unittest.TestCase):
+    """자료 하나가 빠져도 시장 쪽은 그대로 (2026-11-24 점검: UPRO만 못 받아도 SPY 칸 전체가 '확인 중'이 됐다)"""
+    def setUp(self):
+        cl = [100 + ((i * 7) % 13) - i * 0.1 for i in range(120)]
+        self.B = bars(cl); self.P = bars([x * 3 for x in cl])
+
+    def test_product_missing_or_late(self):
+        for P in ([], self.P[:-1]):                                        # 못 받음 · 하루 늦음
+            c = desk.card('UPRO', 'SPY', {'SPY': self.B, 'UPRO': P})
+            self.assertEqual(c['state'], 'ok')
+            self.assertTrue(c['pstale'])
+            self.assertIn('mkt', c)
+            self.assertIsNone(c['ind']['pclose'])
+        c = desk.card('UPRO', 'SPY', {'SPY': self.B, 'UPRO': self.P})
+        self.assertNotIn('pstale', c)
+        self.assertEqual(c['ind']['pclose'], round(self.P[-1]['c'], 2))
+
+    def test_base_bad_data_waits(self):                                 # 기준자산 자체가 이상하면 그 칸만 기다린다
+        B = self.B[:-1] + [dict(self.B[-1], c=self.B[-1]['c'] * 1.4, h=self.B[-1]['h'] * 1.4)]
+        self.assertEqual(desk.card('UPRO', 'SPY', {'SPY': B, 'UPRO': self.P})['state'], 'wait')
 
 
 class DeskMarket(unittest.TestCase):

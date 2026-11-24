@@ -519,6 +519,7 @@ details.fold[open]>summary::after{content:'－'}
 .sgl+.sgl{margin-top:5px}
 .sgl .tk{font-size:var(--fs-m);color:var(--idx);line-height:var(--lh-t)}
 .sgl>b,.sgv b{color:var(--ink)}
+.sgv .dpc{display:inline}.sgv .fg{white-space:nowrap}   /* 15일 · 30일 칸은 한 줄로 (옐로우닷이 켜진 날) */
 .mx .g{color:var(--up)}.mx .r{color:var(--dn)}.mx .w{color:var(--warn)}
 /* 종목별 탭 오늘의 해석 — 시장 글 아래 '진입 신호 · 옐로우닷' 묶음 */
 .dread .dul+.dbars{margin-top:12px}
@@ -1687,13 +1688,18 @@ const lvOn=()=>!!(LVQ&&LVQ.rows&&LVQ.rows.some(r=>r.chg!=null));
 const LV_NM={SPY:'S&P500',QQQ:'나스닥',SOXX:'반도체'};
 function lvHead(){   /* 장중 결론 — 주가(S&P500 ±1% 경계, 다른 지수가 크게 다르면 괄호) + 이 가격으로 끝날 때의 옐로우닷 */
   const ok=LVQ.rows.filter(r=>r.chg!=null), on=ok.filter(r=>r.on), s=ok.find(r=>r.base==='SPY')||ok[0];
+  const sn=s.base==='SPY'?'주가':LV_NM[s.base]||s.base, ga=s.base==='SPY'?'가':s.base==='SOXX'?'가':'이', eun=s.base==='SOXX'||s.base==='SPY'?'는':'은';   /* S&P500 시세를 못 받았으면 그 지수 이름으로 */
   const nm=on.map(r=>LV_NM[r.base]||r.base).join('·')+(on.length===ok.length&&on.length>1?' 모두':'');
   const big=ok.filter(r=>r!==s&&Math.abs(r.chg)>=2&&Math.abs(r.chg-s.chg)>=1.5).sort((a,b)=>Math.abs(b.chg)-Math.abs(a.chg))[0];
-  const mv=(s.chg>=1?'장중 지금 주가가 오르고 있습니다':s.chg<=-1?'장중 지금 주가가 빠지고 있습니다':'장중 지금 주가는 크게 움직이지 않습니다')+
-    (big?`(${LV_NM[big.base]||big.base} ${sg(big.chg)})`:'')+'.';
+  const bg=big?`(${LV_NM[big.base]||big.base} ${sg(big.chg)})`:'';
+  if(ok.some(r=>r.done))   /* 장이 끝났고 아침 종가 수집 전 — 가격은 이미 정해졌다 */
+    return `장이 끝났습니다. ${s.chg>=1?`${sn}${ga} 올랐습니다`:s.chg<=-1?`${sn}${ga} 빠졌습니다`:`${sn}${eun} 크게 움직이지 않았습니다`}${bg}. `+
+      (on.length?`이 종가로 ${nm} 옐로우닷이 켜집니다 — 아침 수집 때 확정합니다.`:'이 종가로는 옐로우닷이 켜지지 않습니다.');
+  const mv=(s.chg>=1?`장중 지금 ${sn}${ga} 오르고 있습니다`:s.chg<=-1?`장중 지금 ${sn}${ga} 빠지고 있습니다`:`장중 지금 ${sn}${eun} 크게 움직이지 않습니다`)+bg+'.';
   return mv+' '+(on.length?`이 가격으로 끝나면 ${nm} 옐로우닷이 켜집니다.`:'지금 가격으로는 옐로우닷이 켜지지 않습니다.');
 }
-const lvText=r=>r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
+const lvText=r=>r.done?(r.on?`이 종가로 옐로우닷 <b class="on">켜짐</b> <small>(아침 수집 때 확정)</small>`:'이 종가로는 옐로우닷 <b>꺼짐</b>')
+  :r.on?`지금 가격으로 끝나면 옐로우닷 <b class="on">켜짐</b>`
   :r.th?`<b>꺼짐</b> — $${r.th.toFixed(2)} 아래로 끝나면 켜집니다 <small>(지금보다 ${sg((r.th/r.c-1)*100)})</small>`
   :`<b>꺼짐</b> — 오늘은 켜지기 어렵습니다`;
 function liveBox(){
@@ -1757,6 +1763,8 @@ function secRules(){
     blk('장중 지금 가격',ul(['주가 칸 머리의 <b>장중 지금 가격</b>을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
       '주가 칸(단계 · 최고가 대비 · 오늘 등락 · 그래프 끝)과 진입 신호 칸이 지금 가격으로 바뀝니다. <b>지금 가격으로 장이 끝나면</b> 어떤지 보여 주는 임시 값이고, 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
+      '장이 끝난 뒤 아침 수집 전에 누르면 그날 마감 가격으로 보여 줍니다(켜지는 가격 없이 켜짐 · 꺼짐만). 확정은 아침 수집 때 합니다',
+      '한 지수만 시세를 못 받으면 그 줄은 종가 그대로 두고 등락 앞에 <b>M/D 종가</b>를 붙입니다',
       '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
     blk('시장 지표 <small>판정에 넣지 않음</small>',ul(['주가 단계 · 200일 평균 · VIX · VIX 선물 · 하이일드 스프레드 · 돈줄 경고 · 월봉 과열 꺾임 · UVIX 옐로우닷은 시장 상황을 보여 주는 값이고, 옐로우닷 판정(두 지표)에는 넣지 않습니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않았습니다']))+
@@ -1818,7 +1826,7 @@ function pxRow(c){
   const dots=(sp.dots||[]).concat(x.r&&x.r.on?[vals.length-1]:[]);
   const ch=vals.length>2?miniChart(vals,{l2:l2.length===vals.length&&l2.every(v=>v!=null)?l2:null,dots}):'';
   return `<div class="mxr" data-dt="${c.base}"><div class="mxl"><div class="mxh"><span class="tk">${c.base}</span>`+
-    `<b class="${PHC[x.ph]}">${PHASE[x.ph]}</b><span class="dpx ${sc(x.chg)}">${x.r?'$'+x.c.toFixed(2)+' ':''}${sg(x.chg)}</span></div>`+
+    `<b class="${PHC[x.ph]}">${PHASE[x.ph]}</b><span class="dpx ${sc(x.chg)}">${x.r?'$'+x.c.toFixed(2)+' ':lvOn()?`<small>${md(DESK.asof)} 종가</small> `:''}${sg(x.chg)}</span></div>`+
     `<div class="mxs">최고가보다 <b>${sg(x.dd)}</b></div></div>${ch}</div>`;
 }
 function mxPrice(){
@@ -1834,13 +1842,14 @@ function mxMood(){
     R.push({k:'불안',w,cl,v:`VIX ${v.c.toFixed(1)} <span class="${sc(-v.chg)}">${sg(v.chg)}</span>`+
       (v.hi1m?' · 1개월 최고':v.lo1m?' · 1개월 최저':'')+(u&&u.on?' · UVIX 옐로우닷 켜짐':'')});}
   if(h||cr){const c2=h?h.chg2w:cr.chg2w;
-    const [w,cl]=cr&&cr.warn?[cwTag,'']:h&&h.hi1y-h.v<=0.05?['1년 최고','r']:c2>=0.2?['벌어지는 중','r']:c2<=-0.2?['좁아지는 중','']:['조용함',''];
-    R.push({k:'돈줄',w,cl,v:h?`하이일드 ${hyF(h.v)} · 2주 ${hyChg(h.chg2w)}`:`회사채 ${hyF(cr.v)} · 2주 ${hyChg(cr.chg2w)}`});}
+    const [w,cl]=cr&&cr.warn?['<span class="rdw"><i class="rd"></i>경고</span>','']:h&&h.hi1y-h.v<=0.05?['1년 최고','r']:c2>=0.2?['벌어지는 중','r']:c2<=-0.2?['좁아지는 중','']:['조용함',''];
+    R.push({k:'돈줄',w,cl,v:cr&&cr.warn?`회사채 2주 ${hyChg(cr.chg2w)}`+(h?` · 하이일드 ${hyF(h.v)}`:'')   /* 경고는 회사채(BAA) 2주 변화로 켜진다 */
+      :h?`하이일드 ${hyF(h.v)} · 2주 ${hyChg(h.chg2w)}`:`회사채 ${hyF(cr.v)} · 2주 ${hyChg(cr.chg2w)}`});}
   if(W.length){   /* 월봉 과열 꺾임 — 꺾인 뒤 12개월(MW_MONTHS) 안인 지수를 달마다 묶어서. 진행 중인 달은 표시 */
     const r=W.filter(w=>w.last&&w.last.ago<=MW_MONTHS), hot=W.filter(w=>w.hot).map(w=>w.sym), g={};
     r.forEach(w=>{const k=w.last.m+(w.last.open?'o':'');(g[k]=g[k]||[]).push(w.sym);});
     R.push(r.length?{k:'과열',w:'월봉 꺾임',cl:'w',v:Object.keys(g).sort().reverse().map(k=>`${g[k].join('·')} ${+k.slice(5,7)}월${k.endsWith('o')?'<small>(진행 중)</small>':''}`).join(' · ')}
-      :hot.length?{k:'과열',w:'월봉 과열권',cl:'w',v:hot.join(' · ')}:{k:'과열',w:'없음',cl:'',v:'월봉 기준'});}
+      :hot.length?{k:'과열',w:'과열권',cl:'w',v:`월봉 ${hot.join(' · ')} · 아직 안 꺾임`}:{k:'과열',w:'없음',cl:'',v:'월봉 기준'});}
   return R.length?`<div class="mx"><div class="mxt"><span>분위기</span></div>`+
     R.map(r=>`<div class="mxm" data-dt="VIX"><span class="mk">${r.k}</span><div class="mxv"><b class="${r.cl}">${r.w}</b> ${r.v}</div></div>`).join('')+`</div>`:'';
 }
@@ -1850,7 +1859,7 @@ function mxSignal(){
   const C=DESK.cards.filter(c=>c.dip), L=[];
   const line=(c,dot,body)=>`<div class="sgl" data-dt="${c.base}"><span class="tk">${c.base}</span>${dot}${tkP(c.prod)}<span class="sgv">${body}</span></div>`;
   if(lvOn())C.forEach(c=>{const r=lvOf(c.base), p=c.dip.past; if(!r)return;
-    L.push(line(c,r.on?ydot(c.dip.on?c.dip.run+1:1):'',r.on?(p?pastCells(p):'<b>켜짐</b>')
+    L.push(line(c,r.on?ydot(c.dip.on?c.dip.run+1:1):'',r.on?(p?pastCells(p):'<b>켜짐</b>'):r.done?'<b>꺼짐</b>'
       :r.th?`켜지는 가격 <b>$${r.th.toFixed(2)}</b> <small>(${sg((r.th/r.c-1)*100)})</small>`:'오늘은 켜지기 어렵습니다'));});
   else{
     const on=C.filter(c=>c.dip.on), off=C.filter(c=>!c.dip.on);
@@ -1858,7 +1867,7 @@ function mxSignal(){
     if(off.length){
       const rec=off.filter(c=>c.dip.last&&c.dip.last.age<=20), a=rec.length?Math.min(...rec.map(c=>c.dip.last.age)):null, g=rec.filter(c=>c.dip.last.age===a);
       L.push(`<div class="sgl" data-dt="${(g[0]||off[0]).base}"><b>${on.length?off.map(c=>c.base).join(' · ')+' 꺼짐':'모두 꺼짐'}</b>`+
-        (g.length?`<span class="sgv">마지막 ${md(g[0].dip.last.date)} <small>(${g.length===C.length&&C.length>1?'모두':g.map(c=>c.base).join(' · ')})</small></span>`:'')+`</div>`);
+        (g.length?`<span class="sgv">마지막 켜진 날 ${md(g[0].dip.last.date)}${g.length<off.length?` <small>(${g.map(c=>c.base).join(' · ')})</small>`:''}</span>`:'')+`</div>`);
     }
   }
   let T=Object.keys(LIVE||{}).filter(t=>LIVE[t]&&LIVE[t].dip&&LIVE[t].dip.on);
@@ -1894,7 +1903,7 @@ function deskCard(c){
   const g=c.stage, p=c.dip.past, r=lvOf(c.base);
   let h=(lvOn()?liveBox():'')+`<div class="flow">${fhead(c,g)}${r?`<div class="lvs">${lvText(r)}</div>`:''}</div>`+readCard(c);
   h+=dsec('c','차트',deskChart(c),`${c.base} 최근 1개월 · 날짜를 누르면 그날 값`);
-  h+=dsec('p','옐로우닷 과거 결과',dipPast(p,c.prod+eul(c.prod)),
+  h+=dsec('p','옐로우닷 과거 결과',!p&&c.pstale?`<div class="cc">${c.prod} 가격을 받지 못해 과거 결과를 세지 못했습니다. 다음 갱신 때 다시 셉니다</div>`:dipPast(p,c.prod+eul(c.prod)),
     p?`다음 날 ${c.prod} · +10% 15일 <b>${p.hitF??'—'}%</b> · 30일 <b>${p.hit}%</b>`:'과거 옐로우닷 없음');
   return h+secTable([c.base,c.prod]);
 }
@@ -2041,7 +2050,7 @@ function secTable(syms){
 }
 function renderDesk(){
   const el=document.getElementById('vDesk');
-  if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 아침 6시 반쯤) 뒤에 보입니다.</div>';return;}
+  if(!DESK){el.innerHTML='<div class="dstamp">상황판 자료를 불러오는 중입니다. 아직 수집 전이면 다음 갱신(한국 아침 6시 20분쯤 · 서머타임 5시 20분쯤) 뒤에 보입니다.</div>';return;}
   el.querySelectorAll('.dsec').forEach(x=>DOPEN[x.dataset.s]=x.open);
   const u=new Date(DESK.updated);
   const ut=`${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
@@ -2115,16 +2124,16 @@ fetch('./desk.json?'+Date.now())
 
 fetch('./tickers.txt?'+Date.now())
   .then(r=>r.ok?r.text():Promise.reject(r.status))
-  .then(t=>{REPO=parseTickers(t);render();})
+  .then(t=>{REPO=parseTickers(t);render();if(st.view==='desk'&&DESK)renderDesk();})   /* 상황판 종목 줄도 종목 탭 추천순과 같게 */
   .catch(()=>{});
 
 fetch('./fund.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
-  .then(j=>{FUND=j.data||{};render();})
+  .then(j=>{FUND=j.data||{};render();if(st.view==='desk'&&DESK)renderDesk();})
   .catch(()=>{});
 
 /* 수집이 멈췄는지 — 마지막 종가 다음 날부터 빠진 미국 거래일 수(주말만 빼고 공휴일은 모름).
-   수집은 한국 06:23(Claude 예약 작업)에 하고, 안 되면 GitHub 예약 07:23 · 10:47 · 14:17이 다시 시도한다(몇 시간 늦을 수 있음).
+   수집은 뉴욕 16:16(한국 06:16 · 서머타임 05:16, Claude 예약 작업)에 하고, 안 되면 GitHub 예약 한국 07:23 · 10:47 · 14:17이 다시 시도한다(몇 시간 늦을 수 있음).
    그날 종가는 다음 날 뉴욕 06시(한국 저녁 8시쯤)까지 기다린다.
    1거래일은 휴장일일 수 있어 부드럽게, 2거래일부터는 멈춘 것으로 알린다 */
 const STALE_MIN=2;

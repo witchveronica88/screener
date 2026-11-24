@@ -52,6 +52,7 @@ PAIRS = [('UPRO', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과�
 SYMS = ['SPY', 'QQQ', 'SOXX', 'TQQQ', 'SOXL', 'UPRO', 'UVIX', '^VIX']
 NAMES = {'SPY': 'S&P500', 'QQQ': '나스닥', 'SOXX': '반도체'}   # 결론 문장에 쓰는 우리말 이름
 EUN = {'SPY': '은', 'QQQ': '은', 'SOXX': '는'}                    # 그 이름 뒤 조사
+GA = {'SPY': '이', 'QQQ': '이', 'SOXX': '가'}
 PHASE = ['최고가 근처', '가벼운 하락', '조정', '하락장']           # 최고가 대비 −5% · −10% · −20% 경계 (phase_of)
 SPARK = 63        # 요약 '주가' 줄 그래프 — 3개월
 RECENT = 20       # 옐로우닷이 꺼진 지 이 거래일 안이면 결론 문장에 마지막 옐로우닷을 적는다
@@ -110,7 +111,7 @@ def dip_card(base, prod, bars, I):
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),
-                     'pmv': pct(P[-1]['c'], pc[d]) if d in pc and P else None}
+                     'pmv': pct(P[-1]['c'], pc[d]) if d in pc and P and P[-1]['d'] == B[-1]['d'] else None}   # 상품 가격이 늦으면 비움
     # 최근 한 달 고점에서 얼마나, 며칠 만에 빠졌나. 같은 기간 시장 전체(SPY)는 어땠나
     w = B[-21:]
     hi = max(range(len(w)), key=lambda i: w[i]['c'])
@@ -184,7 +185,7 @@ def mkt_state(base, B, I, drop):
 
 def history(base, prod, bars, I, n=21):
     """최근 n거래일의 봉·지표·옐로우닷·+10% 닿은 날(옐로우닷 다음 날 상품을 샀다면)"""
-    B = bars[base]; P = bars.get(prod) or B
+    B = bars[base]; P = bars.get(prod) or []          # 상품을 못 받았으면 +10% 닿은 날 표시만 없다
     hits = {t['hit'] for t in dip_targets(B, I, P, B[max(0, len(B) - n)]['d']) if t['hit']}
     r2 = lambda v: None if v is None else round(v, 2)
     out = []
@@ -225,13 +226,16 @@ def headline(cards, vix=None, hy=None, credit=None):
     if not live:
         return '자료를 확인하는 중입니다.'
     S = next((c for c in live if c['base'] == 'SPY'), live[0]); m = S['mkt']
+    # 주어는 S&P500이면 '주가' — S&P500 칸이 없는 날(분할 보정 확인 중)은 그 지수 이름을 그대로 쓴다
+    sb = S['base']; nm = '주가' if sb == 'SPY' else NAMES.get(sb, sb)
+    eun = '는' if sb == 'SPY' else EUN.get(sb, '은'); ga = '가' if sb == 'SPY' else GA.get(sb, '이')
     st = ['', '', '조정 구간이고, ', '하락장이고, '][m['phase']]    # 조정 · 하락장이면 단계도 함께
     if m['move'] == 'fall':
-        a = f"주가는 {st}아직 빠지는 중입니다" if st else '주가가 빠지는 중입니다'
+        a = f"{nm}{eun} {st}아직 빠지는 중입니다" if st else f"{nm}{ga} 빠지는 중입니다"
     elif m['move'] == 'rebound':
-        a = f"주가는 {st}{md(m['lo'])} 저점에서 되오르는 중입니다"
+        a = f"{nm}{eun} {st}{md(m['lo'])} 저점에서 되오르는 중입니다"
     else:
-        a = ['주가는 최고가 근처입니다', '주가는 최고가에서 조금 내려와 있습니다', '주가는 조정 구간입니다', '주가는 하락장입니다'][m['phase']]
+        a = f"{nm}{eun} " + ['최고가 근처입니다', '최고가에서 조금 내려와 있습니다', '조정 구간입니다', '하락장입니다'][m['phase']]
     g = {}
     for c in live:                                     # S&P500보다 두 단계 넘게 깊은 지수
         p = c['mkt']['phase']
@@ -275,19 +279,28 @@ def live_state(B, n=14):
 
 
 def card(prod, base, bars):
-    B = bars[base]; asof = B[-1]['d']
-    P = [b for b in bars.get(prod) or [] if b['d'] <= asof]
+    """지수 하나 — 시장 쪽(mkt)과 진입 신호(dip). 3배 상품(prod) 가격이 빠지거나 하루 늦어도 시장 쪽은 그대로 센다
+       (2026-11-24 점검: 전에는 UPRO만 못 받아도 SPY 칸 전체가 '확인 중'이 되고 결론 문장이 나스닥을 '주가'로 말했다).
+       그때는 과거 결과를 받은 데까지로 세고 상품 등락(pclose · pchg · 마지막 옐로우닷 뒤 pmv)은 비운다(pstale)"""
+    B = bars[base]
     c0 = {'prod': prod, 'base': base}
-    if len(B) < 60 or not P or P[-1]['d'] != asof:
+    if len(B) < 60:
         return {**c0, 'state': 'wait', 'line': '최신 확정 거래일 데이터를 확인 중입니다.'}
     if bad_data(B):
         return {**c0, 'state': 'wait', 'line': '기준자산 가격이 하루 만에 크게 달라졌습니다. 분할·병합 보정이 끝났는지 확인 중입니다.'}
+    asof = B[-1]['d']
+    P = [b for b in bars.get(prod) or [] if b['d'] <= asof]
+    pok = len(P) >= 2 and P[-1]['d'] == asof
+    if not pok:
+        print(f"{prod}: {asof} 가격이 없음 — 시장 쪽은 그대로 계산하고 상품 등락은 비움")
     I = indicators(B); c = B[-1]['c']
     r = {**c0, 'state': 'ok', 'asof': asof,
          'ind': {'k': round(I['k'][-1], 1), 'd': round(I['d'][-1], 1),
                  'rsi': round(I['rsi'][-1], 1), 'disp': round(I['disp'][-1], 1),
-                 'close': round(c, 2), 'pclose': round(P[-1]['c'], 2),
-                 'chg': pct(c, B[-2]['c']), 'pchg': pct(P[-1]['c'], P[-2]['c'])}}
+                 'close': round(c, 2), 'pclose': round(P[-1]['c'], 2) if pok else None,
+                 'chg': pct(c, B[-2]['c']), 'pchg': pct(P[-1]['c'], P[-2]['c']) if pok else None}}
+    if not pok:
+        r['pstale'] = True
     r['dip'] = dip_card(base, prod, bars, I)
     r['mkt'] = mkt_state(base, B, I, r['dip']['drop'])
     r['hist'] = history(base, prod, bars, I)
