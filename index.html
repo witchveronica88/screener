@@ -521,6 +521,7 @@ details.fold[open]>summary::after{content:'－'}
 .sgl>b,.sgv b{color:var(--ink)}
 .sgv .dpc{display:inline}.sgv .fg{white-space:nowrap}   /* 15일 · 30일 칸은 한 줄로 (옐로우닷이 켜진 날) */
 .mx .g{color:var(--up)}.mx .r{color:var(--dn)}.mx .w{color:var(--warn)}
+.mxv small{color:var(--ink3)}.sgv b.g{color:var(--up)}.sgv b.r{color:var(--dn)}
 /* 종목별 탭 오늘의 해석 — 시장 글 아래 '진입 신호 · 옐로우닷' 묶음 */
 .dread .dul+.dbars{margin-top:12px}
 .dsig{border-top:1px solid var(--s2);margin-top:14px;padding-top:12px}
@@ -1747,7 +1748,7 @@ function dotRules(){
     '주가가 짧은 사이에 많이 빠져 <b>진입 기회</b>가 될 수 있는지 보는 신호입니다. 두 지표가 모두 <b>바닥권</b>에 들어간 날 켜집니다 <small>(예전 이름: 노란 점)</small>',
     '<b>바닥권</b>: 빠르기(%K) 20 이하 · 힘(RSI) 30 이하. 짧은 사이에 너무 많이 빠졌다는 뜻입니다 <small>(과매도)</small>',
     '장 마감 종가로 계산합니다. 한국 아침 6시 20분쯤 <small>(서머타임 5시 20분쯤)</small> 켜졌는지 나옵니다',
-    `진입 신호 칸의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품(${C.map(c=>c.prod).join(' · ')})을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 다 꺼져 있으면 20거래일 안에 마지막으로 켜진 날을 적습니다. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
+    `진입 신호 칸의 <b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 3배 상품(${C.map(c=>c.prod).join(' · ')})을 샀다면 그 기간 안에 +10%에 닿은 비율입니다 <small>(굵은 초록은 80% 이상)</small>. 꺼져 있으면 20거래일 안에 마지막으로 켜진 날과 <b>그 뒤 3배 상품이 오르내린 폭</b>(그날 종가에서 지금까지)을 적습니다. 자세한 결과는 ${C.map(c=>`<a data-dt="${c.base}">${c.base}</a>`).join(' · ')} 탭에 있습니다`,
     '<b>종목</b> 줄은 종목 탭에서 옐로우닷이 켜진 종목 수와 이름입니다 <small>(종목 탭 추천순)</small>. 누르면 종목 탭으로 갑니다',
     '바닥이 확인된 것은 아닙니다. 내려오는 중이라 더 빠질 수도 있습니다',
     '<small>과거 결과이며 앞으로도 같다는 보장은 없습니다. 3배 상품으로 세어, 닿기 전에 더 빠지는 폭도 큽니다</small>']),
@@ -1838,20 +1839,20 @@ function mxPrice(){
 /* 분위기 — 불안(VIX) · 돈줄(하이일드 스프레드 · 돈줄 경고) · 과열(월봉 과열 꺾임). 이름 · 결론 낱말 · 값 한 줄씩, 누르면 VIX 탭 */
 function mxMood(){
   const D=DESK, v=D.market&&D.market.vix, h=D.hy, cr=D.credit, u=D.uvixDip, W=D.monthWarn||[], R=[];
-  if(v){const [w,cl]=v.c>=30?['아주 높음','r']:v.c>=20?['높은 편','w']:v.c>=15?['보통','']:['낮은 편',''];
-    R.push({k:'불안',w,cl,v:`VIX ${v.c.toFixed(1)} <span class="${sc(-v.chg)}">${sg(v.chg)}</span>`+
-      (v.hi1m?' · 1개월 최고':v.lo1m?' · 1개월 최저':'')+(u&&u.on?' · UVIX 옐로우닷 켜짐':'')});}
+  if(v){const [w,cl,n]=v.c>=30?['아주 높음','r','30 넘음 · 크게 겁먹은 상태']:v.c>=20?['높은 편','w','평소는 20 아래']:v.c>=15?['보통','','15~20']:['낮은 편','','조용한 시장'];
+    R.push({k:'불안',w,cl,n,v:`· VIX ${v.c.toFixed(2)} <span class="${sc(-v.chg)}">${sg(v.chg)}</span>`+
+      (v.hi1m?' · 1개월 중 가장 높음':v.lo1m?' · 1개월 중 가장 낮음':'')+(u&&u.on?' · UVIX 옐로우닷 켜짐 (시장이 아주 조용함)':'')});}
   if(h||cr){const c2=h?h.chg2w:cr.chg2w;
-    const [w,cl]=cr&&cr.warn?['<span class="rdw"><i class="rd"></i>경고</span>','']:h&&h.hi1y-h.v<=0.05?['1년 최고','r']:c2>=0.2?['벌어지는 중','r']:c2<=-0.2?['좁아지는 중','']:['조용함',''];
-    R.push({k:'돈줄',w,cl,v:cr&&cr.warn?`회사채 2주 ${hyChg(cr.chg2w)}`+(h?` · 하이일드 ${hyF(h.v)}`:'')   /* 경고는 회사채(BAA) 2주 변화로 켜진다 */
-      :h?`하이일드 ${hyF(h.v)} · 2주 ${hyChg(h.chg2w)}`:`회사채 ${hyF(cr.v)} · 2주 ${hyChg(cr.chg2w)}`});}
+    const [w,cl]=cr&&cr.warn?['<span class="rdw"><i class="rd"></i>경고</span>','']:h&&h.hi1y-h.v<=0.05?['1년 중 가장 넓음','r']:c2>=0.2?['벌어지는 중','r']:c2<=-0.2?['좁아지는 중','']:['조용함',''];
+    R.push({k:'돈줄',w,cl,v:cr&&cr.warn?`· 회사채 스프레드 2주 ${hyChg(cr.chg2w)}`+(h?` · 하이일드 스프레드 ${hyF(h.v)}`:'')   /* 경고는 회사채(BAA) 2주 변화로 켜진다 */
+      :h?`· 하이일드 스프레드 ${hyF(h.v)} · 2주 ${hyChg(h.chg2w)}`:`· 회사채 스프레드 ${hyF(cr.v)} · 2주 ${hyChg(cr.chg2w)}`});}
   if(W.length){   /* 월봉 과열 꺾임 — 꺾인 뒤 12개월(MW_MONTHS) 안인 지수를 달마다 묶어서. 진행 중인 달은 표시 */
     const r=W.filter(w=>w.last&&w.last.ago<=MW_MONTHS), hot=W.filter(w=>w.hot).map(w=>w.sym), g={};
     r.forEach(w=>{const k=w.last.m+(w.last.open?'o':'');(g[k]=g[k]||[]).push(w.sym);});
-    R.push(r.length?{k:'과열',w:'월봉 꺾임',cl:'w',v:Object.keys(g).sort().reverse().map(k=>`${g[k].join('·')} ${+k.slice(5,7)}월${k.endsWith('o')?'<small>(진행 중)</small>':''}`).join(' · ')}
-      :hot.length?{k:'과열',w:'과열권',cl:'w',v:`월봉 ${hot.join(' · ')} · 아직 안 꺾임`}:{k:'과열',w:'없음',cl:'',v:'월봉 기준'});}
+    R.push(r.length?{k:'과열',w:'월봉 꺾임',cl:'w',v:'· '+Object.keys(g).sort().reverse().map(k=>`${g[k].join(' · ')} ${+k.slice(5,7)}월${k.endsWith('o')?' <small>(진행 중 — 월말에 확정)</small>':''}`).join(' / ')}
+      :hot.length?{k:'과열',w:'과열권',cl:'w',v:`· 월봉 ${hot.join(' · ')} — 아직 꺾이지 않음`}:{k:'과열',w:'없음',cl:'',v:'· 월봉 기준 · 최근 12개월'});}
   return R.length?`<div class="mx"><div class="mxt"><span>분위기</span></div>`+
-    R.map(r=>`<div class="mxm" data-dt="VIX"><span class="mk">${r.k}</span><div class="mxv"><b class="${r.cl}">${r.w}</b> ${r.v}</div></div>`).join('')+`</div>`:'';
+    R.map(r=>`<div class="mxm" data-dt="VIX"><span class="mk">${r.k}</span><div class="mxv"><b class="${r.cl}">${r.w}</b>${r.n?` <small>(${r.n})</small>`:''} ${r.v}</div></div>`).join('')+`</div>`:'';
 }
 /* 진입 신호 — 옐로우닷(지수 셋 · 종목 탭). 켜진 지수만 한 줄씩(과거 15일 · 30일), 꺼진 곳은 한 줄로. 장중이면 지수마다 지금 가격으로 */
 const pastCells=p=>`<span class="fg">15일 ${pctCell(p.hitF,p.nF)}</span> <span class="fg">30일 ${pctCell(p.hit,p.n)}</span>`;
@@ -1866,14 +1867,15 @@ function mxSignal(){
     on.forEach(c=>L.push(line(c,ydot(c.dip.run),c.dip.past?pastCells(c.dip.past):'')));
     if(off.length){
       const rec=off.filter(c=>c.dip.last&&c.dip.last.age<=20), a=rec.length?Math.min(...rec.map(c=>c.dip.last.age)):null, g=rec.filter(c=>c.dip.last.age===a);
+      const mv=g.filter(c=>c.dip.last.pmv!=null).map(c=>`${c.prod} <b class="${sc(c.dip.last.pmv)}">${sg(c.dip.last.pmv)}</b>`);   /* 마지막 옐로우닷 날 종가 뒤 3배 상품 등락 */
       L.push(`<div class="sgl" data-dt="${(g[0]||off[0]).base}"><b>${on.length?off.map(c=>c.base).join(' · ')+' 꺼짐':'모두 꺼짐'}</b>`+
-        (g.length?`<span class="sgv">마지막 켜진 날 ${md(g[0].dip.last.date)}${g.length<off.length?` <small>(${g.map(c=>c.base).join(' · ')})</small>`:''}</span>`:'')+`</div>`);
+        (g.length?`<span class="sgv">마지막 켜진 날 ${md(g[0].dip.last.date)}${g.length===C.length&&C.length>1?' <small>(세 곳 모두)</small>':g.length<off.length?` <small>(${g.map(c=>c.base).join(' · ')})</small>`:''}${mv.length?` · 그 뒤 ${mv.join(' · ')}`:''}</span>`:'')+`</div>`);
     }
   }
   let T=Object.keys(LIVE||{}).filter(t=>LIVE[t]&&LIVE[t].dip&&LIVE[t].dip.on);
   try{T.sort((a,b)=>keyCmp(dipKey(a),dipKey(b)));}catch(e){T.sort((a,b)=>(UD.has(b)-UD.has(a))||a.localeCompare(b));}
   const tk=Object.keys(LIVE||{}).length?`<div class="mxm" data-view="scr"><span class="mk">종목</span><div class="mxv">`+
-    (T.length?`<b>${T.length}개 켜짐</b> ${T.slice(0,4).join(' · ')}${T.length>4?` 외 ${T.length-4}`:''}`:'<b>없음</b>')+`</div></div>`:'';
+    (T.length?`<b>${T.length}개 켜짐</b> ${T.join(' · ')}`:'<b>없음</b> <small>(옐로우닷이 켜진 종목 없음)</small>')+`</div></div>`:'';   /* 이름은 모두 — 공간 때문에 줄이지 않는다(2026-11-24 사용자) */
   return `<div class="mx"><div class="mxt"><span>진입 신호 · 옐로우닷</span></div>`+
     (L.length?`<div class="mxm"><span class="mk">지수</span><div class="mxv">${L.join('')}</div></div>`:'')+tk+`</div>`;
 }
