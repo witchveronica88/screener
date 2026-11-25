@@ -1871,7 +1871,7 @@ function lvUI(){
       <div class="lvk"><input id="lvKeyIn" type="password" placeholder="Finnhub API 키" autocomplete="off" spellcheck="false"><button id="lvKeySave">저장</button></div>
       <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://finnhub.io/register" target="_blank" rel="noopener">Finnhub 무료 키 받기</a> · 키는 이 기기에만 저장됩니다'}</div>`;
     else if(LVQ&&LVQ.askA)h=`<div class="lvt"><b>프리장 가격</b><button id="lvClose">닫기</button></div>
-      <div class="lvn">Webull 공개 시세를 받지 못했습니다${LVQ.why?` <small>(${esc(LVQ.why)})</small>`:''}. 공식 API가 아니라 막혔을 수 있습니다. Alpaca 무료 키(모의 투자 계좌)를 넣으면 그것으로 프리장 가격을 받습니다. 장이 열리면(뉴욕 9:30) 지금처럼 Finnhub로 받습니다.</div>
+      <div class="lvn">Webull 공개 시세를 받지 못했습니다${LVQ.why?` <small>(${esc(LVQ.why)})</small>`:''}. 공식 API가 아니라 막혔을 수 있습니다.${LVQ.srv?' 서버가 받아 두는 프리장 가격(뉴욕 4시부터 10분마다)도 아직 없습니다.':''} Alpaca 무료 키(모의 투자 계좌)를 넣으면 그것으로 프리장 가격을 받습니다. 장이 열리면(뉴욕 9:30) 지금처럼 Finnhub로 받습니다.</div>
       <div class="lvk"><input id="lvAkIn" type="text" placeholder="Alpaca API Key" autocomplete="off" spellcheck="false"></div>
       <div class="lvk"><input id="lvAsIn" type="password" placeholder="Alpaca Secret Key" autocomplete="off" spellcheck="false"><button id="lvAkSave">저장</button></div>
       <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://app.alpaca.markets/signup" target="_blank" rel="noopener">Alpaca 무료 가입</a> · 키는 이 기기에만 저장됩니다'}</div>`;
@@ -1881,6 +1881,8 @@ function lvUI(){
     else if(LVS&&!LVS.busy&&!LVS.n&&LVQ&&LVQ.rows&&LVQ.rows.every(r=>r.old))h=`<div class="lvn">${LVQ.rows[0].msg}</div>`;
     else if(LVS&&!LVS.busy&&LVS.src&&LVS.n<Object.keys(LIVE).length)h=`<div class="lvn">프리장 거래가 아직 없는 ${Object.keys(LIVE).length-LVS.n}종목은 전날 종가 그대로입니다</div>`;
     else if(LVS&&!LVS.busy&&LVS.fail.length)h=`<div class="lvn">시세를 받지 못한 것 ${LVS.fail.length}개(${LVS.fail.join(' · ')}) — 그 종목은 종가 그대로입니다</div>`;
+    if(LVS&&!LVS.busy&&LVS.src==='srv'&&!(LVQ&&(LVQ.ask||LVQ.askA))&&!LVS.err)   /* 서버가 받아 둔 값이면 그렇다고 먼저 적는다 */
+      h=`<div class="lvn">이 기기에서는 Webull 주소가 막혀, 서버(GitHub)가 10분마다 받아 두는 프리장 가격으로 보여 줍니다</div>`+h;
     pn.innerHTML=h;pn.hidden=!h;
   }
   lvStamp();
@@ -1904,17 +1906,30 @@ async function apRun(ak){
   if(bad)LVS.err='Alpaca 시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요';
   lvApply();lvDraw();
 }
-async function preRun(){   // 프리장: Webull → 막히면 Alpaca(키가 있으면) → 없으면 Alpaca 키 칸
+async function srvPre(){   // 서버(GitHub · 미국)가 뉴욕 4시부터 10분마다 Webull에서 받아 둔 프리장 가격 (pre.py → pre.json) — 오늘 것이고 30분 안이면
+  try{
+    const r=await fetch(`pre.json?_=${Date.now()}`);if(!r.ok)return null;   // 사이트 캐시(10분)를 건너뛴다
+    const j=await r.json(), q=(j&&j.q)||{}, t=Math.max(0,...Object.values(q).map(x=>x.t||0)), now=Date.now()/1000;
+    return t&&nyDay(t)===nyDay(now)&&now-t<1800?q:null;
+  }catch(e){return null;}
+}
+async function preRun(){   // 프리장: Webull 직접 → 막히면 서버가 받아 둔 값(pre.json) → 그것도 없으면 Alpaca(키가 있으면) → 없으면 Alpaca 키 칸
   if(!LIVE0)lvSnap();
   const syms=lvSyms();
   LVS={q:{},done:0,total:syms.length,busy:true,fail:[],n:0,t:0,wait:0,src:'wb'};
   if(LVQ&&(LVQ.ask||LVQ.askA||LVQ.err))LVQ=null;
   lvUI();
-  let ok=true;try{await wbFetch(syms);}catch(e){ok=false;}
+  const x0=+lsGet('scr_wbx')||0, skip=Date.now()-x0<3*864e5;   // 이 기기에서 Webull 연결이 막혔던 적이 있으면 사흘 동안은 바로 서버 값으로
+  let ok=false;wbWhy='';
+  if(!skip){try{await wbFetch(syms);ok=true;lsSet('scr_wbx','');}catch(e){if(/연결이 안 됨|12초/.test(wbWhy))lsSet('scr_wbx',String(Date.now()));}}
+  if(!ok){
+    const q=await srvPre();
+    if(q){LVS.q={};LVS.fail=[];LVS.src='srv';for(const x of syms){if(q[x])LVS.q[x]=q[x];else LVS.fail.push(x);}ok=true;}
+  }
   if(!ok){
     const ak=apKey();
     if(ak)return apRun(ak);
-    LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,why:wbWhy};lvDraw();return;
+    LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,why:wbWhy||'이 기기에서 연결이 막혔던 주소',srv:true};lvDraw();return;
   }
   LVS.busy=false;lvApply();lvDraw();
 }
@@ -2061,6 +2076,7 @@ function secRules(){
     blk('장중 지금 가격',ul(['맨 위 SCREENER 옆 <b>장중</b>을 누르면 SPY · QQQ · SOXX와 종목 탭의 모든 종목(기초자산 포함)의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
       'Finnhub 무료 키는 1분에 60번까지라 지수 → 옐로우업다운 9종목 → 옐로우닷이 켜진 종목 → 나머지 차례로 받고, 넘으면 1분쯤 기다렸다 이어 받습니다(모두 받는 데 1~2분)',
       '프리장(뉴욕 평일 4:00~9:30 · 한국 18:00~23:30, 서머타임 17:00~22:30)에 누르면 키 없이 <b>Webull 공개 시세</b>로 모든 기호를 몇 초 만에 받습니다 — Finnhub 무료 키는 프리장 가격을 주지 않습니다',
+      '이 기기(통신망)에서 Webull 주소가 막히면, 서버(GitHub · 미국)가 프리장 동안 10분마다 Webull에서 받아 사이트에 올려 두는 가격으로 보여 줍니다(30분이 지난 값은 쓰지 않음)',
       'Webull 공개 시세는 공식 API가 아니라 Webull 앱 · 사이트가 쓰는 주소라 언제든 막힐 수 있습니다. 막히면 <b>Alpaca 무료 키</b>(모의 투자 계좌)로 받습니다 — Alpaca 무료 시세는 IEX 거래소 한 곳의 실시간 거래라, 거기서 오늘 거래가 없는 기호는 15분 늦은 전체 거래소 시세로 한 번 더 찾습니다',
       '프리장 가격은 <b>프리장</b>이라고 적고 마지막 거래 가격 하나로 셉니다(오늘 고가 · 저가 없이). 오늘 프리장 거래가 없는 기호는 전날 종가 그대로 둡니다',
       '주가 칸(단계 · 최고가 대비 · 오늘 등락 · 그래프 끝)과 진입 신호 칸이 지금 가격으로 바뀝니다. <b>지금 가격으로 장이 끝나면</b> 어떤지 보여 주는 임시 값이고, 확정은 장 마감 뒤 종가로 다시 계산합니다',

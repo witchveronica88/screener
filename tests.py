@@ -543,5 +543,19 @@ class DeskMarket(unittest.TestCase):
         self.assertEqual(m['head'], '반도체는 조정 구간입니다.')
 
 
+class PreQuote(unittest.TestCase):
+    """pre.py — Webull 시세에서 오늘 프리장 거래만 고른다(화면 wbQuote와 같은 셈)"""
+    def test_pre(self):
+        import pre
+        x = {'close': '718.78', 'pPrice': '704.24', 'mkTradeTime': '2026-11-24T21:00:00.525+0000', 'tradeTime': '2026-11-25T14:12:00.000+0000'}
+        self.assertEqual(pre.quote(x), {'c': 704.24, 'h': 704.24, 'l': 704.24, 'pc': 718.78, 't': 1795615920})
+        self.assertIsNone(pre.quote({**x, 'tradeTime': '2026-11-25T00:22:00.000+0000'}))    # 전날 애프터장 거래
+        self.assertIsNone(pre.quote({**x, 'tradeTime': '2026-11-25T15:00:00.000+0000'}))    # 정규장 시간
+        self.assertIsNone(pre.quote({**x, 'pPrice': None}))
+        self.assertTrue(pre.in_pre(pre.datetime(2026, 11, 25, 4, 0, tzinfo=pre.NY)))
+        self.assertFalse(pre.in_pre(pre.datetime(2026, 11, 25, 9, 30, tzinfo=pre.NY)))
+        self.assertFalse(pre.in_pre(pre.datetime(2026, 11, 28, 8, 0, tzinfo=pre.NY)))      # 토요일
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

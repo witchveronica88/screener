@@ -1,0 +1,28 @@
+name: 프리장 시세
+
+on:
+  workflow_dispatch:           # Claude 예약 작업이 뉴욕 평일 4:04에 시작시킨다
+  schedule:
+    # 예비 — GitHub 예약 실행은 몇 시간씩 늦어서(2026-11: 4~11시간) 시작은 Claude 예약 작업이 맡는다.
+    # 프리장(뉴욕 4:00~9:30)이 아니면 pre.py가 바로 끝난다.
+    - cron: '41 9 * * 1-5'
+    - cron: '13 11 * * 1-5'
+
+concurrency:                   # 한 번에 하나만 — 도는 중에 또 시작되면 기다렸다가 바로 끝난다
+  group: pre
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v5
+      - name: 9:30까지 10분마다 Webull 프리장 시세 → pre.json
+        run: |
+          git config user.name  "github-actions"
+          git config user.email "actions@github.com"
+          python3 -u pre.py --loop
