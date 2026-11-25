@@ -313,6 +313,28 @@ def dip_past(B, I, P):
             'missAvgF': round(statistics.fmean(f[1] for f in fast if not f[0]), 1) if any(not f[0] for f in fast) else None}
 
 
+def any_past(B, P):
+    """평소 — 옐로우닷과 상관없이 아무 날이나 샀다면(그날 다음 거래일 시가) DIP_FAST · DIP_DAYS 안에 +TARGET%에 닿은 비율.
+       옐로우닷 과거 결과(dip_past)와 같은 셈 · 같은 기간이라 '옐로우닷 뒤가 평소보다 나았나'를 견줄 수 있다
+       (2026-11-25 사용자: 노란 상자 종목이 매수하기 유리한지 모르겠다 — 63종목 합산 15일 옐로우닷 55% · 평소 43%,
+       하지만 AGQ 41% · 평소 42%처럼 평소와 같은 종목도 있다)"""
+    pidx = {b['d']: i for i, b in enumerate(P)}
+    nF = hF = n = h = 0
+    for i in range(30, len(B)):                        # 지표가 서기 전 앞부분은 옐로우닷도 못 켜지므로 같이 뺀다
+        pi = pidx.get(B[i]['d'])
+        if pi is None or pi + DIP_FAST >= len(P):
+            continue
+        e = P[pi + 1]['o']
+        if not e:
+            continue
+        end = min(pi + DIP_DAYS, len(P) - 1)
+        hj = next((j - pi for j in range(pi + 1, end + 1) if P[j]['h'] >= e * (1 + TARGET / 100)), None)
+        nF += 1; hF += hj is not None and hj <= DIP_FAST
+        if hj is not None or end - pi >= DIP_DAYS:
+            n += 1; h += hj is not None
+    return {'anyF': round(hF / nF * 100) if nF else None, 'any': round(h / n * 100) if n else None}
+
+
 def dip_targets(B, I, P, since):
     """그래프에 그릴 옐로우닷 목표 — dip_past와 같은 셈법: 묶음의 첫날 다음 거래일 시가에 P를 샀다고 보고,
        DIP_DAYS 안에 장중 고가가 +TARGET%(목표가)에 닿은 첫날. 기간 끝이 since 이후인 것만.
@@ -355,6 +377,8 @@ def yellow(B, P=None, base=None, ud=False):
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'k': round(I['k'][-1], 1),
          'rsi': round(I['rsi'][-1], 1), 'past': dip_past(B, I, P)}
+    if r['past']:
+        r['past'].update(any_past(B, P))               # 평소 비율 — 화면 상자의 '평소' 작은 숫자
     if base:
         r['base'] = base
     lv = live_state(B)

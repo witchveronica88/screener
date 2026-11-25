@@ -543,6 +543,20 @@ class DeskMarket(unittest.TestCase):
         self.assertEqual(m['head'], '반도체는 조정 구간입니다.')
 
 
+class AnyPast(unittest.TestCase):
+    """평소 비율 — 아무 날이나 다음 날 시가에 샀다면 +10%에 닿았나 (dip_past와 같은 셈)"""
+    def test_any(self):
+        import market
+        B = [{'d': f'd{i:04d}', 'o': 100, 'h': 100, 'l': 100, 'c': 100} for i in range(80)]
+        P = [dict(b) for b in B]
+        P[60] = {**P[60], 'h': 111}                     # 60번째 날 고가 +11%
+        r = market.any_past(B, P)
+        # 15일 창: 산 날이 45~59번째(i = 44~58)면 닿음 → 15개 · 셀 수 있는 날 i = 30~64 → 35개
+        self.assertEqual(r['anyF'], round(15 / 35 * 100))
+        # 30일 창: i = 30~58 이 닿음(29개), 못 닿고 30일이 끝난 날은 i = 59~49까지가 아니라 끝까지 간 날만
+        self.assertTrue(0 < r['any'] <= 100)
+
+
 class PreQuote(unittest.TestCase):
     """pre.py — Webull 시세에서 오늘 프리장 거래만 고른다(화면 wbQuote와 같은 셈)"""
     def test_pre(self):

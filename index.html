@@ -41,8 +41,8 @@ input,select,button{font-family:inherit}
 /* ── 헤더 ── */
 .top{position:sticky;top:0;z-index:50;background:var(--topbg);backdrop-filter:blur(14px);
      border-bottom:1px solid var(--bd);padding:12px 16px 11px}
-.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.brand{font-size:var(--fs-xl);font-weight:700;letter-spacing:.14em;line-height:var(--lh-t)}
+.hrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px}   /* 큰 글씨에서는 오른쪽 단추가 아래 줄로 */
+.brand{font-size:var(--fs-xl);font-weight:700;letter-spacing:.14em;line-height:var(--lh-t);white-space:nowrap}
 .brand em{font-style:normal;color:var(--ink3)}
 .stamp{font-size:var(--fs-s);color:var(--ink3);margin-top:3px;line-height:var(--lh-t)}
 /* 맨 위 '장중' 버튼 (2026-11-25 사용자: 장중 버튼을 SCREENER 옆에 작게, 모든 종목도) */
@@ -86,9 +86,9 @@ input,select,button{font-family:inherit}
 .tab{background:transparent;border:1px solid var(--bd);color:var(--ink3);border-radius:20px;
      padding:6px 13px;font-size:var(--fs-s);white-space:nowrap;cursor:pointer}
 .tab.on{background:var(--on);border-color:var(--on);color:var(--onInk);font-weight:600}
-.bar{display:flex;justify-content:space-between;align-items:center;
+.bar{display:flex;flex-wrap:wrap;gap:6px 10px;justify-content:space-between;align-items:center;   /* 좁으면 정렬 칸이 아래 줄로 — 이름을 자르지 않는다 */
      padding:2px 16px 12px;font-size:var(--fs-s);color:var(--ink3)}
-.sortsel{background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:7px;
+.sortsel{max-width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--ink2);border-radius:7px;
          padding:6px 9px;font-size:var(--fs-s);outline:none}
 .srch{position:relative;padding:0 16px 10px}
 .srch input{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--ink);
@@ -296,14 +296,15 @@ details.fold[open]>summary::after{content:'－'}
 .dth,.dtr{display:grid;grid-template-columns:minmax(0,1fr) 3.4em 3.4em;column-gap:6px;align-items:center}
 .dth{font-size:var(--fs-s);font-weight:600;color:var(--ink3);padding:4px 0 6px;text-align:center}
 .dtr{padding:9px 0;border-top:1px solid var(--s2);cursor:pointer;row-gap:4px}
-.dtn{min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.dtn{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:nowrap}   /* 좁으면 기초자산이 아래 줄로 — 자르지 않는다 */
 .dtn>*{flex-shrink:0}
 /* 15일·30일 비율 — 칸 없이 글자색만: 80% 이상 굵은 초록 · 60~79% 초록 · 그 아래 회색. 과거 10번 미만은 점선 밑줄 */
 .dpc{display:block;text-align:center;font-size:var(--fs-s);font-weight:600;line-height:var(--lh-t);font-family:var(--mono);color:var(--ink3)}
 .dpc.hi{color:var(--up);font-weight:700}
 .dpc.mid{color:var(--up)}
 .dpc.na{color:var(--ink3)}
-.dpc.few{text-decoration:underline dotted var(--ink3);text-underline-offset:3px}
+.dpw{display:block;text-align:center;min-width:0}
+.dpa{display:block;text-align:center;font-size:var(--fs-s);font-weight:400;color:var(--ink3);line-height:var(--lh-t);white-space:nowrap}
 .dtm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t)}
 .dtp{font-family:var(--mono);white-space:nowrap}.dtp em{font-style:normal}.dtp .g{color:var(--up)}.dtp .r{color:var(--dn)}
 .dtm>i{font-style:normal;font-size:var(--fs-xs);color:var(--warn);background:var(--s2);border-radius:4px;padding:1px 5px}
@@ -646,7 +647,7 @@ b,strong{font-weight:600}
 
 <div class="top">
   <div class="hrow">
-    <div style="min-width:0">
+    <div style="flex:1 1 0">
       <div class="brow"><div class="brand">SCREENER</div><span class="lvw" id="lvW"><button class="lvtop" id="lvTop">장중</button></span></div>
       <div class="stamp" id="stamp">수동 입력</div>
       <div class="stale" id="stale" hidden></div>
@@ -702,12 +703,20 @@ b,strong{font-weight:600}
 
   <div class="hcard">
     <h4>옐로우닷</h4>
-    <div class="hitem" data-k="dip dipbox"><div class="hterm">옐로우닷 — 매수 기회 표시</div>
+    <div class="hitem" data-k="dip dipbox"><div class="hterm">옐로우닷 — 많이 빠졌다는 표시</div>
       <div class="hdef">두 지표가 모두 <b>바닥권</b>에 들어간 날. 바닥권은 지표마다 기준선 아래라는 뜻으로, 짧은 사이에 너무 많이 빠졌다는 신호입니다(과매도): <code>빠르기 %K ≤ 20 · 힘 RSI ≤ 30</code>. 상황판의 옐로우닷과 같은 계산입니다. 바닥을 확인하기 전에 켜지므로 산 뒤에 더 빠질 수 있습니다. 종가로 계산하므로 켜진 것을 보고 살 수 있는 때는 다음 거래일입니다.</div></div>
     <div class="hitem" data-k="dip dipbox"><div class="hterm">노란 점 · +N</div>
       <div class="hdef">노란 점은 옐로우닷이 켜졌다는 뜻입니다. 며칠 이어서 켜져 있으면 점 옆에 <b>+N</b>을 붙입니다. N은 처음 켜진 날 뒤로 이어 켜진 거래일 수입니다(D+N처럼, <b>+1</b>이면 이틀째, <b>+4</b>면 닷새째). 처음 켜진 날은 점만 보입니다. 목록 · 상자 · 상황판 어디서나 같은 뜻입니다.</div></div>
     <div class="hitem" data-k="dipbox"><div class="hterm">맨 위 상자</div>
-      <div class="hdef">지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 줄을 누르면 그 종목으로 갑니다. 옐로우업다운 9종목 가운데 켜진 것을 먼저 모두 보여 주고 나머지는 '그 밖 N종목'에 접어 둡니다(옐로우업다운 종목이 하나도 안 켜졌으면 추천순 위 5개만 펼침). <b>추천순</b>: 옐로우업다운 종목 → 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 15거래일 안 +10% 도달률이 높은 순 → 30거래일 안 도달률이 높은 순. 과거 옐로우닷이 10번보다 적으면 '과거 적음'을 달고 경고 하나로 셉니다. 목록 정렬의 '옐로우닷 추천순'도 같은 순서이고, 고르는 참고일 뿐 판단은 직접 합니다.<br><br><b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율입니다. 굵은 초록은 80% 이상, 초록은 60~79%, 점선 밑줄은 과거 횟수가 10번보다 적다는 뜻입니다. 티커 옆 작은 회색 티커(예: SOXL 옆 SOXX)는 옐로우닷을 판정한 기초자산입니다.</div></div>
+      <div class="hdef">지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 줄을 누르면 그 종목으로 갑니다. 옐로우업다운 9종목 가운데 켜진 것을 먼저 모두 보여 주고 나머지는 '그 밖 N종목'에 접어 둡니다(옐로우업다운 종목이 하나도 안 켜졌으면 추천순 위 5개만 펼침). <b>추천순</b>: 옐로우업다운 종목 → 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 15거래일 안 +10% 도달률이 높은 순 → 30거래일 안 도달률이 높은 순. 과거 옐로우닷이 10번보다 적으면 '과거 적음'을 달고 경고 하나로 셉니다. 목록 정렬의 '옐로우닷 켜진 종목 먼저'도 같은 순서이고, 고르는 참고일 뿐 판단은 직접 합니다.<br><br><b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율입니다. 굵은 초록은 80% 이상, 초록은 60~79%입니다. 아래 작은 <b>평소</b>는 같은 종목을 아무 날이나 샀다면의 비율입니다. 과거 옐로우닷이 10번보다 적으면 비율 대신 <b>'7/7번'</b>(7번 가운데 7번 닿음)처럼 횟수로 적습니다 — 몇 번 안 되는 기록의 100%는 믿기 어렵습니다.<br><br><b>매수하기 유리한가</b>: 옐로우닷은 사라는 신호가 아니라 짧은 사이에 많이 빠졌다는 표시입니다. 63종목을 합치면 옐로우닷 다음 날 샀을 때 15일 안 +10%에 닿은 비율이 55%로, 평소(아무 날이나 샀을 때) 43%보다 높았습니다(30일 66% · 평소 57% · 2026-11-25 셈). 하지만 종목마다 다릅니다 — TQQQ처럼 79% · 평소 44%로 옐로우닷이 잘 통한 종목도, AGQ처럼 41% · 평소 42%로 평소와 같은 종목도 있습니다. <b>위 숫자가 평소보다 많이 높을수록</b> 그 종목에서 옐로우닷이 잘 통했다는 뜻입니다. 못 닿은 때는 더 빠지기도 했습니다(15일 뒤 평균 −10.9%). 티커 옆 작은 회색 티커(예: SOXL 옆 SOXX)는 옐로우닷을 판정한 기초자산입니다.</div></div>
+    <div class="hitem" data-k="dipbox"><div class="hterm">목록 정렬</div>
+      <div class="hdef">목록 위 고르는 칸에서 순서를 바꿉니다. 고르면 바뀐 목록 첫 줄로 내려갑니다(맨 위 옐로우닷 상자는 늘 추천순).<ul>
+        <li><b>옐로우닷 켜진 종목 먼저</b>: 켜진 종목을 추천순으로(위 '맨 위 상자'와 같은 순서), 그다음 최근에 꺼진 순</li>
+        <li><b>옐로우업다운 9종목 먼저</b>: 옐로우업다운에 쓰는 9종목(TQQQ · UPRO · UDOW · TNA · MIDU · HIBL · QQQU · SOXL · TECL)을 맨 위에, 그다음 나머지를 주가 낮은 순으로. 켜진 종목이 없을 때 처음 보이는 순서입니다</li>
+        <li><b>RSI 낮은 순</b>: 짧은 사이에 많이 눌린 종목부터</li>
+        <li><b>1년 · 역대 고점에서 많이 빠진 순</b>: 고점보다 많이 내려와 있는 종목부터</li>
+        <li><b>하루 변동 큰 순</b>: 하루에 크게 움직이는 종목부터(스위치법 기준의 변동성)</li>
+        <li><b>스위치 시드 적은 순 · 주가 낮은 순 · 티커 ABC 순</b>: 이름 그대로</li></ul></div></div>
     <div class="hitem" data-k="dipbox ud"><div class="hterm"><span class="rdw"><i class="rd"></i>부도 걱정 급증</span></div>
       <div class="hdef">회사들이 빚을 못 갚을까 하는 걱정(부도 걱정)이 짧은 사이에 빠르게 커진 날 켜집니다. 돈을 빌려준 사람들은 "회사가 망해서 못 갚을 수 있다"고 걱정할수록 이자를 더 달라고 합니다. 그래서 회사채 금리가 나라 빚(미국 국채) 금리보다 얼마나 더 높은지(회사채 스프레드)를 보면 그 걱정의 크기를 알 수 있습니다. 회사채 스프레드(신용이 중간쯤인 BAA 회사채 금리 − 미국 10년 국채 금리)가 2주(10거래일) 사이 <b>+0.2%p 넘게</b> 벌어지면 빨간 점이 켜집니다. 옐로우닷이나 옐로우업다운 계산은 바꾸지 않는 경고이고, 켜져 있을 때 옐로우닷이 뜨면 <b>시작할지 · 얼마로 시작할지 직접 정합니다</b>.<br><br><b>왜 경고만</b>(2026-11-24): 켜진 때 시작 금액을 절반으로 하는 규칙을 시험하면 3배 상품이 없던 1999년부터의 가상 계산에서 최대 낙폭이 −69% → −50%쯤으로 줄었지만, 거의 2007년 신용 위기에 시작한 두 사이클(도중 −90% · −88%) 덕분이었습니다. 실제 9종목(2011~)에서 켜진 날 시작한 사이클은 2020-02-27 · 2025-04-03 · 04뿐이고 모두 잘 끝났고, 사이클 하나하나로 보면 켜진 때 시작한 쪽이 더 나쁘지 않았습니다. 평소엔 거의 안 켜지는(2011년부터 18번) 신용 위기 대비 알림 정도로 보세요.<br><br>하이일드 스프레드는 FRED가 최근 3년치만 주어서, 1986년부터 기록이 있고 백테스트에 쓴 BAA로 판정합니다. 자료는 하루 늦게 나옵니다. 지금 값과 뜻은 상황판 VIX 탭 '하이일드 스프레드'에 있습니다.</div></div>
     <div class="hitem" data-k="ud"><div class="hterm">옐로우업다운</div>
@@ -774,15 +783,15 @@ b,strong{font-weight:600}
 <div class="bar">
   <span id="cnt"></span>
   <select class="sortsel" id="sort">
-    <option value="ud">옐로우업다운 먼저</option>
-    <option value="need">스위치 시드순</option>
-    <option value="sig">변동성순</option>
-    <option value="dip">옐로우닷 추천순</option>
-    <option value="rsi">RSI 낮은순</option>
-    <option value="dd">역대 낙폭순</option>
-    <option value="dd1y">1년 낙폭순</option>
-    <option value="price">주가순</option>
-    <option value="tk">티커순</option>
+    <option value="dip">옐로우닷 켜진 종목 먼저</option>
+    <option value="ud">옐로우업다운 9종목 먼저</option>
+    <option value="rsi">RSI 낮은 순</option>
+    <option value="dd1y">1년 고점에서 많이 빠진 순</option>
+    <option value="dd">역대 고점에서 많이 빠진 순</option>
+    <option value="sig">하루 변동 큰 순</option>
+    <option value="need">스위치 시드 적은 순</option>
+    <option value="price">주가 낮은 순</option>
+    <option value="tk">티커 ABC 순</option>
   </select>
 </div>
 
@@ -1352,11 +1361,11 @@ function render(){
     const near=all.filter(x=>!x.d.on&&x.d.last&&x.d.last.age<=3).sort((a,b)=>a.d.last.age-b.d.last.age);
     const mv=x=>x.d.last.pmv??x.d.last.mv;
     dipHtml=`<div class="dipbox"><div class="dh">옐로우닷 켜진 종목 ${on.length}</div>${on.length&&cw()?`<div class="dcw">${cwLine()}</div>`:''}
-      ${on.length?`<div class="dtb"><div class="dth"><span>추천순 · +10% 닿은 비율</span><span>15일</span><span>30일</span></div>`+
+      ${on.length?`<div class="dtb"><div class="dth"><span>추천순 · +10% 닿은 비율 <small>(아래는 평소)</small></span><span>15일</span><span>30일</span></div>`+
         (()=>{const row=x=>{const p=x.d.past;
           const w=[...x.w,...(p&&(p.nF??p.n)<DIP_FEW?['과거 적음']:[])];
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
-            pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
+            pctPair(p&&p.hitF,p&&p.nF,p&&p.anyF)+pctPair(p&&p.hit,p&&p.n,p&&p.any)+
             `<div class="dtm">${x.p?`<span class="dtp">$${x.p}${LIVE[x.tk]&&LIVE[x.tk].chg!=null?` <em class="${sgn(LIVE[x.tk].chg)}">${LIVE[x.tk].chg>0?'+':''}${LIVE[x.tk].chg}%</em>`:''}</span>`:''}${w.map(t=>`<i>${t}</i>`).join('')}`+
             (x.p?`<span class="dts">${seedPair(x.tk,x.p)}</span>`:'')+`</div></div>`;};
           const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
@@ -1599,7 +1608,11 @@ const baseOf=L=>L&&((L.dip&&L.dip.base)||(L.rec&&L.rec.by))||null;
 /* 범례 한 줄 — 무엇을 어느 가격으로 쟀는지 자세한 목록은 용어 설명 '무엇으로 판정하나'에 */
 const baseNote=(tk,b)=>!b?'':`<div class="bleg">${tkB(b)}<span>기초자산으로 판정</span>${tkP(tk)}<span>${tk} 가격으로 계산</span></div>`;
 /* 옐로우닷 과거 결과의 비율 칸 — 높을수록 진한 초록(80% 이상 · 60~79% · 그 아래). 과거 횟수가 10번 미만이면 점선 테두리 */
-const pctCell=(v,n=99)=>v==null?'<span class="dpc na">—</span>':`<span class="dpc ${v>=80?'hi':v>=60?'mid':'lo'}${n<10?' few':''}">${v}%</span>`;
+const pctCell=(v,n=99)=>v==null?'<span class="dpc na">—</span>'
+  :n<DIP_FEW?`<span class="dpc na">${Math.round(v*n/100)}/${n}번</span>`   /* 과거가 10번보다 적으면 비율 대신 횟수(닿은 번/전체 번) — 7번 중 7을 100%로 적지 않는다 */
+  :`<span class="dpc ${v>=80?'hi':v>=60?'mid':'lo'}">${v}%</span>`;
+/* 상자 칸 — 위: 옐로우닷 뒤 비율, 아래 작은 글씨: 평소(아무 날이나 샀다면) 비율 (2026-11-25 사용자: 노란 상자 종목이 매수하기 유리한지 모르겠다) */
+const pctPair=(v,n,a)=>`<span class="dpw">${pctCell(v,n)}${a!=null?`<small class="dpa">평소 ${a}</small>`:''}</span>`;
 /* 이번 수집에서 못 받았거나, 다른 종목보다 종가 날짜가 늦은 종목 */
 const oldPx=L=>!!(L&&(L.stale||(LASTD&&L.date&&L.date<LASTD)));
 const ul=a=>`<ul class="dul">${a.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}</ul>`;
