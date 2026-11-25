@@ -53,6 +53,7 @@ input,select,button{font-family:inherit}
 .lvtop.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
 .lvtop.gray{color:var(--ink3)}
 .top .lvpanel{margin:10px 0 0}
+.top .lvpanel>.lvn:first-child{margin-top:0}
 .stamp b.lv1{color:var(--warn);font-weight:600}
 .stale{font-size:var(--fs-s);color:var(--warn);margin-top:3px;line-height:var(--lh)}
 .dstale{font-size:var(--fs-s);color:var(--warn);background:var(--s1);border:1px solid var(--warn);border-radius:9px;
@@ -1683,6 +1684,13 @@ const vixSpark=(m,h)=>spark(m.spark.map(x=>x.c),h,{l2:m.spark.map(x=>x.m5)})+`<d
 const LV_KEY='scr_fh';
 let LVQ=null;
 const fhKey=()=>{try{return localStorage.getItem(LV_KEY)||'';}catch(e){return '';}};
+/* 프리장 (2026-11-25 사용자: 프리장 안 떠 — Finnhub 무료 키는 프리장 가격을 주지 않는다)
+   뉴욕 평일 4:00~9:30에 누르면 Alpaca 무료 키(모의 투자 계좌 · 이 기기에만)로 받는다. 무료는 IEX 거래소 한 곳의 실시간 거래라,
+   거기서 오늘 거래가 없는 기호는 15분 늦은 전체 거래소(delayed_sip)로 한 번 더 찾는다 — 무료 키가 그것을 막으면 그냥 넘어간다 */
+const AP_ID='scr_ak', AP_SEC='scr_as';
+const lsGet=k=>{try{return localStorage.getItem(k)||'';}catch(e){return '';}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const apKey=()=>{const a=lsGet(AP_ID), b=lsGet(AP_SEC);return a&&b?[a,b]:null;};
 function lvCalc(s,h,l,c){
   const hh=Math.max(...s.h4,h), ll=Math.min(...s.l4,l), k=hh===ll?50:(c-ll)/(hh-ll)*100;
   const d=c-s.pc, g=(s.g*13+Math.max(d,0))/14, lo=(s.l*13+Math.max(-d,0))/14, rsi=lo===0?100:100-100/(1+g/lo);
@@ -1704,6 +1712,38 @@ function wdAfter(a,b){   // a 뒤 b까지 평일 수
   return n;
 }
 const nyHM=t=>{const [h,m]=new Date(t*1000).toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:false}).split(':').map(Number);return h*100+m;};
+function nyPre(){   // 지금이 뉴욕 평일 프리장(4:00~9:30)인가
+  const n=Date.now()/1000, hm=nyHM(n), wd=new Date(n*1000).toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short'});
+  return wd!=='Sat'&&wd!=='Sun'&&hm>=400&&hm<930;
+}
+function apQuote(x){   // Alpaca 스냅숏 하나 → Finnhub 모양 {c,h,l,pc,t} (프리장은 고가 · 저가 없이 마지막 거래 하나)
+  const tr=x&&x.latestTrade; if(!tr||!(tr.p>0))return null;
+  const t=Date.parse(tr.t)/1000; if(!(t>0))return null;
+  const day=nyDay(t), db=x.dailyBar, pb=x.prevDailyBar, dd=db&&db.t?nyDay(Date.parse(db.t)/1000):'';
+  return {c:tr.p,h:tr.p,l:tr.p,pc:(db&&dd&&dd<day?db.c:pb&&pb.c)||0,t};
+}
+async function apFetch(syms,key){   // 50개씩 한 번에 (무료 1분 200번) — 받은 것은 LVS.q, 못 받은 것은 LVS.fail
+  const H={'APCA-API-KEY-ID':key[0],'APCA-API-SECRET-KEY':key[1]};
+  const get=async(list,feed)=>{
+    const r=await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?symbols=${list.map(encodeURIComponent).join(',')}&feed=${feed}`,{headers:H});
+    if(feed==='iex'&&(r.status===401||r.status===403))throw 'key';
+    if(!r.ok)return null;
+    const j=await r.json();return (j&&j.snapshots)||j||{};
+  };
+  const today=nyDay(Date.now()/1000), Q={}, put=(m,list)=>{for(const x of list){const q=apQuote(m[x]);if(q&&(!Q[x]||q.t>Q[x].t))Q[x]=q;}};
+  for(let i=0;i<syms.length;i+=50){
+    const part=syms.slice(i,i+50), m=await get(part,'iex');
+    if(m)put(m,part);
+    else for(const x of part){const m1=await get([x],'iex');if(m1)put(m1,[x]);}   // 한 기호 때문에 묶음이 막히면 하나씩
+    LVS.done=Math.min(i+50,syms.length);lvUI();
+  }
+  const late=syms.filter(x=>!Q[x]||nyDay(Q[x].t)<today);
+  for(let i=0;i<late.length;i+=50){
+    let m=null; try{m=await get(late.slice(i,i+50),'delayed_sip');}catch(e){}
+    if(!m)break; put(m,late.slice(i,i+50));
+  }
+  for(const x of syms){if(Q[x])LVS.q[x]=Q[x];else LVS.fail.push(x);}
+}
 /* 받은 시세가 쓸 만한가 — s: 마지막 확정 종가 {d 날짜, pc 종가}. 프리장(뉴욕 9:30 전)이면 오늘 고가 · 저가 없이 그 가격 하나로 */
 function lvQuote(q,s){
   if(!q||!(q.c>0))return {msg:'시세를 받지 못했습니다'};
@@ -1782,9 +1822,16 @@ function lvUI(){
     if(LVQ&&LVQ.ask)h=`<div class="lvt"><b>장중 지금 가격</b><button id="lvClose">닫기</button></div>
       <div class="lvk"><input id="lvKeyIn" type="password" placeholder="Finnhub API 키" autocomplete="off" spellcheck="false"><button id="lvKeySave">저장</button></div>
       <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://finnhub.io/register" target="_blank" rel="noopener">Finnhub 무료 키 받기</a> · 키는 이 기기에만 저장됩니다'}</div>`;
+    else if(LVQ&&LVQ.askA)h=`<div class="lvt"><b>프리장 가격</b><button id="lvClose">닫기</button></div>
+      <div class="lvn">Finnhub 무료 키는 프리장 가격을 주지 않습니다. Alpaca 무료 키(모의 투자 계좌)를 넣으면 프리장 가격을 받습니다. 장이 열리면(뉴욕 9:30) 지금처럼 Finnhub로 받습니다.</div>
+      <div class="lvk"><input id="lvAkIn" type="text" placeholder="Alpaca API Key" autocomplete="off" spellcheck="false"></div>
+      <div class="lvk"><input id="lvAsIn" type="password" placeholder="Alpaca Secret Key" autocomplete="off" spellcheck="false"><button id="lvAkSave">저장</button></div>
+      <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://app.alpaca.markets/signup" target="_blank" rel="noopener">Alpaca 무료 가입</a> · 키는 이 기기에만 저장됩니다'}</div>`;
     else if(LVS&&LVS.err)h=`<div class="lvn err">${LVS.err}</div>`;
     else if(LVS&&LVS.wait)h=`<div class="lvn">Finnhub 무료 키는 1분에 60번까지라 잠시 기다립니다 — 남은 ${LVS.total-LVS.done}개는 약 ${LVS.wait}초 뒤 이어 받습니다</div>`;
+    else if(LVS&&!LVS.busy&&!LVS.n&&LVS.src==='ap')h=`<div class="lvn">아직 오늘 프리장 거래를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요</div>`;
     else if(LVS&&!LVS.busy&&!LVS.n&&LVQ&&LVQ.rows&&LVQ.rows.every(r=>r.old))h=`<div class="lvn">${LVQ.rows[0].msg}</div>`;
+    else if(LVS&&!LVS.busy&&LVS.src==='ap'&&LVS.n<Object.keys(LIVE).length)h=`<div class="lvn">프리장 거래가 아직 없는 ${Object.keys(LIVE).length-LVS.n}종목은 전날 종가 그대로입니다</div>`;
     else if(LVS&&!LVS.busy&&LVS.fail.length)h=`<div class="lvn">시세를 받지 못한 것 ${LVS.fail.length}개(${LVS.fail.join(' · ')}) — 그 종목은 종가 그대로입니다</div>`;
     pn.innerHTML=h;pn.hidden=!h;
   }
@@ -1796,14 +1843,28 @@ function lvDraw(){   /* 보고 있는 화면을 다시 그린다 — 스크롤�
   if(st.view==='desk'&&DESK)renderDesk();
   lvUI();window.scrollTo(0,y);
 }
+async function apRun(ak){
+  if(!LIVE0)lvSnap();
+  const syms=lvSyms();
+  LVS={q:{},done:0,total:syms.length,busy:true,fail:[],n:0,t:0,wait:0,src:'ap'};
+  if(LVQ&&(LVQ.ask||LVQ.askA||LVQ.err))LVQ=null;
+  lvUI();
+  let bad=null;
+  try{await apFetch(syms,ak);}catch(e){bad=e==='key'?'key':'net';}
+  LVS.busy=false;
+  if(bad==='key'){LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,err:'Alpaca 키가 맞지 않습니다. 다시 넣어 주세요. <small>(실전 계좌가 아니라 모의 투자(Paper) 계좌의 키)</small>'};lvDraw();return;}
+  if(bad)LVS.err='Alpaca 시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요';
+  lvApply();lvDraw();
+}
 async function liveGo(){
+  if(LVS&&LVS.busy)return;
+  if(nyPre()){const ak=apKey();if(!ak){LVQ={askA:true};lvUI();return;}return apRun(ak);}
   const key=fhKey();
   if(!key){LVQ={ask:true};lvUI();return;}
-  if(LVS&&LVS.busy)return;
   if(!LIVE0)lvSnap();
   const syms=lvSyms(), win=[];
   LVS={q:{},done:0,total:syms.length,busy:true,fail:[],n:0,t:0,wait:0};
-  if(LVQ&&(LVQ.ask||LVQ.err))LVQ=null;
+  if(LVQ&&(LVQ.ask||LVQ.askA||LVQ.err))LVQ=null;
   lvUI();
   let next=0, last=0, stop=null, dirty=false;
   const one=async sym=>{
@@ -1849,6 +1910,11 @@ document.querySelector('.top').addEventListener('click',async e=>{
     const v=(document.getElementById('lvKeyIn').value||'').trim();if(!v)return;
     try{localStorage.setItem(LV_KEY,v);}catch(_){}
     LVQ=null;liveGo();
+  }
+  if(e.target.closest('#lvAkSave')){
+    const a=(document.getElementById('lvAkIn').value||'').trim(), b=(document.getElementById('lvAsIn').value||'').trim();
+    if(!a||!b)return;
+    lsSet(AP_ID,a);lsSet(AP_SEC,b);LVQ=null;liveGo();
   }
 });
 const lvOf=b=>LVQ&&LVQ.rows?LVQ.rows.find(r=>r.base===b&&r.chg!=null)||null:null;
@@ -1904,6 +1970,7 @@ async function liveClick(e){
     LVQ={loading:true};re();await liveGo();re();return;
   }
   if(e.target.closest('#lvDel')){try{localStorage.setItem(LV_KEY,'');}catch(_){}lvBack();return;}
+  if(e.target.closest('#lvDelA')){lsSet(AP_ID,'');lsSet(AP_SEC,'');lvBack();return;}
   if(e.target.closest('#lvGo')){
     if(!fhKey()){LVQ={ask:true};re();return;}
     LVQ={loading:true};re();await liveGo();re();
@@ -1931,12 +1998,14 @@ function secRules(){
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
     blk('장중 지금 가격',ul(['맨 위 SCREENER 옆 <b>장중</b>을 누르면 SPY · QQQ · SOXX와 종목 탭의 모든 종목(기초자산 포함)의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
       'Finnhub 무료 키는 1분에 60번까지라 지수 → 옐로우업다운 9종목 → 옐로우닷이 켜진 종목 → 나머지 차례로 받고, 넘으면 1분쯤 기다렸다 이어 받습니다(모두 받는 데 1~2분)',
-      '프리장(뉴욕 9:30 전) 가격이 오면 <b>프리장</b>이라고 적고 그 가격 하나로 셉니다(오늘 고가 · 저가 없이). Finnhub 무료 키가 프리장 가격을 주지 않으면 장이 열린 뒤에 나옵니다',
+      '프리장(뉴욕 평일 4:00~9:30 · 한국 18:00~23:30, 서머타임 17:00~22:30)에 누르면 Finnhub 대신 <b>Alpaca 무료 키</b>(모의 투자 계좌)로 모든 기호를 한 번에 받습니다 — Finnhub 무료 키는 프리장 가격을 주지 않습니다',
+      '프리장 가격은 <b>프리장</b>이라고 적고 마지막 거래 가격 하나로 셉니다(오늘 고가 · 저가 없이). Alpaca 무료 시세는 IEX 거래소 한 곳의 실시간 거래라, 그곳에서 오늘 거래가 없는 기호는 15분 늦은 전체 거래소 시세로 한 번 더 찾고, 그래도 없으면 전날 종가 그대로 둡니다(거래가 적은 종목은 프리장 거래가 없을 수 있음)',
       '주가 칸(단계 · 최고가 대비 · 오늘 등락 · 그래프 끝)과 진입 신호 칸이 지금 가격으로 바뀝니다. <b>지금 가격으로 장이 끝나면</b> 어떤지 보여 주는 임시 값이고, 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '장이 끝난 뒤 아침 수집 전에 누르면 그날 마감 가격으로 보여 줍니다(켜지는 가격 없이 켜짐 · 꺼짐만). 확정은 아침 수집 때 합니다',
       '한 지수만 시세를 못 받으면 그 줄은 종가 그대로 두고 등락 앞에 <b>M/D 종가</b>를 붙입니다',
-      '시세는 Finnhub 무료 키로 받습니다. 키는 이 기기(브라우저)에만 저장되고 다른 곳에 보내지 않습니다'+(fhKey()?' <button class="lvdel" id="lvDel">키 지우기</button>':'')]))+
+      '시세는 Finnhub 무료 키(장중 · 장 마감 뒤)와 Alpaca 무료 키(프리장)로 받습니다. 키는 이 기기(브라우저)에만 저장되고 시세를 받을 때 그 회사에만 보냅니다'+
+        (fhKey()?' <button class="lvdel" id="lvDel">Finnhub 키 지우기</button>':'')+(apKey()?' <button class="lvdel" id="lvDelA">Alpaca 키 지우기</button>':'')]))+
     blk('시장 지표 <small>판정에 넣지 않음</small>',ul(['주가 단계 · 200일 평균 · VIX · VIX 선물 · 하이일드 스프레드 · 부도 걱정 급증 · 월봉 과열 꺾임 · UVIX 옐로우닷은 시장 상황을 보여 주는 값이고, 옐로우닷 판정(두 지표)에는 넣지 않습니다',
       '2026-11 백테스트: VIX로 거르거나 반등을 기다려도 과거 결과가 나아지지 않았습니다']))+
     blk('가격 · 검증',ul(['가격 출처: 야후 파이낸스 정규장 일봉, <b>현재 분할·병합 보정 기준</b> <small>(다른 곳과 몇 센트 다를 수 있음)</small>',
@@ -2243,7 +2312,7 @@ function metaLines(){
     `옐로우닷은 ${DESK.cards.map(c=>c.base).join(' · ')}로 판정하고, 과거 결과는 ${DESK.cards.map(c=>c.prod).join(' · ')}을 샀다고 보고 셈`];
 }
 document.getElementById('vDesk').onclick=async e=>{
-  if(e.target.closest('#lvGo,#lvX,#lvKeySave,#lvDel')){await liveClick(e);return;}
+  if(e.target.closest('#lvGo,#lvX,#lvKeySave,#lvDel,#lvDelA')){await liveClick(e);return;}
   const vw=e.target.closest('[data-view]');
   if(vw){navGo(()=>{st.view=vw.dataset.view;save();syncView();render();window.scrollTo(0,0);});return;}
   const t=e.target.closest('[data-dt]');
