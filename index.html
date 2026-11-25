@@ -117,6 +117,7 @@ input,select,button{font-family:inherit}
 .met{display:flex;gap:4px 10px;margin-top:7px;font-family:var(--mono);
      font-size:var(--fs-s);color:var(--ink3);flex-wrap:wrap}
 .met .g{color:var(--up)}.met .r{color:var(--dn)}.met .w{color:var(--warn)}
+.met .near{color:var(--ink3);white-space:nowrap}.met .near b{color:var(--warn);font-weight:600}
 /* 옐로우닷 = 노란 점 하나(+ 이어 켜진 날이면 +N). 점과 숫자는 한 덩어리로 붙어 다닌다 */
 .ydw{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;align-self:center;vertical-align:middle;line-height:1}
 .yd{display:inline-block;width:calc(10px*var(--fs));height:calc(10px*var(--fs));border-radius:50%;background:var(--st-watch);border:1px solid var(--ink2);flex-shrink:0}
@@ -537,6 +538,7 @@ details.fold[open]>summary::after{content:'－'}
 .sgl{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px}
 .sgl+.sgl{margin-top:6px}
 .sgv .dpc{font-size:inherit}
+.sgl b.near{color:var(--warn)}
 .sgl .tk{font-size:var(--fs-m);color:var(--idx);line-height:var(--lh-t)}
 .sgl>b,.sgv b{color:var(--ink)}
 .sgv .dpc{display:inline}.sgv .fg{white-space:nowrap}   /* 15일 · 30일 칸은 한 줄로 (옐로우닷이 켜진 날) */
@@ -708,7 +710,13 @@ b,strong{font-weight:600}
     <div class="hitem" data-k="dip dipbox"><div class="hterm">노란 점 · +N</div>
       <div class="hdef">노란 점은 옐로우닷이 켜졌다는 뜻입니다. 며칠 이어서 켜져 있으면 점 옆에 <b>+N</b>을 붙입니다. N은 처음 켜진 날 뒤로 이어 켜진 거래일 수입니다(D+N처럼, <b>+1</b>이면 이틀째, <b>+4</b>면 닷새째). 처음 켜진 날은 점만 보입니다. 목록 · 상자 · 상황판 어디서나 같은 뜻입니다.</div></div>
     <div class="hitem" data-k="dipbox"><div class="hterm">맨 위 상자</div>
-      <div class="hdef">지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 줄을 누르면 그 종목으로 갑니다. 옐로우업다운 9종목 가운데 켜진 것을 먼저 모두 보여 주고 나머지는 '그 밖 N종목'에 접어 둡니다(옐로우업다운 종목이 하나도 안 켜졌으면 추천순 위 5개만 펼침). <b>추천순</b>: 옐로우업다운 종목 → 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 15거래일 안 +10% 도달률이 높은 순 → 30거래일 안 도달률이 높은 순. 과거 옐로우닷이 10번보다 적으면 '과거 적음'을 달고 경고 하나로 셉니다. 목록 정렬의 '옐로우닷 켜진 종목 먼저'도 같은 순서이고, 고르는 참고일 뿐 판단은 직접 합니다.<br><br><b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율입니다. 굵은 초록은 80% 이상, 초록은 60~79%입니다. 아래 작은 <b>평소</b>는 같은 종목을 아무 날이나 샀다면의 비율입니다. 과거 옐로우닷이 10번보다 적으면 비율 대신 <b>'7/7번'</b>(7번 가운데 7번 닿음)처럼 횟수로 적습니다 — 몇 번 안 되는 기록의 100%는 믿기 어렵습니다.<br><br><b>매수하기 유리한가</b>: 옐로우닷은 사라는 신호가 아니라 짧은 사이에 많이 빠졌다는 표시입니다. 63종목을 합치면 옐로우닷 다음 날 샀을 때 15일 안 +10%에 닿은 비율이 55%로, 평소(아무 날이나 샀을 때) 43%보다 높았습니다(30일 66% · 평소 57% · 2026-11-25 셈). 하지만 종목마다 다릅니다 — TQQQ처럼 79% · 평소 44%로 옐로우닷이 잘 통한 종목도, AGQ처럼 41% · 평소 42%로 평소와 같은 종목도 있습니다. <b>위 숫자가 평소보다 많이 높을수록</b> 그 종목에서 옐로우닷이 잘 통했다는 뜻입니다. 못 닿은 때는 더 빠지기도 했습니다(15일 뒤 평균 −10.9%). 티커 옆 작은 회색 티커(예: SOXL 옆 SOXX)는 옐로우닷을 판정한 기초자산입니다.</div></div>
+      <div class="hdef">지금 켜진 종목과 최근 3거래일 안에 꺼진 종목이 나오고, 줄을 누르면 그 종목으로 갑니다. 옐로우업다운 9종목 가운데 켜진 것을 먼저 모두 보여 주고 나머지는 '그 밖 N종목'에 접어 둡니다(옐로우업다운 종목이 하나도 안 켜졌으면 추천순 위 5개만 펼침). <b>추천순</b>: 옐로우업다운 종목 → 경고(미회복, 변동성 부족, 급락 동반, 현금 주의 등)가 적은 순 → 15거래일 안 +10% 도달률이 높은 순 → 30거래일 안 도달률이 높은 순. 과거 옐로우닷이 10번보다 적으면 '과거 적음'을, 옐로우닷 뒤 15일 비율이 평소보다 5%p 넘게 높지 않으면 '평소와 같음'(그 종목에서는 옐로우닷이 아무 날보다 나을 게 없었다)을 달고 각각 경고 하나로 셉니다. 목록 정렬의 '옐로우닷 켜진 종목 먼저'도 같은 순서이고, 고르는 참고일 뿐 판단은 직접 합니다.<br><br><b>15일 · 30일</b>은 과거에 옐로우닷 다음 날 샀다면 그 기간 안에 +10%에 닿은 비율입니다. 굵은 초록은 80% 이상, 초록은 60~79%입니다. 아래 작은 <b>평소</b>는 같은 종목을 아무 날이나 샀다면의 비율입니다. 과거 옐로우닷이 10번보다 적으면 비율 대신 <b>'7/7번'</b>(7번 가운데 7번 닿음)처럼 횟수로 적습니다 — 몇 번 안 되는 기록의 100%는 믿기 어렵습니다.<br><br><b>매수하기 유리한가</b>: 옐로우닷은 사라는 신호가 아니라 짧은 사이에 많이 빠졌다는 표시입니다. 63종목을 합치면 옐로우닷 다음 날 샀을 때 15일 안 +10%에 닿은 비율이 55%로, 평소(아무 날이나 샀을 때) 43%보다 높았습니다(30일 66% · 평소 57% · 2026-11-25 셈). 하지만 종목마다 다릅니다 — TQQQ처럼 79% · 평소 44%로 옐로우닷이 잘 통한 종목도, AGQ처럼 41% · 평소 42%로 평소와 같은 종목도 있습니다. <b>위 숫자가 평소보다 많이 높을수록</b> 그 종목에서 옐로우닷이 잘 통했다는 뜻입니다. 못 닿은 때는 더 빠지기도 했습니다(15일 뒤 평균 −10.9%). 티커 옆 작은 회색 티커(예: SOXL 옆 SOXX)는 옐로우닷을 판정한 기초자산입니다.</div></div>
+    <div class="hitem" data-k="dip dipbox"><div class="hterm">옐로우닷까지 −x%</div>
+      <div class="hdef">꺼져 있는 종목이 얼마나 더 빠져서 끝나면 옐로우닷이 켜지는지입니다. 목록 줄에는 그 종목의 하루 흔들림(변동성)의 2배 안쪽일 때만(가까울 때만) 보이고, 상황판 진입 신호 칸에는 지수가 −5% 안쪽일 때만 보입니다.<ul>
+        <li>종가 화면: <b>다음 거래일 종가</b>가 마지막 종가보다 이만큼 아래면 켜집니다(그날 고가는 마지막 종가, 저가는 그 종가라고 봄)</li>
+        <li>장중 화면: <b>오늘 종가</b>가 지금 가격보다 이만큼 아래면 켜집니다(오늘 지금까지의 고가 · 저가로 셈)</li>
+        <li>옐로우닷은 기초자산(예: SOXL은 SOXX)으로 판정하므로 레버리지 상품은 기초자산 % × 배수로 어림한 값입니다</li>
+        <li>며칠에 걸쳐 빠지면 그사이 지표가 바뀌어 문턱도 달라집니다 — 내일 하루의 기준으로 보세요</li></ul></div></div>
     <div class="hitem" data-k="dipbox"><div class="hterm">목록 정렬</div>
       <div class="hdef">목록 위 고르는 칸에서 순서를 바꿉니다. 고르면 바뀐 목록 첫 줄로 내려갑니다(맨 위 옐로우닷 상자는 늘 추천순).<ul>
         <li><b>옐로우닷 켜진 종목 먼저</b>: 켜진 종목을 추천순으로(위 '맨 위 상자'와 같은 순서), 그다음 최근에 꺼진 순</li>
@@ -894,8 +902,11 @@ const dipOf=tk=>(LIVE[tk]&&LIVE[tk].dip)||{};
 /* 옐로우닷 추천순 — 걸리는 것 적은 순 → 15거래일 안 +10% 도달률 높은 순 → 30거래일 안 +10% 높은 순 → 오래 켜진 순.
    걸리는 것 = 경고 칩 수 + 과거 옐로우닷이 10번 미만이면 하나(비율을 믿기 어려워서). 과거 결과가 없으면 0%로 본다 */
 const DIP_FEW=10, DIP_TOP=5;   /* 과거 옐로우닷이 10번 미만이면 '과거 적음'(경고 하나로 셈). 옐로우업다운 종목이 하나도 안 켜졌으면 상자는 추천순 위 5개만 펼친다 */
+/* 옐로우닷 뒤 15일 비율이 평소(아무 날)보다 5%p 넘게 높지 않으면 '평소와 같음' — 이 종목에서는 옐로우닷이 더 나을 게 없었다(과거 10번 이상일 때만) */
+const DIP_EDGE=5;
+const noEdge=p=>!!(p&&(p.nF??p.n)>=DIP_FEW&&p.hitF!=null&&p.anyF!=null&&p.hitF-p.anyF<DIP_EDGE);
 const dipKey=tk=>{const d=dipOf(tk), p=d.past, nF=p?(p.nF??p.n):0;
-  return ['ud' in d?0:1, swOnly(tk,warnTags(tk,LIVE[tk])).length+(nF<DIP_FEW?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
+  return ['ud' in d?0:1, swOnly(tk,warnTags(tk,LIVE[tk])).length+(nF<DIP_FEW?1:0)+(noEdge(p)?1:0), -(p&&p.hitF!=null?p.hitF:0), -(p&&p.hit!=null?p.hit:0), -(d.run||0)];};
 const keyCmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
 /* 목록 정렬 '옐로우닷 추천순': 켜진 종목을 추천순으로 → 최근에 꺼진 순 → 옐로우닷 기록 없음 */
 const dipCmp=(a,b)=>{const x=dipOf(a), y=dipOf(b);
@@ -1363,7 +1374,7 @@ function render(){
     dipHtml=`<div class="dipbox"><div class="dh">옐로우닷 켜진 종목 ${on.length}</div>${on.length&&cw()?`<div class="dcw">${cwLine()}</div>`:''}
       ${on.length?`<div class="dtb"><div class="dth"><span>추천순 · +10% 닿은 비율 <small>(아래는 평소)</small></span><span>15일</span><span>30일</span></div>`+
         (()=>{const row=x=>{const p=x.d.past;
-          const w=[...x.w,...(p&&(p.nF??p.n)<DIP_FEW?['과거 적음']:[])];
+          const w=[...x.w,...(p&&(p.nF??p.n)<DIP_FEW?['과거 적음']:[]),...(noEdge(p)?['평소와 같음']:[])];
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
             pctPair(p&&p.hitF,p&&p.nF,p&&p.anyF)+pctPair(p&&p.hit,p&&p.n,p&&p.any)+
             `<div class="dtm">${x.p?`<span class="dtp">$${x.p}${LIVE[x.tk]&&LIVE[x.tk].chg!=null?` <em class="${sgn(LIVE[x.tk].chg)}">${LIVE[x.tk].chg>0?'+':''}${LIVE[x.tk].chg}%</em>`:''}</span>`:''}${w.map(t=>`<i>${t}</i>`).join('')}`+
@@ -1397,6 +1408,7 @@ function render(){
         <span>$${L.price}</span>
         ${L.chg!=null?`<span class="${sgn(L.chg)}">${L.chg>0?'+':''}${L.chg}%</span>`:''}
         ${rsi!=null?`<span class="${rsiC}">RSI ${rsi}</span>`:''}
+        ${(()=>{const g=nearDot(tk,sig);return g!=null?`<span class="near">옐로우닷까지 <b>${sg(Math.min(g,-0.1))}</b></span>`:'';})()}
         ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
     const udm=UD.has(tk), udTop=udm&&L&&L.dip&&L.dip.ud;   /* 옐로우업다운 칸을 카드 맨 위에 펼칠 수 있나 */
@@ -1820,6 +1832,23 @@ function lvQuote(q,s){
   const hm=nyHM(q.t), pre=hm<930, done=hm>=1600;
   return {c:q.c,t:q.t,pre,done,H:pre?q.c:Math.max(q.h||q.c,q.c),L:pre?q.c:Math.min(q.l||q.c,q.c)};
 }
+/* 옐로우닷까지 — 다음 종가(장중이면 오늘 종가)가 지금보다 몇 % 아래에서 끝나면 두 지표가 모두 바닥권에 드나.
+   s: 기초자산 상태(종목 dip.live · 상황판 카드 live). v: 장중 시세 {c,H,L}(lvQuote 결과)가 있으면 오늘 지금까지의 고가 · 저가로,
+   없으면 전날 종가 하나로(고가 = 전날 종가, 저가 = 그 종가 — 예약 LOC 셈과 같은 가정) */
+function dotGap(s,v){
+  if(!s)return null;
+  const c=v?v.c:s.pc, th=lvThresh(s,v?v.H:s.pc,v?v.L:s.pc);
+  return th==null?null:{th,g:(th/c-1)*100};
+}
+const levOf=tk=>{const r=(typeof D!=='undefined'&&D||[]).find(x=>x[0]===tk);
+  return r&&/^\d/.test(r[2]||'')?parseFloat(r[2]):EXTRA[tk]&&EXTRA[tk].mult?EXTRA[tk].mult:1;};
+/* 목록 줄 — 꺼져 있고, 상품 가격으로 하루 흔들림(변동성)의 2배 안쪽만 더 빠지면 켜질 때만 보인다. 기초자산으로 판정하므로 상품 %는 배수를 곱한 어림값 */
+function nearDot(tk,sig){
+  const L=LIVE[tk], d=L&&L.dip; if(!d||d.on||!d.live)return null;
+  const g=dotGap(d.live,L.lvb||null); if(!g||g.g>0)return null;
+  const pg=g.g*(d.base?levOf(tk):1), lim=Math.max(2*(sig||0),3);
+  return pg>=-lim?pg:null;
+}
 function deskRow(c,q){
   const v=lvQuote(q,c.live), r={base:c.base,c:v.c,t:v.t};
   if(v.msg)return {...r,msg:v.msg,old:v.old};
@@ -1836,7 +1865,7 @@ function lvSnap(){
 function lvUndo(){
   if(!LIVE0)return;
   for(const tk in LIVE0){const L=LIVE[tk],o=LIVE0[tk];if(!L)continue;
-    L.price=o.price;L.chg=o.chg;L.rsi=o.rsi;if(L.dip&&o.dip)Object.assign(L.dip,o.dip);delete L.lvq;}
+    L.price=o.price;L.chg=o.chg;L.rsi=o.rsi;if(L.dip&&o.dip)Object.assign(L.dip,o.dip);delete L.lvq;delete L.lvb;}
 }
 function lvSyms(){   /* 받을 차례: 상황판 지수 → 옐로우업다운 9종목 → 옐로우닷 켜진 종목 → 목록에 보이는 차례 (상품과 기초자산 둘 다) */
   const out=[], add=x=>{if(x&&!out.includes(x))out.push(x);};
@@ -1865,9 +1894,25 @@ function lvApply(){
     if(sb&&qb){const vb=lvQuote(qb,sb);
       if(!vb.msg){const x=lvCalc(sb,vb.H,vb.L,vb.c);
         L.dip.on=x.on;L.dip.run=x.on?(o.dip&&o.dip.on?o.dip.run+1:1):0;L.dip.k=+x.k.toFixed(1);L.dip.rsi=+x.rsi.toFixed(1);
-        if(!L.dip.base)L.rsi=L.dip.rsi;}}
+        if(!L.dip.base)L.rsi=L.dip.rsi;
+        L.lvb=vb;}}   /* 옐로우닷까지 남은 % — 오늘 지금까지의 고가 · 저가로 */
   }
   LVS.n=n;LVS.t=t||LVS.t;LVS.pre=pre;LVS.closed=done;   /* done = 받은 개수라 장 마감은 closed */
+  lvSave();
+}
+const LV_SAVE='scr_lvq';
+function lvSave(){if(!LVS||!LVS.n)return;LVS.at=LVS.at||Date.now();
+  try{localStorage.setItem(LV_SAVE,JSON.stringify({q:LVS.q,src:LVS.src||'',d:LASTD,at:LVS.at}));}catch(e){}}
+const lvForget=()=>{try{localStorage.removeItem(LV_SAVE);}catch(e){}};
+function lvRestore(){   /* 페이지를 다시 열었을 때(폰이 탭을 닫았다 다시 연 때 포함) — 같은 종가 자료 위에서 받은 시세면 20시간까지 되살린다 */
+  if(LVS)return;
+  let o=null;try{o=JSON.parse(localStorage.getItem(LV_SAVE)||'null');}catch(e){}
+  if(!o||!o.q||o.d!==LASTD||!(Date.now()-o.at<20*3600e3))return;
+  if(!LIVE0)lvSnap();
+  LVS={q:o.q,done:0,total:0,busy:false,fail:[],n:0,t:0,wait:0,src:o.src||undefined,at:o.at};
+  lvApply();
+  if(!LVS.n){LVS=null;lvUndo();LIVE0=null;LVQ=null;lvForget();return;}
+  lvDraw();
 }
 function lvStamp(){
   const el=document.getElementById('stamp');if(!el)return;
@@ -1919,7 +1964,7 @@ async function apRun(ak){
   let bad=null;
   try{await apFetch(syms,ak);}catch(e){bad=e==='key'?'key':'net';}
   LVS.busy=false;
-  if(bad==='key'){LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,err:'Alpaca 키가 맞지 않습니다. 다시 넣어 주세요. <small>(실전 계좌가 아니라 모의 투자(Paper) 계좌의 키)</small>'};lvDraw();return;}
+  if(bad==='key'){LVS=null;lvUndo();LIVE0=null;lvForget();LVQ={askA:true,err:'Alpaca 키가 맞지 않습니다. 다시 넣어 주세요. <small>(실전 계좌가 아니라 모의 투자(Paper) 계좌의 키)</small>'};lvDraw();return;}
   if(bad)LVS.err='Alpaca 시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요';
   lvApply();lvDraw();
 }
@@ -1946,7 +1991,7 @@ async function preRun(){   // 프리장: Webull 직접 → 막히면 서버가 �
   if(!ok){
     const ak=apKey();
     if(ak)return apRun(ak);
-    LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,why:wbWhy||'이 기기에서 연결이 막혔던 주소',srv:true};lvDraw();return;
+    LVS=null;lvUndo();LIVE0=null;lvForget();LVQ={askA:true,why:wbWhy||'이 기기에서 연결이 막혔던 주소',srv:true};lvDraw();return;
   }
   LVS.busy=false;lvApply();lvDraw();
 }
@@ -1990,11 +2035,11 @@ async function liveGo(){
   };
   await Promise.all([worker(),worker(),worker(),worker()]);
   LVS.busy=false;
-  if(stop==='key'){LVS=null;lvUndo();LIVE0=null;LVQ={ask:true,err:'키가 맞지 않습니다. 다시 넣어 주세요.'};lvDraw();return;}
+  if(stop==='key'){LVS=null;lvUndo();LIVE0=null;lvForget();LVQ={ask:true,err:'키가 맞지 않습니다. 다시 넣어 주세요.'};lvDraw();return;}
   lvApply();lvDraw();
 }
 function lvBack(){   /* 종가로 — 확정 종가 화면으로 되돌린다 */
-  lvUndo();LIVE0=null;LVS=null;LVQ=null;lvDraw();
+  lvUndo();LIVE0=null;LVS=null;LVQ=null;lvForget();lvDraw();
 }
 document.querySelector('.top').addEventListener('click',async e=>{
   if(e.target.closest('#lvTop')){liveGo();return;}
@@ -2100,6 +2145,7 @@ function secRules(){
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '장이 끝난 뒤 아침 수집 전에 누르면 그날 마감 가격으로 보여 줍니다(켜지는 가격 없이 켜짐 · 꺼짐만). 확정은 아침 수집 때 합니다',
       '한 지수만 시세를 못 받으면 그 줄은 종가 그대로 두고 등락 앞에 <b>M/D 종가</b>를 붙입니다',
+      '받은 장중 가격은 이 기기에 남겨 두어, 페이지를 다시 열어도(폰이 탭을 새로 불러와도) <b>종가로</b>를 누르거나 장중을 새로 누르기 전까지 그대로 보입니다. 새 종가가 들어오면(아침 수집 뒤) 지웁니다',
       '시세는 Finnhub 무료 키(장중 · 장 마감 뒤)와 Webull 공개 시세 · Alpaca 무료 키(프리장)로 받습니다. 키는 이 기기(브라우저)에만 저장되고 시세를 받을 때 그 회사에만 보냅니다'+
         (fhKey()?' <button class="lvdel" id="lvDel">Finnhub 키 지우기</button>':'')+(apKey()?' <button class="lvdel" id="lvDelA">Alpaca 키 지우기</button>':'')]))+
     blk('시장 지표 <small>판정에 넣지 않음</small>',ul(['주가 단계 · 200일 평균 · VIX · VIX 선물 · 하이일드 스프레드 · 부도 걱정 급증 · 월봉 과열 꺾임 · UVIX 옐로우닷은 시장 상황을 보여 주는 값이고, 옐로우닷 판정(두 지표)에는 넣지 않습니다',
@@ -2205,6 +2251,8 @@ function mxSignal(){
       const mv=g.filter(c=>c.dip.last.pmv!=null).map(c=>`${c.prod} <b class="${sc(c.dip.last.pmv)}">${sg(c.dip.last.pmv)}</b>`);   /* 마지막 옐로우닷 날 종가 뒤 3배 상품 등락 */
       L.push(`<div class="sgl" data-dt="${(g[0]||off[0]).base}"><b>${on.length?off.map(c=>c.base).join(' · ')+' 꺼짐':'모두 꺼짐'}</b>`+
         (g.length?`<span class="sgv">마지막 켜진 날 ${md(g[0].dip.last.date)}${g.length===C.length&&C.length>1?' <small>(세 곳 모두)</small>':g.length<off.length?` <small>(${g.map(c=>c.base).join(' · ')})</small>`:''}${mv.length?` · 그 뒤 ${mv.join(' · ')}`:''}</span>`:'')+`</div>`);
+      off.forEach(c=>{const x=dotGap(c.live,null);   /* 옐로우닷까지 — 다음 종가가 이만큼 빠져 끝나면 켜짐 (2026-11-25 사용자) */
+        if(x&&x.g<=0&&x.g>=-5)L.push(line(c,'',`옐로우닷까지 <b class="near">${sg(x.g)}</b> <small>(다음 종가 $${x.th.toFixed(2)} 아래)</small>`));});
     }
   }
   let T=Object.keys(LIVE||{}).filter(t=>LIVE[t]&&LIVE[t].dip&&LIVE[t].dip.on);
@@ -2457,7 +2505,7 @@ addEventListener('scroll',()=>{const h=window.scrollY<innerHeight*.8;if(fTop.hid
 history.replaceState({...navNow(),d:0},'');navBtns();
 fetch('./desk.json?'+Date.now())
   .then(r=>r.ok?r.json():Promise.reject(r.status))
-  .then(j=>{DESK=j;if(st.view==='desk')renderDesk();else if(cw())render();})
+  .then(j=>{DESK=j;if(LVS&&!LVS.busy&&LIVE0)lvApply();if(st.view==='desk')renderDesk();else if(cw())render();})
   .catch(()=>{});
 
 fetch('./tickers.txt?'+Date.now())
@@ -2502,6 +2550,7 @@ fetch('./data.json?'+Date.now())
     render();
     if(st.view==='desk'&&DESK)renderDesk();
     lvUI();
+    lvRestore();
   })
   .catch(()=>{});
 </script>
