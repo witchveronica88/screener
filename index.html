@@ -230,6 +230,9 @@ details.fold[open]>summary::after{content:'－'}
 .spec .dul{padding-left:1.1em}.spec .dul li{font-size:var(--fs-s);color:var(--ink3);margin-top:2px}
 .sd span{display:block;font-size:var(--fs-s);color:var(--ink3)}
 .sd b{font-size:var(--fs-m)}
+.sd.two{grid-template-columns:1fr 1fr}.sd.one{grid-template-columns:1fr}
+.sd.big b{display:block;font-family:var(--mono);font-size:var(--fs-l);font-weight:600;margin:2px 0 1px}
+.sd i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3)}
 .uw{display:grid;grid-template-columns:2.5em 1fr auto;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--ink3);margin-top:6px}
 .uw i{display:block;height:10px;border-radius:5px;background:var(--dn);opacity:.7;min-width:3px}
 .uw i.mx{background:var(--ink3);opacity:.5}
@@ -653,6 +656,8 @@ b,strong{font-weight:600}
 <div class="help" id="help">
   <div class="hcard">
     <h4>시드</h4>
+    <div class="hitem" data-k="seedmin"><div class="hterm">최소 시드</div>
+      <div class="hdef">한 번에 5주를 살 수 있는 가장 작은 금액입니다($100 단위 올림). <b>옐로우업다운</b> = 주가 × 5주 × 10포트(9종목만 · 옐로우닷이 켜졌을 때 여유 자금으로), <b>스위치법</b> = 주가 × 5주 × 15분할(모든 종목). 돈을 더 넣으면 1포트 · 1회 매수금도 그만큼 커집니다.</div></div>
     <div class="hitem" data-k="seed"><div class="hterm">스위치법 최소 시드</div>
       <div class="hdef">1회 매수금(시드 ÷ 15)으로 5주를 살 수 있는 금액. 주식은 1주 단위로 사기 때문에 이보다 작으면 못 쓰고 남는 돈이 커집니다. 더 넣어도 수익률은 같고 금액만 커집니다.<br><br>시드는 고정이라 주가가 오르면 1회에 사는 주식 수가 줄어듭니다. 들어갈 때 1회 주식 수를 한 번 더 확인합니다.</div></div>
     <div class="hitem" data-k="crit"><div class="hterm">변동성 σ</div>
@@ -1015,6 +1020,14 @@ function rangeBar(L,tag){
 /* 옐로우업다운 최소 금액 — 1포트로 5주를 살 수 있는 금액(주가 × 5주 × 10포트, $100 올림). 스위치법 최소 시드와 같은 셈 */
 const UD_POTS=10, udSlot=p=>ceil100(p*MIN_SH*UD_POTS);
 /* 두 방법의 최소 시드 — 옐로우업다운은 9종목만, 스위치법은 모든 종목 (2026-11-25 사용자) */
+/* 펼친 카드 맨 위 '최소 시드' 칸 — 두 방법을 나란히 (2026-11-25 사용자: 펼친 카드 안에도 두 시드 같이) */
+function seedTop(tk,p){
+  if(!p)return '';
+  const R=rungOf(seedMin(p),p), u=udSlot(p);
+  const sw=`<div><span>스위치법 · ${DIV}분할</span><b>${money(seedMin(p))}</b><i>1회 ${money(R.unit)} · ${R.n0}주</i></div>`;
+  const ud=UD.has(tk)?`<div><span>옐로우업다운 · ${UD_POTS}포트</span><b>${money(u)}</b><i>1포트 ${money(u/UD_POTS)}</i></div>`:'';
+  return secOpen('seedmin','최소 시드',`<div class="sd big ${ud?'two':'one'}">${ud}${sw}</div>`);
+}
 const seedPair=(tk,p)=>p?(UD.has(tk)?`<span>옐로우업다운<b>${money(udSlot(p))}</b></span>`:'')+`<span>스위치법<b>${money(seedMin(p))}</b></span>`:'';
 /* 옐로우업다운 칸 제목 아래 요약 — 시드 · 과거 평균·이익 비율 · 지금 상태 */
 function udSumTxt(u,p){
@@ -1025,7 +1038,7 @@ function udSumTxt(u,p){
 function udSeed(p){
   if(!p)return '<div class="cc">주가가 없어 시드를 낼 수 없습니다</div>';
   const s=udSlot(p);
-  return `<div class="sd"><div><span>최소 금액</span><b>${money(s)}</b></div><div><span>1포트</span><b>${money(s/UD_POTS)}</b></div><div><span>나눠 사기</span><b>${UD_POTS}포트</b></div></div>`+
+  return ''+   /* 금액(최소 금액 · 1포트)은 카드 맨 위 '최소 시드' 칸에 — 여기는 설명만 (2026-11-25) */
     ul([`최소 금액 = 1포트로 ${MIN_SH}주를 살 수 있는 가장 작은 금액 <small>(주가 × ${MIN_SH}주 × ${UD_POTS}포트, $100 단위 올림)</small>`,
       '여유 자금이 있을 때만 시작합니다. 더 넣으면 1포트도 그만큼 커집니다',
       '여러 종목에 함께 켜지면 여유 자금이 있는 만큼만 고릅니다']);
@@ -1389,6 +1402,7 @@ function render(){
         <div class="rr">${rr}</div>
       </div>
       ${op?`<div class="det">
+${seedTop(tk,p)}
 ${udTop?secOpen('ud','옐로우업다운',udOpen(L.dip.ud,tk,p)):secOpen('crit',`들어가기 전 확인 ${pass}/4`,critTiles(crit,r,L,live,cus,sig))}
 ${(c=>c.length?secOpen(cus&&kindTag(tk,lev,cus,nm)==='개별주'?'caut stock':'caut',`주의 ${c.length}`,cautChips(tk,c)):'')(udm?caut.filter(x=>x[0]!=='변동성 부족'):caut)}
 ${L&&(L.dip||L.low1y!=null)?secOpen('chart','주가 흐름',rangeBar(L,'')+(L.dip?priceChart(L.dip,tk):'')):''}
