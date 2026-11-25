@@ -305,6 +305,7 @@ details.fold[open]>summary::after{content:'－'}
 .dpc.na{color:var(--ink3)}
 .dpc.few{text-decoration:underline dotted var(--ink3);text-underline-offset:3px}
 .dtm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t)}
+.dtp{font-family:var(--mono);white-space:nowrap}.dtp em{font-style:normal}.dtp .g{color:var(--up)}.dtp .r{color:var(--dn)}
 .dtm>i{font-style:normal;font-size:var(--fs-xs);color:var(--warn);background:var(--s2);border-radius:4px;padding:1px 5px}
 .dts{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 10px}.dts span{white-space:nowrap}.dts b{color:var(--ink);font-family:var(--mono);margin-left:3px}
 .dth>span:first-child{text-align:left;font-weight:400;color:var(--ink3)}
@@ -1356,7 +1357,7 @@ function render(){
           const w=[...x.w,...(p&&(p.nF??p.n)<DIP_FEW?['과거 적음']:[])];
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
-            `<div class="dtm">${w.map(t=>`<i>${t}</i>`).join('')}`+
+            `<div class="dtm">${x.p?`<span class="dtp">$${x.p}${LIVE[x.tk]&&LIVE[x.tk].chg!=null?` <em class="${sgn(LIVE[x.tk].chg)}">${LIVE[x.tk].chg>0?'+':''}${LIVE[x.tk].chg}%</em>`:''}</span>`:''}${w.map(t=>`<i>${t}</i>`).join('')}`+
             (x.p?`<span class="dts">${seedPair(x.tk,x.p)}</span>`:'')+`</div></div>`;};
           const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
           const fold=(t,a)=>a.length?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>${t}</summary>${a.map(row).join('')}</details>`:'';
@@ -1539,7 +1540,11 @@ function syncHelp(){hp.classList.toggle('show',!!st.help);hb.classList.toggle('o
 hb.onclick=()=>{st.help=st.help?0:1;save();syncHelp();};
 syncHelp();
 document.getElementById('sort').value=sortNow();
-document.getElementById('sort').onchange=e=>{st.sort=e.target.value;st.sortPick=1;save();render();};
+document.getElementById('sort').onchange=e=>{st.sort=e.target.value;st.sortPick=1;save();render();
+  /* 바뀐 목록으로 내려간다 — 위의 옐로우닷 상자는 늘 추천순이라 그대로여서 정렬이 안 되는 것처럼 보였다 (2026-11-25 사용자) */
+  const r=document.querySelector('#list > .row[data-tk]');
+  const hd=document.querySelector('.top'), off=(hd?hd.getBoundingClientRect().height:0)+10;   /* 위에 붙어 있는 머리 칸만큼 덜 내려간다 */
+  if(r&&r.getBoundingClientRect().top>window.innerHeight*0.6)window.scrollTo({top:r.getBoundingClientRect().top+window.scrollY-off,behavior:'smooth'});};
 document.getElementById('reset').onclick=()=>{
   try{localStorage.removeItem(KEY);}catch(e){}
   st={grp:'all',sort:'auto',sortPick:0,px:{},open:null,help:0,fs:1,cust:{},view:st.view};
