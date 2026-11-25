@@ -1881,10 +1881,7 @@ function lvUI(){
     else if(LVS&&LVS.wait)h=`<div class="lvn">Finnhub 무료 키는 1분에 60번까지라 잠시 기다립니다 — 남은 ${LVS.total-LVS.done}개는 약 ${LVS.wait}초 뒤 이어 받습니다</div>`;
     else if(LVS&&!LVS.busy&&!LVS.n&&LVS.src)h=`<div class="lvn">아직 오늘 프리장 거래를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요</div>`;
     else if(LVS&&!LVS.busy&&!LVS.n&&LVQ&&LVQ.rows&&LVQ.rows.every(r=>r.old))h=`<div class="lvn">${LVQ.rows[0].msg}</div>`;
-    else if(LVS&&!LVS.busy&&LVS.src&&LVS.n<Object.keys(LIVE).length)h=`<div class="lvn">프리장 거래가 아직 없는 ${Object.keys(LIVE).length-LVS.n}종목은 전날 종가 그대로입니다</div>`;
-    else if(LVS&&!LVS.busy&&LVS.fail.length)h=`<div class="lvn">시세를 받지 못한 것 ${LVS.fail.length}개(${LVS.fail.join(' · ')}) — 그 종목은 종가 그대로입니다</div>`;
-    if(LVS&&!LVS.busy&&LVS.src==='srv'&&!(LVQ&&(LVQ.ask||LVQ.askA))&&!LVS.err)   /* 서버가 받아 둔 값이면 그렇다고 먼저 적는다 */
-      h=`<div class="lvn">이 기기에서는 Webull 주소가 막혀, 서버(GitHub)가 받아 둔 프리장 가격으로 보여 줍니다 <small>(켠 날 9:30까지 10분마다)</small></div>`+h;
+    /* 잘 받았으면 안내 칸을 띄우지 않는다 — 받은 개수 · 시각은 날짜 줄에 (2026-11-25 사용자: 계속 보이는 거 불편) */
     pn.innerHTML=h;pn.hidden=!h;
   }
   lvStamp();
