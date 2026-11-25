@@ -244,7 +244,7 @@ details.fold[open]>summary::after{content:'－'}
 .sd.two{grid-template-columns:1fr 1fr}.sd.one{grid-template-columns:1fr}
 .sd.big b{display:block;font-family:var(--mono);font-size:var(--fs-l);font-weight:600;margin:2px 0 1px}
 .sd i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--fs-s);color:var(--ink3)}
-.uw{display:grid;grid-template-columns:2.5em 1fr auto;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--ink3);margin-top:6px}
+.uw{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--ink3);margin-top:6px}
 .uw i{display:block;height:10px;border-radius:5px;background:var(--dn);opacity:.7;min-width:3px}
 .uw i.mx{background:var(--ink3);opacity:.5}
 .uw b{color:var(--ink);font-weight:600}
@@ -747,7 +747,7 @@ b,strong{font-weight:600}
     <div class="hitem" data-k="risk"><div class="hterm">SOXL 급락일</div>
       <div class="hdef">최근 3년 중 SOXL이 가장 크게 빠진 날(하위 10%)만 골라, 그날 이 종목이 평균 얼마나 빠졌는지 봅니다. SOXL 상관은 1년 전체 평균이라 평소엔 따로 놀다가 급락 때만 같이 무너지는 종목을 놓칩니다. SOXL 하락폭의 0.7배 이상 함께 빠지면 주의에 올립니다. 0.7은 이 화면에서 정한 기준입니다.</div></div>
     <div class="hitem" data-k="risk"><div class="hterm">회복 기간</div>
-      <div class="hdef"><b>지금</b>은 역대 고점(종가) 밑에 머문 기간, <b>최장</b>은 고점을 다시 넘는 데 가장 오래 걸렸던 기록입니다. 기다려 본 적 있는 시간보다 지금 더 오래 못 돌아오고 있는지 봅니다.</div></div>
+      <div class="hdef"><b>지금</b>은 역대 고점(종가) 밑에 머문 기간, <b>지난 최장</b>은 지난번까지 고점을 다시 넘는 데 가장 오래 걸렸던 기록입니다(아직 안 끝난 지금 것은 빼고 셉니다). 지금이 더 길면 지금까지 겪어 본 적 없는 긴 하락입니다.</div></div>
     <div class="hitem" data-k="risk"><div class="hterm">3년 낙폭</div>
       <div class="hdef">최근 3년 안에서의 최대 하락폭. 상장 이후 전체 기록은 종목마다 겪은 위기가 달라 서로 비교하기 어렵습니다. 종목끼리 견줄 때는 이 값을 씁니다.</div></div>
     <div class="hitem" data-k="risk"><div class="hterm">변동성 감가</div>
@@ -1487,7 +1487,7 @@ ${L&&L.riskBars?secFold('risk','급락 위험',
   (L.crash&&tk!=='SOXL'?`<div class="dmr"><span>SOXL이 크게 빠진 날 함께 빠진 정도</span><b class="${crashRatio(L)>=CRASH_MIN?'r':''}">${crashRatio(L).toFixed(2)}배</b></div>${meter(crashRatio(L),0,1.5,{zones:[[CRASH_MIN,1.5,'r']]})}<div class="cc">SOXL ${pct1(L.crash.soxl)} 빠진 날 이 종목 ${pct1(L.crash.me)} · ${CRASH_MIN}배 넘으면 주의</div>`:'')+
   (L.uwMax>0||L.uwNow>0?(m=>`<div class="dmr" style="margin-top:14px"><span>고점 회복 기간</span></div>
     <div class="uw"><span>지금</span><i style="width:${L.uwNow/m*100}%"></i><b>${L.uwNow>0?fmtDur(L.uwNow):'고점'}</b></div>
-    <div class="uw"><span>최장</span><i class="mx" style="width:${L.uwMax/m*100}%"></i><b>${L.uwMax>0?fmtDur(L.uwMax):'기록 없음'}</b></div>`)(Math.max(L.uwNow,L.uwMax,1)):'')+`
+    <div class="uw"><span>지난 최장</span><i class="mx" style="width:${L.uwMax/m*100}%"></i><b>${L.uwMax>0?fmtDur(L.uwMax):'기록 없음'}</b></div>`)(Math.max(L.uwNow,L.uwMax,1)):'')+`
         <div class="spec" style="margin-top:14px">
           <div><div class="sk">급락일 평균 손실</div><div class="sv">${L.es1!=null
             ?`<span class="u">${pct1(L.es1)}</span> <span class="q">하루</span><br><span class="u">${pct1(L.es5)}</span> <span class="q">5일</span>`
