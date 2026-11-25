@@ -1747,8 +1747,21 @@ async function apFetch(syms,key){   // 50개씩 한 번에 (무료 1분 200번) 
 /* 프리장 먼저 — Webull 공개 시세(2026-11-25 사용자: 프리장 받아올 방법): 키 없이 브라우저에서 바로 받히고(CORS) 50개씩 한 번에, 프리장 실시간 가격(pPrice).
    공식 API가 아니라 Webull 앱 · 사이트가 쓰는 주소라 막힐 수 있다 — 막히면 Alpaca 무료 키(있으면)로.
    종목 번호(tickerId)는 wbid.json, 거기 없는 기호(새로 넣은 종목)는 그 자리에서 찾아 이 기기에 둔다 */
-const WB='https://quotes-gw.webullfintech.com/api';
-let WBID=null;
+const WBH=['https://quotes-gw.webullfintech.com/api','https://quotes-gw.webullbroker.com/api'];   // 같은 시세 두 주소 — 앞이 안 되면 뒤로
+let WBID=null, wbWhy='';
+async function wbGet(path){   // 받은 JSON (못 받으면 null — 이유는 wbWhy, 화면 안내 칸에 그대로 보인다)
+  for(const h of WBH){
+    const c=new AbortController(), tm=setTimeout(()=>c.abort(),12000);
+    try{
+      const r=await fetch(h+path,{signal:c.signal});
+      if(!r.ok){wbWhy=`응답 ${r.status}`;continue;}
+      const t=await r.text();
+      try{return JSON.parse(t);}catch(e){wbWhy=`시세가 아닌 응답: ${t.slice(0,60)}`;}
+    }catch(e){wbWhy=e&&e.name==='AbortError'?'응답이 12초 넘게 없음':'연결이 안 됨 — 이 기기 · 통신망 · 나라에서 막혔을 수 있음';}
+    finally{clearTimeout(tm);}
+  }
+  return null;
+}
 function wbQuote(x){   // Webull 시세 하나 → Finnhub 모양 {c,h,l,pc,t}
   const tt=Date.parse(x.tradeTime)/1000, mt=Date.parse(x.mkTradeTime)/1000, c=+x.close, pp=+x.pPrice;
   if(!(c>0))return null;
@@ -1756,25 +1769,27 @@ function wbQuote(x){   // Webull 시세 하나 → Finnhub 모양 {c,h,l,pc,t}
   return {c,h:+x.high||c,l:+x.low||c,pc:+x.preClose||0,t:mt||tt};   // 정규장 값 — 장 전이면 전날 종가라 '새 가격 없음'으로 걸러진다
 }
 async function wbFetch(syms){   // 받은 것은 LVS.q, 못 받은 것은 LVS.fail — 하나도 못 받으면 'wb'를 던진다
-  if(!WBID){try{const r=await fetch('wbid.json',{cache:'no-cache'});WBID=r.ok?await r.json():{};}catch(e){WBID={};}}
+  wbWhy='';
+  if(!WBID){try{const r=await fetch('wbid.json',{cache:'no-cache'});WBID=r.ok?await r.json():null;}catch(e){WBID=null;}
+    if(!WBID){WBID=null;wbWhy='종목 번호 파일(wbid.json)을 받지 못함';throw 'wb';}}
   let mine={};try{mine=JSON.parse(lsGet('scr_wbid')||'{}');}catch(e){}
   const id=x=>WBID[x]||mine[x];
-  for(const x of syms.filter(x=>!id(x))){
-    try{const j=await (await fetch(`${WB}/search/pc/tickers?keyword=${encodeURIComponent(x)}&pageIndex=1&pageSize=20&regionId=6`)).json();
-      const h=((j&&j.data)||[]).find(y=>y.regionId===6&&(y.symbol===x||y.disSymbol===x));if(h)mine[x]=h.tickerId;}catch(e){}
+  for(const x of syms.filter(x=>!id(x))){   // 새로 넣은 종목 — 번호를 찾아 이 기기에 둔다 (찾기가 막히면 그만)
+    const j=await wbGet(`/search/pc/tickers?keyword=${encodeURIComponent(x)}&pageIndex=1&pageSize=20&regionId=6`);
+    if(!j)break;
+    const h=(j.data||[]).find(y=>y.regionId===6&&(y.symbol===x||y.disSymbol===x));if(h)mine[x]=h.tickerId;
   }
   lsSet('scr_wbid',JSON.stringify(mine));
   const ok=syms.filter(id), by={};ok.forEach(x=>{by[id(x)]=x;});
   let got=0;
   for(let i=0;i<ok.length;i+=50){
     const part=ok.slice(i,i+50);
-    const r=await fetch(`${WB}/bgw/quote/realtime?ids=${part.map(id).join(',')}&includeSecu=1&delay=0&more=1`);
-    if(!r.ok)throw 'wb';
-    const a=await r.json();if(!Array.isArray(a))throw 'wb';
+    const a=await wbGet(`/bgw/quote/realtime?ids=${part.map(id).join(',')}&includeSecu=1&delay=0&more=1`);
+    if(!Array.isArray(a)){if(a)wbWhy=`시세가 아닌 응답: ${JSON.stringify(a).slice(0,80)}`;throw 'wb';}
     for(const x of a){const k=by[x.tickerId]||x.symbol, q=wbQuote(x);if(k&&q){LVS.q[k]=q;got++;}}
     LVS.done=Math.min(i+50,syms.length);lvUI();
   }
-  if(!got)throw 'wb';
+  if(!got){wbWhy=wbWhy||'시세가 비어 있음';throw 'wb';}
   for(const x of syms)if(!LVS.q[x])LVS.fail.push(x);
 }
 /* 받은 시세가 쓸 만한가 — s: 마지막 확정 종가 {d 날짜, pc 종가}. 프리장(뉴욕 9:30 전)이면 오늘 고가 · 저가 없이 그 가격 하나로 */
@@ -1856,7 +1871,7 @@ function lvUI(){
       <div class="lvk"><input id="lvKeyIn" type="password" placeholder="Finnhub API 키" autocomplete="off" spellcheck="false"><button id="lvKeySave">저장</button></div>
       <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://finnhub.io/register" target="_blank" rel="noopener">Finnhub 무료 키 받기</a> · 키는 이 기기에만 저장됩니다'}</div>`;
     else if(LVQ&&LVQ.askA)h=`<div class="lvt"><b>프리장 가격</b><button id="lvClose">닫기</button></div>
-      <div class="lvn">Webull 공개 시세를 받지 못했습니다(공식 API가 아니라 막혔을 수 있습니다). Alpaca 무료 키(모의 투자 계좌)를 넣으면 그것으로 프리장 가격을 받습니다. 장이 열리면(뉴욕 9:30) 지금처럼 Finnhub로 받습니다.</div>
+      <div class="lvn">Webull 공개 시세를 받지 못했습니다${LVQ.why?` <small>(${esc(LVQ.why)})</small>`:''}. 공식 API가 아니라 막혔을 수 있습니다. Alpaca 무료 키(모의 투자 계좌)를 넣으면 그것으로 프리장 가격을 받습니다. 장이 열리면(뉴욕 9:30) 지금처럼 Finnhub로 받습니다.</div>
       <div class="lvk"><input id="lvAkIn" type="text" placeholder="Alpaca API Key" autocomplete="off" spellcheck="false"></div>
       <div class="lvk"><input id="lvAsIn" type="password" placeholder="Alpaca Secret Key" autocomplete="off" spellcheck="false"><button id="lvAkSave">저장</button></div>
       <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://app.alpaca.markets/signup" target="_blank" rel="noopener">Alpaca 무료 가입</a> · 키는 이 기기에만 저장됩니다'}</div>`;
@@ -1899,7 +1914,7 @@ async function preRun(){   // 프리장: Webull → 막히면 Alpaca(키가 있�
   if(!ok){
     const ak=apKey();
     if(ak)return apRun(ak);
-    LVS=null;lvUndo();LIVE0=null;LVQ={askA:true};lvDraw();return;
+    LVS=null;lvUndo();LIVE0=null;LVQ={askA:true,why:wbWhy};lvDraw();return;
   }
   LVS.busy=false;lvApply();lvDraw();
 }
