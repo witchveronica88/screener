@@ -45,6 +45,15 @@ input,select,button{font-family:inherit}
 .brand{font-size:var(--fs-xl);font-weight:700;letter-spacing:.14em;line-height:var(--lh-t)}
 .brand em{font-style:normal;color:var(--ink3)}
 .stamp{font-size:var(--fs-s);color:var(--ink3);margin-top:3px;line-height:var(--lh-t)}
+/* 맨 위 '장중' 버튼 (2026-11-25 사용자: 장중 버튼을 SCREENER 옆에 작게, 모든 종목도) */
+.brow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
+.lvw{display:inline-flex;gap:6px;flex-wrap:wrap}
+.lvtop{background:var(--s1);border:1px solid var(--bd2);color:var(--on);border-radius:999px;padding:2px 8px;
+       font-size:var(--fs-s);font-weight:600;line-height:var(--lh-t);cursor:pointer;white-space:nowrap;font-family:var(--sans)}
+.lvtop.on{background:var(--onDim);border-color:var(--on);color:var(--ink)}
+.lvtop.gray{color:var(--ink3)}
+.top .lvpanel{margin:10px 0 0}
+.stamp b.lv1{color:var(--warn);font-weight:600}
 .stale{font-size:var(--fs-s);color:var(--warn);margin-top:3px;line-height:var(--lh)}
 .dstale{font-size:var(--fs-s);color:var(--warn);background:var(--s1);border:1px solid var(--warn);border-radius:9px;
         padding:8px 11px;margin:0 0 10px;line-height:var(--lh)}
@@ -636,7 +645,7 @@ b,strong{font-weight:600}
 <div class="top">
   <div class="hrow">
     <div style="min-width:0">
-      <div class="brand">SCREENER</div>
+      <div class="brow"><div class="brand">SCREENER</div><span class="lvw" id="lvW"><button class="lvtop" id="lvTop">장중</button></span></div>
       <div class="stamp" id="stamp">수동 입력</div>
       <div class="stale" id="stale" hidden></div>
     </div>
@@ -645,6 +654,7 @@ b,strong{font-weight:600}
       <button class="helpbtn" id="helpbtn">용어</button>
     </div>
   </div>
+  <div class="lv lvpanel" id="lvPanel" hidden></div>
   <div class="views" id="views">
     <button data-v="desk">상황</button><button data-v="scr">종목</button>
   </div>
@@ -1693,29 +1703,154 @@ function wdAfter(a,b){   // a 뒤 b까지 평일 수
   while(d<e){d.setUTCDate(d.getUTCDate()+1); const w=d.getUTCDay(); if(w&&w<6)n++;}
   return n;
 }
+const nyHM=t=>{const [h,m]=new Date(t*1000).toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:false}).split(':').map(Number);return h*100+m;};
+/* 받은 시세가 쓸 만한가 — s: 마지막 확정 종가 {d 날짜, pc 종가}. 프리장(뉴욕 9:30 전)이면 오늘 고가 · 저가 없이 그 가격 하나로 */
+function lvQuote(q,s){
+  if(!q||!(q.c>0))return {msg:'시세를 받지 못했습니다'};
+  const d=nyDay(q.t);
+  if(d<=s.d)return {msg:'새 장중 가격이 없습니다. 마지막 종가는 이미 반영돼 있고, 장이 열리면 다시 눌러 주세요',old:true,c:q.c,t:q.t};
+  if(wdAfter(s.d,d)>1)return {msg:'하루 넘게 늦은 자료라 계산하지 못했습니다',c:q.c,t:q.t};
+  if(q.pc>0&&Math.abs(q.pc/s.pc-1)>0.01)return {msg:'전날 종가가 달라 계산하지 못했습니다',c:q.c,t:q.t};
+  const hm=nyHM(q.t), pre=hm<930, done=hm>=1600;
+  return {c:q.c,t:q.t,pre,done,H:pre?q.c:Math.max(q.h||q.c,q.c),L:pre?q.c:Math.min(q.l||q.c,q.c)};
+}
+function deskRow(c,q){
+  const v=lvQuote(q,c.live), r={base:c.base,c:v.c,t:v.t};
+  if(v.msg)return {...r,msg:v.msg,old:v.old};
+  const x=lvCalc(c.live,v.H,v.L,v.c);
+  return {...r,chg:(v.c/c.live.pc-1)*100,on:x.on,th:x.on?null:lvThresh(c.live,v.H,v.L),done:v.done,pre:v.pre};
+}
+/* 모든 종목 — LIVE(data.json)의 값을 장중 값으로 바꾸고, 원래 값은 LIVE0에 두었다가 '종가로'에서 되돌린다 */
+let LVS=null, LIVE0=null, STAMP_TXT=null;
+const lvSleep=ms=>new Promise(r=>setTimeout(r,ms));
+function lvSnap(){
+  LIVE0={};
+  for(const tk in LIVE){const L=LIVE[tk];LIVE0[tk]={price:L.price,chg:L.chg,rsi:L.rsi,dip:L.dip?{on:L.dip.on,run:L.dip.run,k:L.dip.k,rsi:L.dip.rsi}:null};}
+}
+function lvUndo(){
+  if(!LIVE0)return;
+  for(const tk in LIVE0){const L=LIVE[tk],o=LIVE0[tk];if(!L)continue;
+    L.price=o.price;L.chg=o.chg;L.rsi=o.rsi;if(L.dip&&o.dip)Object.assign(L.dip,o.dip);delete L.lvq;}
+}
+function lvSyms(){   /* 받을 차례: 상황판 지수 → 옐로우업다운 9종목 → 옐로우닷 켜진 종목 → 목록에 보이는 차례 (상품과 기초자산 둘 다) */
+  const out=[], add=x=>{if(x&&!out.includes(x))out.push(x);};
+  ((DESK&&DESK.cards)||[]).forEach(c=>{if(c.live)add(c.base);});
+  const tks=Object.keys(LIVE), pair=t=>{add(t);const b=LIVE[t].dip&&LIVE[t].dip.base;if(b)add(b);};
+  tks.filter(t=>UD.has(t)).forEach(pair);
+  tks.filter(t=>LIVE0[t]&&LIVE0[t].dip&&LIVE0[t].dip.on).forEach(pair);
+  [...document.querySelectorAll('#list .row[data-tk]')].map(r=>r.dataset.tk).filter(t=>LIVE[t]).forEach(pair);
+  tks.forEach(pair);
+  return out;
+}
+function lvApply(){
+  if(!LVS)return;
+  const Q=LVS.q;
+  if(DESK&&DESK.cards){
+    const cs=DESK.cards.filter(c=>c.live&&Q[c.base]);
+    if(cs.length)LVQ={rows:cs.map(c=>deskRow(c,Q[c.base])),t:Math.max(...cs.map(c=>Q[c.base].t||0))};
+  }
+  lvUndo();
+  let n=0, t=0, pre=false, done=false;
+  for(const tk in LIVE){
+    const L=LIVE[tk], o=LIVE0[tk]; if(!o)continue;
+    const vp=Q[tk]?lvQuote(Q[tk],{d:L.date,pc:o.price}):null;
+    if(vp&&!vp.msg){L.price=+vp.c.toFixed(2);L.chg=+((vp.c/o.price-1)*100).toFixed(2);L.lvq=vp;n++;t=Math.max(t,vp.t);pre=pre||vp.pre;done=done||vp.done;}
+    const sb=L.dip&&L.dip.live, qb=Q[(L.dip&&L.dip.base)||tk];
+    if(sb&&qb){const vb=lvQuote(qb,sb);
+      if(!vb.msg){const x=lvCalc(sb,vb.H,vb.L,vb.c);
+        L.dip.on=x.on;L.dip.run=x.on?(o.dip&&o.dip.on?o.dip.run+1:1):0;L.dip.k=+x.k.toFixed(1);L.dip.rsi=+x.rsi.toFixed(1);
+        if(!L.dip.base)L.rsi=L.dip.rsi;}}
+  }
+  LVS.n=n;LVS.t=t||LVS.t;LVS.pre=pre;LVS.closed=done;   /* done = 받은 개수라 장 마감은 closed */
+}
+function lvStamp(){
+  const el=document.getElementById('stamp');if(!el)return;
+  if(STAMP_TXT==null)STAMP_TXT=el.textContent;
+  if(!LVS||!LVS.n){el.textContent=STAMP_TXT;return;}
+  const lab=LVS.closed?'장 마감 · 종가 수집 전':LVS.pre?'프리장':'장중';
+  el.innerHTML=`<b class="lv1">${lab}</b> 뉴욕 ${hhmm(LVS.t,'America/New_York')} · 한국 ${hhmm(LVS.t,'Asia/Seoul')} · ${LVS.n}/${Object.keys(LIVE).length}종목`;
+}
+function lvUI(){
+  const w=document.getElementById('lvW'), pn=document.getElementById('lvPanel');
+  if(w){
+    const busy=LVS&&LVS.busy, on=LVS&&LVS.n;
+    w.innerHTML=`<button class="lvtop${on?' on':''}" id="lvTop">${busy?`장중 ${LVS.done}/${LVS.total}`:on?'장중 다시':'장중'}</button>`+
+      (!busy&&(on||lvOn())?`<button class="lvtop gray" id="lvBack">종가로</button>`:'');
+  }
+  if(pn){
+    let h='';
+    if(LVQ&&LVQ.ask)h=`<div class="lvt"><b>장중 지금 가격</b><button id="lvClose">닫기</button></div>
+      <div class="lvk"><input id="lvKeyIn" type="password" placeholder="Finnhub API 키" autocomplete="off" spellcheck="false"><button id="lvKeySave">저장</button></div>
+      <div class="lvn${LVQ.err?' err':''}">${LVQ.err||'<a href="https://finnhub.io/register" target="_blank" rel="noopener">Finnhub 무료 키 받기</a> · 키는 이 기기에만 저장됩니다'}</div>`;
+    else if(LVS&&LVS.err)h=`<div class="lvn err">${LVS.err}</div>`;
+    else if(LVS&&LVS.wait)h=`<div class="lvn">Finnhub 무료 키는 1분에 60번까지라 잠시 기다립니다 — 남은 ${LVS.total-LVS.done}개는 약 ${LVS.wait}초 뒤 이어 받습니다</div>`;
+    else if(LVS&&!LVS.busy&&!LVS.n&&LVQ&&LVQ.rows&&LVQ.rows.every(r=>r.old))h=`<div class="lvn">${LVQ.rows[0].msg}</div>`;
+    else if(LVS&&!LVS.busy&&LVS.fail.length)h=`<div class="lvn">시세를 받지 못한 것 ${LVS.fail.length}개(${LVS.fail.join(' · ')}) — 그 종목은 종가 그대로입니다</div>`;
+    pn.innerHTML=h;pn.hidden=!h;
+  }
+  lvStamp();
+}
+function lvDraw(){   /* 보고 있는 화면을 다시 그린다 — 스크롤은 그대로 */
+  const y=window.scrollY;
+  try{render();}catch(e){}
+  if(st.view==='desk'&&DESK)renderDesk();
+  lvUI();window.scrollTo(0,y);
+}
 async function liveGo(){
   const key=fhKey();
-  if(!key){LVQ={ask:true};return;}
-  const cs=(DESK.cards||[]).filter(c=>c.live);
-  try{
-    const qs=await Promise.all(cs.map(c=>fetch(`https://finnhub.io/api/v1/quote?symbol=${c.base}&token=${encodeURIComponent(key)}`)
-      .then(r=>{if(r.status===401||r.status===403)throw new Error('key');if(r.status===429)throw new Error('busy');if(!r.ok)throw new Error('net');return r.json();})));
-    const rows=cs.map((c,i)=>{
-      const q=qs[i], s=c.live, r={base:c.base};
-      if(!q||!(q.c>0))return {...r,msg:'시세를 받지 못했습니다'};
-      const d=nyDay(q.t); r.c=q.c; r.t=q.t;
-      if(d<=s.d)return {...r,msg:'새 장중 가격이 없습니다. 마지막 종가는 이미 반영돼 있고, 장이 열리면 다시 눌러 주세요',old:true};
-      if(wdAfter(s.d,d)>1)return {...r,msg:'상황판이 하루 넘게 늦어 계산하지 못했습니다'};
-      if(q.pc>0&&Math.abs(q.pc/s.pc-1)>0.01)return {...r,msg:'전날 종가가 상황판과 달라 계산하지 못했습니다'};
-      const H=Math.max(q.h||q.c,q.c), L=Math.min(q.l||q.c,q.c), v=lvCalc(s,H,L,q.c);
-      return {...r,chg:(q.c/s.pc-1)*100,on:v.on,th:v.on?null:lvThresh(s,H,L),done:nyHour(q.t)>=16};
-    });
-    LVQ={rows,t:Math.max(...rows.map(r=>r.t||0))};
-  }catch(e){
-    LVQ=e.message==='key'?{ask:true,err:'키가 맞지 않습니다. 다시 넣어 주세요.'}
-      :{err:e.message==='busy'?'요청이 많습니다. 1분 뒤 다시 눌러 주세요.':'시세를 받지 못했습니다. 잠시 뒤 다시 눌러 주세요.'};
-  }
+  if(!key){LVQ={ask:true};lvUI();return;}
+  if(LVS&&LVS.busy)return;
+  if(!LIVE0)lvSnap();
+  const syms=lvSyms(), win=[];
+  LVS={q:{},done:0,total:syms.length,busy:true,fail:[],n:0,t:0,wait:0};
+  if(LVQ&&(LVQ.ask||LVQ.err))LVQ=null;
+  lvUI();
+  let next=0, last=0, stop=null, dirty=false;
+  const one=async sym=>{
+    for(let a=0;a<3&&!stop;a++){
+      for(;;){const now=Date.now();while(win.length&&now-win[0]>61000)win.shift();if(win.length<55)break;
+        LVS.wait=Math.ceil((61000-(now-win[0]))/1000);
+        if(dirty){dirty=false;last=Date.now();lvApply();lvDraw();}else lvUI();
+        await lvSleep(1000);}
+      if(LVS.wait){LVS.wait=0;lvUI();}
+      win.push(Date.now());
+      try{
+        const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${encodeURIComponent(key)}`);
+        if(r.status===401||r.status===403){stop='key';return;}
+        if(r.status===429){win.length=0;for(let k=0;k<55;k++)win.push(Date.now());continue;}
+        if(!r.ok)break;
+        const q=await r.json();
+        if(q&&q.c>0){LVS.q[sym]=q;return;}
+        break;
+      }catch(e){break;}
+    }
+    LVS.fail.push(sym);
+  };
+  const worker=async()=>{
+    while(!stop&&next<syms.length){
+      const sym=syms[next++];await one(sym);LVS.done++;dirty=true;
+      if(Date.now()-last>1200||LVS.done===LVS.total){dirty=false;last=Date.now();lvApply();lvDraw();}
+      await lvSleep(40);
+    }
+  };
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  LVS.busy=false;
+  if(stop==='key'){LVS=null;lvUndo();LIVE0=null;LVQ={ask:true,err:'키가 맞지 않습니다. 다시 넣어 주세요.'};lvDraw();return;}
+  lvApply();lvDraw();
 }
+function lvBack(){   /* 종가로 — 확정 종가 화면으로 되돌린다 */
+  lvUndo();LIVE0=null;LVS=null;LVQ=null;lvDraw();
+}
+document.querySelector('.top').addEventListener('click',async e=>{
+  if(e.target.closest('#lvTop')){liveGo();return;}
+  if(e.target.closest('#lvBack')){if(!(LVS&&LVS.busy))lvBack();return;}
+  if(e.target.closest('#lvClose')){LVQ=null;lvUI();return;}
+  if(e.target.closest('#lvKeySave')){
+    const v=(document.getElementById('lvKeyIn').value||'').trim();if(!v)return;
+    try{localStorage.setItem(LV_KEY,v);}catch(_){}
+    LVQ=null;liveGo();
+  }
+});
 const lvOf=b=>LVQ&&LVQ.rows?LVQ.rows.find(r=>r.base===b&&r.chg!=null)||null:null;
 const lvOn=()=>!!(LVQ&&LVQ.rows&&LVQ.rows.some(r=>r.chg!=null));
 const LV_NM={SPY:'S&P500',QQQ:'나스닥',SOXX:'반도체'};
@@ -1728,7 +1863,8 @@ function lvHead(){   /* 장중 결론 — 주가(S&P500 ±1% 경계, 다른 지�
   if(ok.some(r=>r.done))   /* 장이 끝났고 아침 종가 수집 전 — 가격은 이미 정해졌다 */
     return `장이 끝났습니다. ${s.chg>=1?`${sn}${ga} 올랐습니다`:s.chg<=-1?`${sn}${ga} 빠졌습니다`:`${sn}${eun} 크게 움직이지 않았습니다`}${bg}. `+
       (on.length?`이 종가로 ${nm} 옐로우닷이 켜집니다 — 아침 수집 때 확정합니다.`:'이 종가로는 옐로우닷이 켜지지 않습니다.');
-  const mv=(s.chg>=1?`장중 지금 ${sn}${ga} 오르고 있습니다`:s.chg<=-1?`장중 지금 ${sn}${ga} 빠지고 있습니다`:`장중 지금 ${sn}${eun} 크게 움직이지 않습니다`)+bg+'.';
+  const pv=ok.some(r=>r.pre)?'프리장에서 지금':'장중 지금';
+  const mv=(s.chg>=1?`${pv} ${sn}${ga} 오르고 있습니다`:s.chg<=-1?`${pv} ${sn}${ga} 빠지고 있습니다`:`${pv} ${sn}${eun} 크게 움직이지 않습니다`)+bg+'.';
   return mv+' '+(on.length?`이 가격으로 끝나면 ${nm} 옐로우닷이 켜집니다.`:'지금 가격으로는 옐로우닷이 켜지지 않습니다.');
 }
 const lvText=r=>r.done?(r.on?`이 종가로 옐로우닷 <b class="on">켜짐</b> <small>(아침 수집 때 확정)</small>`:'이 종가로는 옐로우닷 <b>꺼짐</b>')
@@ -1767,7 +1903,7 @@ async function liveClick(e){
     try{localStorage.setItem(LV_KEY,v);}catch(_){}
     LVQ={loading:true};re();await liveGo();re();return;
   }
-  if(e.target.closest('#lvDel')){try{localStorage.setItem(LV_KEY,'');}catch(_){}LVQ=null;re();return;}
+  if(e.target.closest('#lvDel')){try{localStorage.setItem(LV_KEY,'');}catch(_){}lvBack();return;}
   if(e.target.closest('#lvGo')){
     if(!fhKey()){LVQ={ask:true};re();return;}
     LVQ={loading:true};re();await liveGo();re();
@@ -1793,7 +1929,9 @@ function secRules(){
       '바닥권: %K 20 이하 · RSI 30 이하가 모두 맞는 날',
       '<small>2026-11-24부터 CCI(−100 이하)를 뺐습니다 — 켜진 날이 거의 같았고 과거 결과도 그대로였습니다</small>',
       `과거 결과: 다음 날 시가에 샀다면 +${DESK.target}%에 15거래일 · 30거래일 안, +20%에 30거래일 안에 닿았는지. 며칠 연달아 켜지면 첫날 한 번만 셈`]))+
-    blk('장중 지금 가격',ul(['주가 칸 머리의 <b>장중 지금 가격</b>을 누르면 SPY · QQQ · SOXX의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
+    blk('장중 지금 가격',ul(['맨 위 SCREENER 옆 <b>장중</b>을 누르면 SPY · QQQ · SOXX와 종목 탭의 모든 종목(기초자산 포함)의 지금 가격과 오늘 지금까지의 고가 · 저가를 받아 두 지표를 다시 셉니다',
+      'Finnhub 무료 키는 1분에 60번까지라 지수 → 옐로우업다운 9종목 → 옐로우닷이 켜진 종목 → 나머지 차례로 받고, 넘으면 1분쯤 기다렸다 이어 받습니다(모두 받는 데 1~2분)',
+      '프리장(뉴욕 9:30 전) 가격이 오면 <b>프리장</b>이라고 적고 그 가격 하나로 셉니다(오늘 고가 · 저가 없이). Finnhub 무료 키가 프리장 가격을 주지 않으면 장이 열린 뒤에 나옵니다',
       '주가 칸(단계 · 최고가 대비 · 오늘 등락 · 그래프 끝)과 진입 신호 칸이 지금 가격으로 바뀝니다. <b>지금 가격으로 장이 끝나면</b> 어떤지 보여 주는 임시 값이고, 확정은 장 마감 뒤 종가로 다시 계산합니다',
       '켜지는 가격: 남은 시간에 오늘 고가 · 저가가 더 넓어지지 않는다고 보고, 이 값 이하로 끝나면 두 지표가 모두 바닥권에 들어가는 가장 높은 종가',
       '장이 끝난 뒤 아침 수집 전에 누르면 그날 마감 가격으로 보여 줍니다(켜지는 가격 없이 켜짐 · 꺼짐만). 확정은 아침 수집 때 합니다',
@@ -1864,7 +2002,7 @@ function pxRow(c){
 }
 function mxPrice(){
   return `<div class="mx"><div class="mxt"><span>주가 <em>3개월${lvOn()?' · 끝은 지금':''} · 점선 200일 평균</em></span>`+
-    (LVQ?'':'<button class="lvbtn" id="lvGo">장중 지금 가격</button>')+`</div>`+
+    `</div>`+
     DESK.cards.map(c=>c.mkt&&c.ind?pxRow(c):`<div class="mxr"><div class="mxl"><div class="mxh"><span class="tk">${c.base}</span></div>`+
       `<div class="mxs">${c.line||'자료 확인 중'}</div></div></div>`).join('')+`</div>`;
 }
@@ -1913,7 +2051,7 @@ function mxSignal(){
 }
 function deskSum(){
   const hd=lvOn()?lvHead():DESK.headline;
-  return (hd?`<div class="dhead1">${hd}</div>`:'')+(LVQ?liveBox():'')+mxPrice()+mxMood()+mxSignal()+mktRules()+dotRules()+secRules();   /* 장중 버튼은 주가 칸 머리에 */
+  return (hd?`<div class="dhead1">${hd}</div>`:'')+mxPrice()+mxMood()+mxSignal()+mktRules()+dotRules()+secRules();   /* 장중 버튼은 주가 칸 머리에 */
 }
 /* 요약 탭 — 시장 지표란: 주가 · 분위기 칸의 말들의 뜻 (자세한 숫자는 SPY · QQQ · SOXX · VIX 탭) */
 function mktRules(){
@@ -1935,7 +2073,7 @@ function mktRules(){
 function deskCard(c){
   if(c.state==='wait')return `<div class="dcard wait"><div class="dhead"><span class="tk">${c.base}</span></div><div class="dline">${c.line}</div></div>`;
   const g=c.stage, p=c.dip.past, r=lvOf(c.base);
-  let h=(lvOn()?liveBox():'')+`<div class="flow">${fhead(c,g)}${r?`<div class="lvs">${lvText(r)}</div>`:''}</div>`+readCard(c);
+  let h=`<div class="flow">${fhead(c,g)}${r?`<div class="lvs">${lvText(r)}</div>`:''}</div>`+readCard(c);
   h+=dsec('c','차트',deskChart(c),`${c.base} 최근 1개월 · 날짜를 누르면 그날 값`);
   h+=dsec('p','옐로우닷 과거 결과',!p&&c.pstale?`<div class="cc">${c.prod} 가격을 받지 못해 과거 결과를 세지 못했습니다. 다음 갱신 때 다시 셉니다</div>`:dipPast(p,c.prod+eul(c.prod)),
     p?`다음 날 ${c.prod} · +10% 15일 <b>${p.hitF??'—'}%</b> · 30일 <b>${p.hit}%</b>`:'과거 옐로우닷 없음');
@@ -2195,8 +2333,10 @@ fetch('./data.json?'+Date.now())
       el.textContent=`${m}/${d} 종가 · ${j.count}종목`;
       const n=missedDays(last), w=document.getElementById('stale');
       if(n){w.hidden=false;w.textContent=staleMsg(n,'종가가');}}
+    STAMP_TXT=el?el.textContent:null;
     render();
     if(st.view==='desk'&&DESK)renderDesk();
+    lvUI();
   })
   .catch(()=>{});
 </script>

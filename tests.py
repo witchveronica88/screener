@@ -321,6 +321,21 @@ class EtfList(unittest.TestCase):
         self.assertEqual([e['tk'] for e in j['etfs'] if not e.get('base')], ['AIBU'])
 
 
+class ScrLive(unittest.TestCase):
+    """종목 탭 장중 — market.yellow의 live에 오늘 봉만 더한 셈(화면 lvCalc)이 indicators와 같다"""
+    def test_yellow_live_matches(self):
+        import math
+        B = [{'d': f'2026-0{1 + i // 28}-{1 + i % 28:02d}', 'o': 0, 'h': 100 + 10 * math.sin(i / 3) + 2,
+              'l': 100 + 10 * math.sin(i / 3) - 2, 'c': 100 + 10 * math.sin(i / 3) + math.cos(i)} for i in range(90)]
+        y = market.yellow(B[:-1]); s = y['live']; b = B[-1]
+        I = market.indicators(B)
+        hh = max(s['h4'] + [b['h']]); ll = min(s['l4'] + [b['l']]); k = (b['c'] - ll) / (hh - ll) * 100
+        d = b['c'] - s['pc']; g = (s['g'] * 13 + max(d, 0)) / 14; lo = (s['l'] * 13 + max(-d, 0)) / 14
+        self.assertAlmostEqual(k, I['k'][-1], places=3)
+        self.assertAlmostEqual(100 - 100 / (1 + g / lo), I['rsi'][-1], places=3)
+        self.assertEqual(s['d'], B[-2]['d'])
+
+
 class DeskLive(unittest.TestCase):
     """장중 지금 가격 — desk.live_state에 오늘 봉만 더한 셈(화면 lvCalc와 같은 식)이 market.indicators와 같다"""
     def test_live_state_matches_indicators(self):

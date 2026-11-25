@@ -236,6 +236,22 @@ def indicators(B):
 
 
 # ───────────── 옐로우닷 ─────────────
+def live_state(B, n=14):
+    """장중 '지금 가격'으로 다시 셀 때 필요한 마지막 확정 종가까지의 지표 상태 — 4일 고가·저가와 RSI(Wilder) 평균 상승·하락.
+       화면이 오늘 봉(지금까지 고가·저가·현재가)만 더해 %K(5)·RSI(14)를 indicators와 같은 셈으로 다시 센다
+       (2026-11-25 사용자: 장중 버튼으로 모든 종목도 · desk.live_state와 같은 셈)"""
+    c = [b['c'] for b in B]
+    d = [c[i] - c[i-1] for i in range(1, len(c))]
+    if len(d) < n:
+        return None
+    g = sum(x for x in d[:n] if x > 0) / n; l = sum(-x for x in d[:n] if x < 0) / n
+    for i in range(n, len(d)):
+        g = (g * (n-1) + max(d[i], 0)) / n; l = (l * (n-1) + max(-d[i], 0)) / n
+    r6 = lambda v: round(v, 6)
+    return {'d': B[-1]['d'], 'pc': r6(c[-1]), 'g': r6(g), 'l': r6(l),
+            'h4': [r6(b['h']) for b in B[-4:]], 'l4': [r6(b['l']) for b in B[-4:]]}
+
+
 def is_dip(I, i):
     """옐로우닷: 두 지표가 모두 '많이 빠짐' (빠르기 %K ≤ 20 · 힘 RSI ≤ 30).
        2026-11-24 사용자 결정으로 CCI(≤ −100)를 뺐다 — 62종목 전체 기록에서 첫날이 달라진 건 4.5%뿐이고
@@ -341,6 +357,9 @@ def yellow(B, P=None, base=None, ud=False):
          'rsi': round(I['rsi'][-1], 1), 'past': dip_past(B, I, P)}
     if base:
         r['base'] = base
+    lv = live_state(B)
+    if lv:
+        r['live'] = lv                                 # 장중 버튼이 이 종목의 옐로우닷 · RSI를 지금 가격으로 다시 셀 때 쓴다
     # 종목 상세의 작은 그래프: 최근 3개월 종가와 옐로우닷이 찍힌 날(기초자산으로 판정했으면 그 날짜를 상품 가격 위에 표시)
     dots = {B[i]['d'] for i in range(max(last - 70, 0), last + 1) if is_dip(I, i)}
     w = P[-63:]
