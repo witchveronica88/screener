@@ -120,6 +120,10 @@ input,select,button{font-family:inherit}
 .rr .b{font-family:var(--mono);font-size:var(--fs-m);color:var(--ink);margin-top:2px}
 .rr .k{font-size:var(--fs-s);color:var(--ink3);margin-top:3px}
 .nopx{font-size:var(--fs-s);color:var(--ink3)}
+/* 최소 시드 줄 — 옐로우업다운(9종목) · 스위치법 (2026-11-25 사용자: 두 방법의 최소 시드를 종목에 써 달라) */
+.seeds{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:5px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh)}
+.seeds span{white-space:nowrap}
+.seeds b{font-family:var(--mono);font-size:var(--fs-m);font-weight:600;color:var(--ink);margin-left:3px}
 
 /* ── 상세 ── */
 .det{display:none;padding:0 16px 20px;border-top:1px solid var(--bd)}
@@ -289,7 +293,7 @@ details.fold[open]>summary::after{content:'－'}
 .dpc.few{text-decoration:underline dotted var(--ink3);text-underline-offset:3px}
 .dtm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font-size:var(--fs-s);color:var(--ink3);line-height:var(--lh-t)}
 .dtm>i{font-style:normal;font-size:var(--fs-xs);color:var(--warn);background:var(--s2);border-radius:4px;padding:1px 5px}
-.dts{margin-left:auto;white-space:nowrap}.dts b{color:var(--ink);font-family:var(--mono)}
+.dts{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 10px}.dts span{white-space:nowrap}.dts b{color:var(--ink);font-family:var(--mono);margin-left:3px}
 .dth>span:first-child{text-align:left;font-weight:400;color:var(--ink3)}
 .dgl{font-size:var(--fs-s);font-weight:600;color:var(--ink3);padding:8px 0 0}
 .dmore>summary{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--s2);font-size:var(--fs-s);font-weight:600;color:var(--ink3)}
@@ -1010,6 +1014,8 @@ function rangeBar(L,tag){
 }
 /* 옐로우업다운 최소 금액 — 1포트로 5주를 살 수 있는 금액(주가 × 5주 × 10포트, $100 올림). 스위치법 최소 시드와 같은 셈 */
 const UD_POTS=10, udSlot=p=>ceil100(p*MIN_SH*UD_POTS);
+/* 두 방법의 최소 시드 — 옐로우업다운은 9종목만, 스위치법은 모든 종목 (2026-11-25 사용자) */
+const seedPair=(tk,p)=>p?(UD.has(tk)?`<span>옐로우업다운<b>${money(udSlot(p))}</b></span>`:'')+`<span>스위치법<b>${money(seedMin(p))}</b></span>`:'';
 /* 옐로우업다운 칸 제목 아래 요약 — 시드 · 과거 평균·이익 비율 · 지금 상태 */
 function udSumTxt(u,p){
   const pc=v=>(v>0?'+':'')+v+'%', n=u.now;
@@ -1327,7 +1333,7 @@ function render(){
           return `<div class="dtr" data-go="${x.tk}"><div class="dtn"><span class="tk">${x.tk}</span>${ydot(x.d.run)}${x.d.base?tkB(x.d.base):''}</div>`+
             pctCell(p&&p.hitF,p&&p.nF)+pctCell(p&&p.hit,p&&p.n)+
             `<div class="dtm">${w.map(t=>`<i>${t}</i>`).join('')}`+
-            (UD.has(x.tk)?`<span class="dts"><b>${x.p?money(udSlot(x.p)):'—'}</b></span>`:'')+`</div></div>`;};
+            (x.p?`<span class="dts">${seedPair(x.tk,x.p)}</span>`:'')+`</div></div>`;};
           const ud=on.filter(x=>'ud' in x.d), etc=on.filter(x=>!('ud' in x.d));
           const fold=(t,a)=>a.length?`<details class="fold dmore" data-f="dipmore"${FOLD.has('dipmore')?' open':''}><summary>${t}</summary>${a.map(row).join('')}</details>`:'';
           return ud.length?`<div class="dgl">옐로우업다운 ${ud.length}</div>`+ud.map(row).join('')+fold(`그 밖 ${etc.length}종목`,etc)
@@ -1360,7 +1366,7 @@ function render(){
         ${warnTags(tk,L).filter(w=>w!=='미회복'&&w!=='변동성 부족'&&w!=='종가 갱신 안 됨').map(w=>`<span class="w">${w}</span>`).join('')}
       </div>`:'';
     const udm=UD.has(tk), udTop=udm&&L&&L.dip&&L.dip.ud;   /* 옐로우업다운 칸을 카드 맨 위에 펼칠 수 있나 */
-    const rr=!p?'<div class="nopx">주가 입력</div>':udm?`<div class="a">${money(udSlot(p))}</div>`:'';   /* 필요 시드(옐로우업다운 최소 금액) — 이름 없이 금액만 (2026-11-23 사용자) */
+    const rr=!p?'<div class="nopx">주가 입력</div>':'';   /* 최소 시드는 줄 아래 '옐로우업다운 · 스위치법' 한 줄로 (2026-11-25 사용자) */
 
     /* 시드 */
     let seed;
@@ -1378,6 +1384,7 @@ function render(){
           <div class="rtop"><span class="tk">${tk}</span>${L&&L.dip&&L.dip.on?ydot(L.dip.run):''}<span class="lev">${kindTag(tk,lev,cus,nm)}</span>${baseOf(L)?tkB(baseOf(L)):''}
             ${nm&&nm!==CUSTOM?`<span class="nm">${nm}</span>`:''}</div>
           ${met}
+          ${p?`<div class="seeds">${seedPair(tk,p)}</div>`:''}
         </div>
         <div class="rr">${rr}</div>
       </div>
