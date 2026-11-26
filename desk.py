@@ -17,6 +17,11 @@ v3.1 (2026-11-24 사용자: CCI가 기능을 안 하면 빼도 좋다 · 시장 
   - 시장 참고에 '하이일드 스프레드'(FRED BAMLH0A0HYM2)를 더했다 — 판정에 쓰지 않는다. 근거는 CLAUDE.md '방법론 검토'.
   - 시장 참고에 '부도 걱정 급증'(빨간 점 · 예전 이름 '돈줄 경고')을 더했다: 회사채 BAA 스프레드(FRED BAA10Y)가 10거래일 사이 +0.2%p 넘게 벌어진 날.
     사용자 결정(같은 날): 시작 금액을 절반으로 줄이는 규칙 대신 경고만 띄우고 판단은 직접 한다. 판정·옐로우업다운 계산은 그대로.
+  - 2026-11-26 검토(사용자: 검토해 주고 개선점 찾아 줘): FRED는 BAA를 하루 이틀 늦게 올려 옐로우닷 날 아침 상황판에는 이틀 전 값이 보인다.
+    그 늦음대로 늦춰 다시 시험하면 '켜지면 시작 금액 절반' 효과가 사라졌다(1999~ 가상의 3배 최대 낙폭 −69% → 2일 늦음 −69% · 1일 늦음 −55%,
+    고르는 차례 60가지 가운데 나아진 차례 0 · 31). 그날 종가로 아는 회사채 ETF(LQD)와 국채 ETF(IEF)의 10거래일 수익 차이로 재면
+    −69% → −48%(60가지 모두 나아짐) · 2011~ 그대로. 사용자 결정으로 빨간 점을 이것으로 켠다(credit_etf · 1.7%p 넘게 뒤처지면).
+    하이일드 · BAA 값은 보여 주기만 한다. FRED를 못 받으면 지난 상황판 값을 10일 동안 '새 값 없음'으로 이어 쓴다(keep_old).
   - 시장 참고에 '월봉 과열 꺾임'(SPY·QQQ·SOXX 월봉 %K·CCI·RSI가 모두 과열권에 들어갔다가 모두 내려온 달)을 더했다.
     판정에는 쓰지 않는다. 월봉에서는 CCI(20개월)가 하는 일이 있어 세 지표 그대로 둔다(빼면 신호가 잦아지고 경고 효과가 약해짐).
     근거(1993~, 그 지수 수정종가): 다음 1년이 평소보다 덜 오르고 더 깊게 빠졌다 — SPY 12개월 뒤 +4.2%(평소 +12.2%) · 1년 안 최저 −15.7%(−10.6%),
@@ -217,10 +222,11 @@ def stage_of(c):
     return {'on': d['on'], 'cls': cls, 'text': text, 'stats': stats}
 
 
-def headline(cards, vix=None, hy=None, credit=None):
+def headline(cards, vix=None, hy=None, credit=None, etf=None):
     """요약 결론 — 시장 전체 (2026-11-24 사용자: 스크리너는 시장 전반 상황을 보는 곳, 옐로우닷은 진입 기회 신호일 뿐).
        주가: S&P500의 최근 한 달 흐름(빠지는 중 · 되오르는 중), 없으면 최고가 대비 단계. 다른 지수가 두 단계 넘게 깊으면 괄호로.
-       분위기: 불안(VIX 20 · 30 경계)과 회사 부도 걱정(부도 걱정 급증 · 하이일드 스프레드가 2주 +0.2%p 넘게 벌어짐 또는 1년 중 가장 넓음).
+       분위기: 불안(VIX 20 · 30 경계)과 회사 부도 걱정(부도 걱정 급증 = etf.warn · 하이일드 스프레드가 2주 +0.2%p 넘게 벌어짐 또는 1년 중 가장 넓음,
+       하이일드가 없으면 회사채(BAA) 2주 +0.1%p 넘게).
        옐로우닷은 화면의 '진입 신호' 칸이 보여 준다 — 여기서는 말하지 않는다. 매수·매도 안내도 쓰지 않는다"""
     live = [c for c in cards if c['state'] != 'wait' and c.get('mkt')]
     if not live:
@@ -248,8 +254,9 @@ def headline(cards, vix=None, hy=None, credit=None):
     v = vix.get('c') if vix else None
     if v is not None:
         lv = 3 if v >= 30 else 2 if v >= 20 else 1 if v >= 15 else 0
-        cw = bool(credit and credit.get('warn'))
-        wide = bool(hy and (hy['chg2w'] >= 0.2 or hy['hi1y'] - hy['v'] <= 0.05))
+        cw = bool(etf and etf.get('warn'))
+        wide = (bool(hy and (hy['chg2w'] >= UP_HY or hy['hi1y'] - hy['v'] <= 0.05))
+                or bool(not hy and credit and credit['chg2w'] >= UP_BAA))
         if lv >= 2:
             j = '은 아직 ' if m['move'] == 'rebound' else '이 '
             hi = '아주 높' if lv == 3 else '높'
@@ -260,7 +267,7 @@ def headline(cards, vix=None, hy=None, credit=None):
             lo = '보통이' if lv == 1 else '낮'
             b = (f"불안(VIX)은 {lo}지만 회사 부도 걱정이 급하게 커지고 있습니다" if cw else
                  f"불안(VIX)은 {lo}지만 회사 부도 걱정이 커졌습니다" if wide else
-                 f"불안(VIX)은 {lo}고 회사 부도 걱정도 크지 않습니다" if (hy or credit) else
+                 f"불안(VIX)은 {lo}고 회사 부도 걱정도 크지 않습니다" if (hy or credit or etf) else
                  f"불안(VIX)은 {'보통입니다' if lv == 1 else '낮은 편입니다'}")
     return a + '.' + (f' {b}.' if b else '')
 
@@ -420,15 +427,16 @@ def hy_stats(text):
             'spark': [{'d': dd, 'v': x} for dd, x in rows[-63:]]}
 
 
-# ───────────── 시장 참고: 부도 걱정 급증 (판정에 쓰지 않음 · 빨간 점 · 예전 이름 돈줄 경고) ─────────────
+# ───────────── 시장 지표: 부도 걱정 (판정에 넣지 않음) — 회사채(BAA) 값 · 빨간 점 '부도 걱정 급증' ─────────────
 CREDIT_URL = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAA10Y'
-CREDIT_TH = 0.2       # 회사채(BAA) 스프레드가 10거래일 전보다 이만큼(%p) 넘게 벌어지면 경고
+GAP_TH = -1.7         # 빨간 점: 회사채 ETF(LQD)가 국채 ETF(IEF)보다 10거래일 수익이 이만큼(%p)보다 더 뒤처지면
+UP_HY, UP_BAA = 0.2, 0.1   # '커지는 중': 2주 변화가 이만큼 넘게. BAA는 하이일드의 절반쯤만 움직여서(2023-12~ 2주 변화 기울기 2.2) 0.1
+OLD_DAYS = 10         # 새 값을 못 받으면 지난 상황판 값을 이만큼(달력 날) 이어 쓴다
 
 
 def fetch_credit():
-    """부도 걱정 급증(예전 이름 돈줄 경고) — 회사채(무디스 BAA) 금리 − 미국 10년 국채 금리(%) · FRED BAA10Y (2026-11-24 사용자: 시작 금액을 반으로 줄이는
-       규칙 대신 빨간 점 경고로). 하이일드는 FRED가 최근 3년치만 줘서, 1986년부터 기록이 있고 백테스트에 쓴 BAA로 판정한다.
-       못 받으면 None"""
+    """회사채(무디스 BAA) 금리 − 미국 10년 국채 금리(%) · FRED BAA10Y — 보여 주기만 한다(하이일드를 못 받았을 때 '부도 걱정' 줄에 대신).
+       FRED는 하루 이틀 늦게 올려서 빨간 점은 이 값이 아니라 credit_etf(그날 종가)로 켠다(2026-11-26). 못 받으면 None"""
     try:
         with urllib.request.urlopen(CREDIT_URL, timeout=30) as r:
             text = r.read().decode('utf-8')
@@ -438,28 +446,57 @@ def fetch_credit():
     return credit_stats(text)
 
 
-def credit_stats(text, th=CREDIT_TH):
-    """지금 값 · 2주(10거래일) 변화 · 경고 여부 · 이어진 경고의 첫날(since) · 마지막 경고 날(last) · 2011년부터 경고 묶음 수(runs)·날 수(days)"""
+def credit_stats(text):
+    """FRED CSV → 회사채(BAA) 스프레드 지금 값 · 2주(10거래일) 변화"""
     rows = fred_rows(text)
     if len(rows) < 11:
         return None
-    chg = [None] * 10 + [round(rows[i][1] - rows[i - 10][1], 2) for i in range(10, len(rows))]
-    hot = [c is not None and c > th for c in chg]
     d, v = rows[-1]
-    out = {'v': v, 'date': d, 'chg2w': chg[-1], 'th': th, 'warn': hot[-1]}
+    return {'v': v, 'date': d, 'chg2w': round(v - rows[-11][1], 2)}
+
+
+def credit_etf(L, I, th=GAP_TH):
+    """부도 걱정 급증(빨간 점) — 회사채 ETF LQD와 국채 ETF IEF(미국 7~10년)의 10거래일 수익 차이(수정종가 · 분배금 포함, %p).
+       회사채 값이 국채보다 많이 빠짐 = 회사채 이자가 국채보다 빠르게 오름 = 회사 부도 걱정이 급하게 커짐. 그날 종가로 바로 안다.
+       2026-11-26 사용자 결정(예전엔 FRED BAA 2주 +0.2%p — 하루 이틀 늦게 나와 옐로우닷 날에 쓸모가 없었다 · 맨 위 설명).
+       th보다 작으면(더 뒤처지면) 켜짐. 반환: gap · lqd · ief(10거래일 수익 %) · date · th · warn · since(켜진 묶음 첫날) 또는 last(마지막 켜진 날)
+       · runs · days(2011년부터 켜진 묶음 수 · 날 수). 둘이 함께 있는 날만 센다"""
+    x = {b['d']: b.get('a') or b['c'] for b in L}
+    y = {b['d']: b.get('a') or b['c'] for b in I}
+    ds = sorted(d for d in x if d in y)
+    if len(ds) < 11:
+        return None
+    gap = [None] * 10 + [(x[ds[i]] / x[ds[i - 10]] - y[ds[i]] / y[ds[i - 10]]) * 100 for i in range(10, len(ds))]
+    hot = [g is not None and round(g, 6) < th for g in gap]
+    out = {'gap': round(gap[-1], 2), 'lqd': round((x[ds[-1]] / x[ds[-11]] - 1) * 100, 2), 'ief': round((y[ds[-1]] / y[ds[-11]] - 1) * 100, 2),
+           'date': ds[-1], 'th': th, 'warn': hot[-1]}
     if hot[-1]:
-        i = len(rows) - 1
+        i = len(ds) - 1
         while i > 0 and hot[i - 1]:
             i -= 1
-        out['since'] = rows[i][0]
+        out['since'] = ds[i]
     else:
-        last = next((i for i in range(len(rows) - 1, -1, -1) if hot[i]), None)
+        last = next((i for i in range(len(ds) - 1, -1, -1) if hot[i]), None)
         if last is not None:
-            out['last'] = rows[last][0]
-    k = [i for i in range(len(rows)) if hot[i] and rows[i][0] >= '2011']
+            out['last'] = ds[last]
+    k = [i for i in range(len(ds)) if hot[i] and ds[i] >= '2011']
     out['days'] = len(k)
     out['runs'] = sum(1 for j, i in enumerate(k) if j == 0 or k[j - 1] != i - 1)
     return out
+
+
+def keep_old(new, prev, asof, late=0):
+    """새 값이 있으면 그대로 — 날짜가 asof보다 late일(달력) 넘게 이르면 old 표시(자료가 멈춤).
+       새 값을 못 받았으면 지난 상황판의 값을 old로 이어 쓴다(그 값 날짜가 OLD_DAYS일 안일 때만, 그 뒤로는 None).
+       2026-11-26 검토: 못 받은 날 '부도 걱정' 줄과 빨간 점이 아무 말 없이 사라졌다"""
+    age = lambda z: (datetime.date.fromisoformat(asof) - datetime.date.fromisoformat(z['date'])).days
+    if new:
+        if age(new) > late:
+            new['old'] = True
+        return new
+    if prev and prev.get('date') and age(prev) <= OLD_DAYS:
+        return {**prev, 'old': True}
+    return None
 
 
 # ───────────── 시장 참고: 월봉 과열 꺾임 (판정에 쓰지 않음) ─────────────
@@ -564,15 +601,29 @@ def main():
         c = card(prod, base, bars)
         cards.append(c)
         print(f"{base}({prod}): {(c.get('stage') or {}).get('text', c.get('line'))}")
-    hy, cr = fetch_hy(), fetch_credit()
+    try:
+        with open('desk.json', encoding='utf-8') as f:
+            prev = json.load(f)                       # 지난 상황판 — 못 받은 값을 이어 쓸 때
+    except (OSError, ValueError):
+        prev = {}
+    ce = None
+    try:
+        L, I = ([b for b in fetch(t) if b['d'] <= asof] for t in ('LQD', 'IEF'))
+        ce = credit_etf(L, I)
+    except Exception as e:
+        print('회사채 · 국채 ETF를 못 받음:', e)
+    ce = keep_old(ce, prev.get('creditEtf'), asof)              # 그날 종가가 아니면 old
+    hy = keep_old(fetch_hy(), prev.get('hy'), asof, late=5)     # FRED는 하루 이틀 늦는 게 보통 — 닷새 넘게 멈추면 old
+    cr = keep_old(fetch_credit(), prev.get('credit'), asof, late=5)
     out = {'rule': RULE, 'asof': asof, 'target': TARGET,
            'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'),
-           'cards': cards, 'market': mk, 'headline': headline(cards, mk['vix'], hy, cr),
+           'cards': cards, 'market': mk, 'headline': headline(cards, mk['vix'], hy, cr, ce),
            'uvix': uvix_brief(bars['UVIX']) if len(bars['UVIX']) > 60 else None,
            'uvixDip': uvix_dip(bars['UVIX'], bars),
            'monthWarn': [w for w in (month_warn(b, bars[b]) for _, b in PAIRS) if w],
            'hy': hy,
            'credit': cr,
+           'creditEtf': ce,
            'table': [summary_row(s.replace('^', ''), bars[s]) for s in SYMS]}
     with open('desk.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)

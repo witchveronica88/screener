@@ -395,32 +395,77 @@ class HighYield(unittest.TestCase):
         self.assertIsNone(desk.hy_stats('observation_date,X\n2024-01-01,3'))   # 너무 짧으면 None
 
 
-class CreditWarn(unittest.TestCase):
-    """부도 걱정 급증(예전 이름 돈줄 경고) — 회사채(BAA) 스프레드가 10거래일 전보다 +0.2%p 넘게 벌어진 날 (desk.credit_stats, 시장 참고 · 빨간 점)"""
-    def csv(self, vals, start='2026-01-01'):
+class CreditBaa(unittest.TestCase):
+    """회사채(BAA) 스프레드 — 보여 주기만 한다(지금 값 · 2주 변화). 빨간 점은 CreditEtf"""
+    def test_stats(self):
+        import datetime as dt
+        d0 = dt.date(2026, 1, 1)
+        text = '\n'.join(['observation_date,BAA10Y'] + [f'{d0 + dt.timedelta(days=i)},{v}' for i, v in enumerate([1.5] * 12 + [1.75])]
+                         + ['2026-01-14,'])                               # 빈 값(휴장)은 건너뛴다
+        c = desk.credit_stats(text)
+        self.assertEqual((c['v'], c['date'], c['chg2w']), (1.75, '2026-01-13', 0.25))
+        self.assertNotIn('warn', c)
+        self.assertIsNone(desk.credit_stats('observation_date,BAA10Y\n2026-01-01,1.5'))
+
+
+class CreditEtf(unittest.TestCase):
+    """부도 걱정 급증(빨간 점) — 회사채 ETF(LQD)가 국채 ETF(IEF)보다 10거래일 수익이 1.7%p 넘게 뒤처진 날 (desk.credit_etf · 그날 종가)"""
+    def bars(self, vals, start='2026-01-01', key='a'):
         import datetime as dt
         d0 = dt.date.fromisoformat(start)
-        return '\n'.join(['observation_date,BAA10Y'] + [f'{d0 + dt.timedelta(days=i)},{v}' for i, v in enumerate(vals)])
+        return [{'d': str(d0 + dt.timedelta(days=i)), 'c': v * 2, key: v} for i, v in enumerate(vals)]   # c는 일부러 다른 값 — 수정종가(a)를 쓴다
 
-    def test_warn_and_since(self):
-        v = [1.5] * 20 + [1.6, 1.75, 1.8]          # 마지막 두 날: 10줄 전 1.5보다 +0.25 · +0.3 (+0.1은 아님)
-        c = desk.credit_stats(self.csv(v))
-        self.assertTrue(c['warn'])
-        self.assertAlmostEqual(c['chg2w'], 0.3)
-        self.assertEqual(c['since'], '2026-01-22')                        # 이어진 경고의 첫날
-        self.assertEqual((c['runs'], c['days']), (1, 2))
+    def test_warn_since_runs(self):
+        L = self.bars([100] * 20 + [99, 98.2, 98.0])     # 마지막 두 날: 10거래일 전보다 −1.8% · −2.0%
+        I = self.bars([100] * 23)
+        e = desk.credit_etf(L, I)
+        self.assertTrue(e['warn'])
+        self.assertEqual((e['gap'], e['lqd'], e['ief']), (-2.0, -2.0, 0.0))
+        self.assertEqual(e['since'], '2026-01-22')                         # 이어진 묶음의 첫날
+        self.assertEqual((e['runs'], e['days'], e['date'], e['th']), (1, 2, '2026-01-23', -1.7))
+
+    def test_relative_not_absolute(self):
+        """둘 다 빠지면 차이만 본다 — 국채도 같이 빠지면(금리 오름) 부도 걱정이 아니다"""
+        e = desk.credit_etf(self.bars([100] * 12 + [96]), self.bars([100] * 12 + [97]))
+        self.assertFalse(e['warn'])
+        self.assertEqual(e['gap'], -1.0)
 
     def test_exactly_threshold_is_not_warn(self):
-        c = desk.credit_stats(self.csv([1.5] * 15 + [1.7]))                  # +0.2는 '넘게'가 아님
-        self.assertFalse(c['warn'])
-        self.assertNotIn('last', c)
+        e = desk.credit_etf(self.bars([100] * 12 + [98.3]), self.bars([100] * 13))   # −1.7은 '넘게'가 아님
+        self.assertFalse(e['warn'])
+        self.assertNotIn('last', e)
 
-    def test_last_warn_when_off(self):
-        v = [1.5] * 12 + [1.8] + [1.8] * 15                                   # 한 번 켜졌다가 10줄 뒤 꺼짐
-        c = desk.credit_stats(self.csv(v))
-        self.assertFalse(c['warn'])
-        self.assertEqual(c['last'], '2026-01-22')                         # 1.8이 10줄 전 1.5와 견줘지는 마지막 날(22번째 줄)
-        self.assertEqual(c['runs'], 1)
+    def test_last_when_off_and_dates(self):
+        L = self.bars([100] * 12 + [97] + [97] * 15)                       # 한 번 크게 뒤처졌다가 10거래일 뒤 꺼짐
+        I = self.bars([100] * 28)
+        I.pop(5)                                                           # 둘 다 있는 날만 센다
+        e = desk.credit_etf(L, I)
+        self.assertFalse(e['warn'])
+        self.assertEqual(e['last'], '2026-01-22')                          # 1/6이 빠져 10거래일 창이 하루 밀린다
+        self.assertEqual(e['runs'], 1)
+
+    def test_fallback_to_close(self):
+        L = self.bars([100] * 12 + [98], key='x')                          # 수정종가가 없으면 종가
+        e = desk.credit_etf(L, self.bars([50] * 13, key='x'))
+        self.assertTrue(e['warn'])
+        self.assertIsNone(desk.credit_etf(L[:5], L[:5]))                   # 너무 짧으면 None
+
+
+class KeepOld(unittest.TestCase):
+    """못 받은 날 지난 상황판 값을 이어 쓴다 — 'old' 표시, 10일까지 (desk.keep_old)"""
+    def test_new_value(self):
+        self.assertNotIn('old', desk.keep_old({'date': '2026-11-25', 'v': 1}, None, '2026-11-25'))
+        self.assertTrue(desk.keep_old({'date': '2026-11-24', 'v': 1}, None, '2026-11-25')['old'])          # 그날 값이어야 하는 것(ETF)
+        self.assertNotIn('old', desk.keep_old({'date': '2026-11-20', 'v': 1}, None, '2026-11-25', late=5))  # FRED는 닷새까지 보통
+        self.assertTrue(desk.keep_old({'date': '2026-11-19', 'v': 1}, None, '2026-11-25', late=5)['old'])
+
+    def test_carry_previous(self):
+        prev = {'date': '2026-11-20', 'v': 3.7, 'warn': True}
+        k = desk.keep_old(None, prev, '2026-11-25')
+        self.assertEqual((k['v'], k['warn'], k['old']), (3.7, True, True))
+        self.assertNotIn('old', prev)                                      # 지난 값은 그대로 둔다
+        self.assertIsNone(desk.keep_old(None, prev, '2026-12-01'))         # 10일 넘게 지난 값은 안 씀
+        self.assertIsNone(desk.keep_old(None, None, '2026-11-25'))
 
 
 class DeskStatus(unittest.TestCase):
@@ -458,25 +503,33 @@ class DeskStatus(unittest.TestCase):
         V = lambda c: {'c': c}
         calm = {'v': 2.84, 'chg2w': -0.05, 'hi1y': 3.5}
         cases = [
-            ([('SPY', -7.3, 'rebound'), ('QQQ', -14.3, 'rebound'), ('SOXX', -35.8, 'rebound')], V(26.62), {'v': 3.76, 'chg2w': 0.34, 'hi1y': 3.76}, {'warn': False},
+            ([('SPY', -7.3, 'rebound'), ('QQQ', -14.3, 'rebound'), ('SOXX', -35.8, 'rebound')], V(26.62), {'v': 3.76, 'chg2w': 0.34, 'hi1y': 3.76}, None, {'warn': False},
              '주가는 11/20 저점에서 되오르는 중입니다(반도체는 하락장). 불안(VIX)은 아직 높고 회사 부도 걱정도 커졌습니다.'),
-            ([('SPY', -29.1, 'fall'), ('QQQ', -28.6, 'fall'), ('SOXX', -33.9, 'fall')], V(82.7), None, {'warn': True},
+            ([('SPY', -29.1, 'fall'), ('QQQ', -28.6, 'fall'), ('SOXX', -33.9, 'fall')], V(82.7), None, None, {'warn': True},
              '주가는 하락장이고, 아직 빠지는 중입니다. 불안(VIX)이 아주 높고 회사 부도 걱정이 급하게 커지고 있습니다.'),
-            ([('SPY', -10.8, 'rebound'), ('QQQ', -13.4, 'rebound'), ('SOXX', -31.1, 'rebound')], V(26.5), {'v': 3.73, 'chg2w': -0.5, 'hi1y': 4.57}, {'warn': False},
+            ([('SPY', -10.8, 'rebound'), ('QQQ', -13.4, 'rebound'), ('SOXX', -31.1, 'rebound')], V(26.5), {'v': 3.73, 'chg2w': -0.5, 'hi1y': 4.57}, None, {'warn': False},
              '주가는 조정 구간이고, 11/20 저점에서 되오르는 중입니다. 불안(VIX)은 아직 높은 편입니다.'),
-            ([('SPY', -4.2), ('QQQ', -7.9, 'fall'), ('SOXX', -13.5, 'fall')], V(18.0), calm, {'warn': False},
+            ([('SPY', -4.2), ('QQQ', -7.9, 'fall'), ('SOXX', -13.5, 'fall')], V(18.0), calm, None, {'warn': False},
              '주가는 최고가 근처입니다(반도체는 조정). 불안(VIX)은 보통이고 회사 부도 걱정도 크지 않습니다.'),
-            ([('SPY', -0.2), ('QQQ', 0.0), ('SOXX', -9.0)], V(14.9), calm, None,
+            ([('SPY', -0.2), ('QQQ', 0.0), ('SOXX', -9.0)], V(14.9), calm, None, None,
              '주가는 최고가 근처입니다. 불안(VIX)은 낮고 회사 부도 걱정도 크지 않습니다.'),
-            ([('SPY', -5.4, 'fall'), ('QQQ', -7.1, 'fall'), ('SOXX', -16.6, 'fall')], V(18.7), {'v': 3.4, 'chg2w': 0.25, 'hi1y': 3.9}, None,
+            ([('SPY', -5.4, 'fall'), ('QQQ', -7.1, 'fall'), ('SOXX', -16.6, 'fall')], V(18.7), {'v': 3.4, 'chg2w': 0.25, 'hi1y': 3.9}, None, None,
              '주가가 빠지는 중입니다. 불안(VIX)은 보통이지만 회사 부도 걱정이 커졌습니다.'),
-            ([('SPY', -6.0), ('QQQ', -9.0), ('SOXX', -12.0)], V(16.0), None, None,
+            ([('SPY', -6.0), ('QQQ', -9.0), ('SOXX', -12.0)], V(16.0), None, None, None,
              '주가는 최고가에서 조금 내려와 있습니다. 불안(VIX)은 보통입니다.'),
+            # 하이일드를 못 받은 날: 회사채(BAA)는 절반쯤만 움직여 2주 +0.1%p 넘게면 '커졌습니다'
+            ([('SPY', -5.4, 'fall'), ('QQQ', -7.1, 'fall'), ('SOXX', -16.6, 'fall')], V(18.7), None, {'v': 1.7, 'chg2w': 0.15}, None,
+             '주가가 빠지는 중입니다. 불안(VIX)은 보통이지만 회사 부도 걱정이 커졌습니다.'),
+            ([('SPY', -0.2), ('QQQ', 0.0), ('SOXX', -9.0)], V(14.9), None, {'v': 1.5, 'chg2w': 0.05}, None,
+             '주가는 최고가 근처입니다. 불안(VIX)은 낮고 회사 부도 걱정도 크지 않습니다.'),
+            # 스프레드를 다 못 받아도 빨간 점(그날 ETF)이 있으면 말한다
+            ([('SPY', -12.0, 'fall'), ('QQQ', -14.0, 'fall'), ('SOXX', -20.5, 'fall')], V(31.0), None, None, {'warn': True},
+             '주가는 조정 구간이고, 아직 빠지는 중입니다. 불안(VIX)이 아주 높고 회사 부도 걱정이 급하게 커지고 있습니다.'),
         ]
         prod = {'SPY': 'UPRO', 'QQQ': 'TQQQ', 'SOXX': 'SOXL'}
-        for rows, vix, hy, cr, want in cases:
+        for rows, vix, hy, cr, etf, want in cases:
             cs = [self.mk(b, prod[b], dd, *mv) for b, dd, *mv in rows]
-            h = desk.headline(cs, vix, hy, cr)
+            h = desk.headline(cs, vix, hy, cr, etf)
             self.assertEqual(h, want)
             self.assertNotIn('옐로우닷', h)                                     # 결론은 시장만 — 옐로우닷은 진입 신호 칸이 보여 준다
             self.assertNotIn('옐로우업다운', h)                                 # 상황판은 그날의 상황만 (2026-11-23 사용자)
