@@ -50,7 +50,7 @@ v3.0 (2026-11-23 사용자: 블로그 원문은 이제 중요하지 않다 — �
   desk_log.json은 v2.x 원문 판정을 화면에 보인 그대로 남긴 기록(2026-11-23까지)이다. 더 쓰지 않고 고치지도 않는다.
 """
 import urllib.request, csv, io, json, time, datetime, sys
-from market import (UA, fetch, sma, indicators, is_dip, dip_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST)
+from market import (UA, fetch, sma, indicators, is_dip, dip_past, any_past, dip_targets, TARGET, TARGET2, DIP_DAYS, DIP_FAST)
 
 RULE = '옐로우닷 v3.1'
 PAIRS = [('UPRO', 'SPY'), ('TQQQ', 'QQQ'), ('SOXL', 'SOXX')]   # (과거 결과를 셀 3배 상품, 기준자산) — 화면 순서
@@ -113,6 +113,8 @@ def dip_card(base, prod, bars, I):
     li = next((i for i in range(last, max(last - 250, 0), -1) if is_dip(I, i)), None)
     r = {'on': on, 'run': run, 'past': dip_past(B, I, P),
          'k': round(I['k'][-1], 1), 'rsi': round(I['rsi'][-1], 1)}
+    if r['past']:
+        r['past'].update(any_past(B, P))                # 평소(아무 날) 비율 · 1년 뒤 — 옐로우닷 과거 결과 옆에 견줄 값
     if li is not None:
         d = B[li]['d']
         r['last'] = {'date': d, 'age': last - li, 'close': round(B[li]['c'], 2), 'mv': pct(B[-1]['c'], B[li]['c']),

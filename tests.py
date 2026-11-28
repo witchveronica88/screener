@@ -610,6 +610,26 @@ class AnyPast(unittest.TestCase):
         self.assertTrue(0 < r['any'] <= 100)
 
 
+class DipYear(unittest.TestCase):
+    """1년 뒤 — 옐로우닷 다음 날 사서 250거래일 뒤 종가 · 그 사이 최저 (dip_past) · 평소 1년 뒤 (any_past)"""
+    def test_year(self):
+        import market
+        n = 400
+        B = [{'d': f'd{i:04d}', 'o': 100, 'h': 100, 'l': 100, 'c': 100} for i in range(n)]
+        for i in range(40, 46):                       # 40~45일에 크게 빠져 옐로우닷
+            B[i] = {**B[i], 'o': 100 - (i - 39) * 6, 'h': 100 - (i - 39) * 6, 'l': 100 - (i - 39) * 6, 'c': 100 - (i - 39) * 6}
+        for i in range(46, n):
+            B[i] = {**B[i], 'o': 70, 'h': 70, 'l': 70, 'c': 70}
+        B[300] = {**B[300], 'l': 50}
+        I = market.indicators(B)
+        p = market.dip_past(B, I, B)
+        self.assertEqual(p['daysY'], 250)
+        self.assertGreaterEqual(p['nY'], 1)
+        self.assertIsNotNone(p['retY']); self.assertIsNotNone(p['minY'])
+        a = market.any_past(B, B)
+        self.assertIn('anyRetY', a); self.assertIn('anyUpY', a)
+
+
 class PreQuote(unittest.TestCase):
     """pre.py — Webull 시세에서 오늘 프리장 거래만 고른다(화면 wbQuote와 같은 셈)"""
     def test_pre(self):

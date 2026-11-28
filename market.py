@@ -14,6 +14,7 @@ TARGET = 10               # 목표 수익 (%) — 과거 결과를 셀 때 쓰�
 TARGET2 = 20              # 두 번째 목표 (%) — 같은 방식으로 함께 센다
 DIP_DAYS = 30             # 옐로우닷 뒤 목표 도달을 기다려 보는 기간 (거래일) — +10% 긴 기간 · +20%
 DIP_FAST = 15             # 짧게 보는 기간 — +10%가 이 안에 닿았는지도 따로 센다 (화면 추천순의 기준)
+DIP_YEAR = 250            # 1년(거래일) — 오래 들고 있었다면 1년 뒤 수익 · 그 사이 최저 (2026-11-28 사용자: 1년 뒤 수익도 옐로우닷 칸에)
 # 2026-11-23 사용자 결정: 20·60 → 15·30. 63종목 옐로우닷 약 2,050번: +10% 닿은 비율 15일 57% · 30일 68% (20일 62% · 60일 78%),
 # 종목끼리 차이 ±16%p · ±15%p(60일 ±12%p), 2011~18과 2019~26 순위 상관 15일 0.56 · 20일 0.51 — 짧을수록 종목이 잘 갈리고 추천순이 오래 간다.
 # 15거래일은 옐로우업다운 한 사이클이 보통 끝나는 길이와 비슷하다. 10일은 49%로 반반이라 쓰지 않는다
@@ -269,6 +270,7 @@ def dip_past(B, I, P):
     pidx = {b['d']: i for i, b in enumerate(P)}
     rows = []
     fast = []                                          # (DIP_FAST 안에 닿음, 못 닿았으면 DIP_FAST 뒤 종가 손익 %)
+    year = []                                          # (1년 뒤 종가 손익 %, 그 1년 안 가장 낮은 저가 %) — 1년이 지난 것만
     for i in range(len(B)):
         if not is_dip(I, i) or (i > 0 and is_dip(I, i - 1)):
             continue                                   # 묶음의 첫날만
@@ -276,6 +278,9 @@ def dip_past(B, I, P):
         if pi is None or pi + 1 >= len(P):
             continue
         entry = P[pi + 1]['o']; mae = 0.0; hit = hit2 = None
+        if pi + DIP_YEAR <= len(P) - 1:
+            year.append(((P[pi + DIP_YEAR]['c'] / entry - 1) * 100,
+                         (min(x['l'] for x in P[pi + 1:pi + DIP_YEAR + 1]) / entry - 1) * 100))
         end = min(pi + DIP_DAYS, len(P) - 1)
         for j in range(pi + 1, end + 1):
             if hit is None:
@@ -310,7 +315,11 @@ def dip_past(B, I, P):
             'daysF': DIP_FAST, 'nF': len(fast),
             'hitF': round(sum(1 for f in fast if f[0]) / len(fast) * 100) if fast else None,
             'missF': sum(1 for f in fast if not f[0]),
-            'missAvgF': round(statistics.fmean(f[1] for f in fast if not f[0]), 1) if any(not f[0] for f in fast) else None}
+            'missAvgF': round(statistics.fmean(f[1] for f in fast if not f[0]), 1) if any(not f[0] for f in fast) else None,
+            'daysY': DIP_YEAR, 'nY': len(year),
+            'retY': round(statistics.median(y[0] for y in year), 1) if year else None,
+            'upY': round(sum(1 for y in year if y[0] > 0) / len(year) * 100) if year else None,
+            'minY': round(statistics.fmean(y[1] for y in year), 1) if year else None}
 
 
 def any_past(B, P):
@@ -320,6 +329,7 @@ def any_past(B, P):
        하지만 AGQ 41% · 평소 42%처럼 평소와 같은 종목도 있다)"""
     pidx = {b['d']: i for i, b in enumerate(P)}
     nF = hF = n = h = 0
+    yr = []                                            # 아무 날 1년 뒤 손익 %
     for i in range(30, len(B)):                        # 지표가 서기 전 앞부분은 옐로우닷도 못 켜지므로 같이 뺀다
         pi = pidx.get(B[i]['d'])
         if pi is None or pi + DIP_FAST >= len(P):
@@ -330,9 +340,13 @@ def any_past(B, P):
         end = min(pi + DIP_DAYS, len(P) - 1)
         hj = next((j - pi for j in range(pi + 1, end + 1) if P[j]['h'] >= e * (1 + TARGET / 100)), None)
         nF += 1; hF += hj is not None and hj <= DIP_FAST
+        if pi + DIP_YEAR <= len(P) - 1:
+            yr.append((P[pi + DIP_YEAR]['c'] / e - 1) * 100)
         if hj is not None or end - pi >= DIP_DAYS:
             n += 1; h += hj is not None
-    return {'anyF': round(hF / nF * 100) if nF else None, 'any': round(h / n * 100) if n else None}
+    return {'anyF': round(hF / nF * 100) if nF else None, 'any': round(h / n * 100) if n else None,
+            'anyRetY': round(statistics.median(yr), 1) if yr else None,
+            'anyUpY': round(sum(1 for x in yr if x > 0) / len(yr) * 100) if yr else None}
 
 
 def dip_targets(B, I, P, since):
